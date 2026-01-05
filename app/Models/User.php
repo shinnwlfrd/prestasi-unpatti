@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'photo',
     ];
 
     /**
@@ -44,5 +46,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function validatorProfile()
+    {
+        return $this->hasOne(ValidatorProfile::class);
+    }
+
+    public function validatedAchievements()
+    {
+        return $this->hasMany(StudentAchievement::class, 'validator_id');
+    }
+
+    public function validationLogs()
+    {
+        return $this->hasMany(ValidationLog::class, 'validator_id');
+    }
+
+    public function getPhotoUrlAttribute()
+    {
+        return $this->photo ? asset('storage/' . $this->photo) : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=10b981&color=fff';
     }
 }
