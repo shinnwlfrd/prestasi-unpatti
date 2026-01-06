@@ -19,12 +19,15 @@ class StudentAchievement extends Model
         'event_date',
         'description',
         'certificate_path',
+        'submitted_at',
         'validation_status',
         'validator_id',
+        'submitted_by',
     ];
 
     protected $casts = [
         'event_date' => 'date',
+        'submitted_at' => 'datetime',
     ];
 
     // Relasi

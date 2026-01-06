@@ -66,6 +66,7 @@
                             <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Tanggal Validasi</th>
                             <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Validator</th>
                             <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Status</th>
+                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Surat SK</th>
                             <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Catatan</th>
                         </tr>
                     </thead>
@@ -95,11 +96,21 @@
                                     {{ $status }}
                                 </span>
                             </td>
+                            <td class="px-4 py-3">
+                                @if($log->sk_document)
+                                <a href="{{ asset('storage/' . $log->sk_document) }}" target="_blank" class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-xs">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Lihat SK
+                                </a>
+                                @else
+                                <span class="text-gray-400 text-xs">-</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-gray-600 dark:text-gray-400 max-w-xs truncate">{{ $log->notes ?? '-' }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Belum ada riwayat validasi.</td>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Belum ada riwayat validasi.</td>
                         </tr>
                         @endforelse
                     </tbody>

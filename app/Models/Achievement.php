@@ -10,8 +10,7 @@ class Achievement extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'category', // 'Akademik' / 'Non-akademik'
+        'category', // 'Akademik' / 'Non-Akademik'
     ];
 
     // Relasi

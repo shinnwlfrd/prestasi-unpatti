@@ -42,10 +42,14 @@
             <form action="{{ route('student.achievement.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                 @csrf
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Jenis Prestasi</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Kategori Prestasi <span class="text-red-500">*</span>
+                    </label>
                     <select name="achievement_id" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Pilih Jenis Prestasi --</option>
-                        @foreach($types as $type)<option value="{{ $type->id }}" {{ old('achievement_id') == $type->id ? 'selected' : '' }}>{{ $type->name }} ({{ $type->category }})</option>@endforeach
+                        <option value="">-- Pilih Kategori --</option>
+                        @foreach($types as $type)
+                        <option value="{{ $type->id }}" {{ old('achievement_id') == $type->id ? 'selected' : '' }}>{{ $type->category }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div>

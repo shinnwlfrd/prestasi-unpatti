@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 use App\Models\Achievement;
 use App\Models\StudentAchievement;
 
@@ -38,8 +36,10 @@ class StudentAchievementController extends Controller
             'organizer' => $request->organizer,
             'event_date' => $request->event_date,
             'description' => $request->description,
-            'certificate_path' => $path,
+            'certificate' => $path,
+            'submitted_at' => now(),
             'validation_status' => 'Menunggu',
+            'submitted_by' => 'student',
         ]);
 
         return redirect()->route('student.dashboard')->with('success', 'Prestasi berhasil diajukan!');

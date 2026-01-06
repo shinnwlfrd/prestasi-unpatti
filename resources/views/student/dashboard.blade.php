@@ -103,7 +103,7 @@
                         @forelse($studentAchievements as $item)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
                             <td class="px-4 py-3 text-gray-800 dark:text-gray-200">{{ $item->event_name }}</td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $item->achievement->name ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $item->achievement->category ?? '-' }}</td>
                             <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $item->level }}</td>
                             <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ \Carbon\Carbon::parse($item->event_date)->format('d M Y') }}</td>
                             <td class="px-4 py-3">

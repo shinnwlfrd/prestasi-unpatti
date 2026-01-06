@@ -19,7 +19,7 @@ class PrestasiMahasiswaSeeder extends Seeder
     {
         $faker = Faker::create('id_ID');
 
-        // 1. Buat User Admin (akses Filament)
+        // 1. Buat User Admin
         User::create([
             'name' => 'Admin Sistem',
             'email' => 'admin@univ.ac.id',
@@ -27,7 +27,7 @@ class PrestasiMahasiswaSeeder extends Seeder
             'role' => 'Admin',
         ]);
 
-        // 2. Buat User Validator (akses dashboard validator)
+        // 2. Buat User Validator
         $validator = User::create([
             'name' => 'Validator Prestasi',
             'email' => 'validator@univ.ac.id',
@@ -43,25 +43,11 @@ class PrestasiMahasiswaSeeder extends Seeder
             'department' => 'Bidang Kemahasiswaan',
         ]);
 
-        // 2. Buat Jenis Prestasi
-        $achievements = Achievement::insertGetId([
-            'name' => 'Juara Lomba Debat Nasional',
-            'category' => 'Non-akademik',
-        ]);
+        // 3. Buat 2 Kategori Prestasi
+        $akademik = Achievement::create(['category' => 'Akademik']);
+        $nonAkademik = Achievement::create(['category' => 'Non-Akademik']);
 
-        Achievement::insertGetId([
-            'name' => 'Peneliti Muda Terbaik',
-            'category' => 'Akademik',
-        ]);
-
-        Achievement::insertGetId([
-            'name' => 'Peserta Pertukaran Mahasiswa Internasional',
-            'category' => 'Non-akademik',
-        ]);
-
-        $achievementIds = Achievement::pluck('id')->toArray();
-
-        // 3. Buat Mahasiswa Testing dengan kredensial tetap
+        // 4. Buat Mahasiswa Test
         $testStudent = Student::create([
             'student_id' => '2021001001',
             'name' => 'Mahasiswa Test',
@@ -79,12 +65,12 @@ class PrestasiMahasiswaSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $studentIds = [$testStudent->student_id];
+        $students = [$testStudent];
 
-        // Buat mahasiswa random tambahan
+        // 5. Buat 4 mahasiswa tambahan
         for ($i = 1; $i <= 4; $i++) {
-            $nim = '12345678' . str_pad($i, 2, '0', STR_PAD_LEFT);
-            $name = $faker->name;
+            $nim = '2021001' . str_pad($i + 1, 3, '0', STR_PAD_LEFT);
+            $name = $faker->name();
             $email = strtolower(str_replace(' ', '.', $name)) . '@student.univ.ac.id';
 
             $student = Student::create([
@@ -104,36 +90,57 @@ class PrestasiMahasiswaSeeder extends Seeder
                 'is_active' => true,
             ]);
 
-            $studentIds[] = $student->student_id;
+            $students[] = $student;
         }
 
-        // 4. Buat Prestasi Mahasiswa
+        // 6. Buat Prestasi Mahasiswa
         $levels = ['Universitas', 'Nasional', 'Internasional'];
         $statuses = ['Menunggu', 'Disetujui', 'Ditolak'];
-        $prestasiData = [];
+        $achievements = [$akademik, $nonAkademik];
 
-        foreach ($studentIds as $studentId) {
-            for ($j = 0; $j < rand(1, 3); $j++) {
-                $prestasiData[] = [
-                    'student_id' => $studentId,
-                    'achievement_id' => $faker->randomElement($achievementIds),
-                    'event_name' => $faker->sentence(3),
+        $akademikEvents = [
+            'Publikasi Jurnal Internasional',
+            'Penelitian Terbaik Bidang Teknologi',
+            'Beasiswa Akademik Penuh',
+            'Presentasi Paper di Konferensi Nasional',
+            'Penghargaan Akademik Terbaik',
+        ];
+
+        $nonAkademikEvents = [
+            'Juara Lomba Debat Nasional',
+            'Peserta Pertukaran Mahasiswa Internasional',
+            'Juara Kompetisi Olahraga Nasional',
+            'Juara Kompetisi Robotika Internasional',
+            'Peserta Program Magang Luar Negeri',
+            'Juara Lomba Inovasi Teknologi',
+        ];
+
+        foreach ($students as $student) {
+            // 2-3 prestasi per mahasiswa
+            for ($j = 0; $j < rand(2, 3); $j++) {
+                $achievement = $faker->randomElement($achievements);
+                $eventList = $achievement->id === $akademik->id ? $akademikEvents : $nonAkademikEvents;
+                $eventName = $faker->randomElement($eventList);
+                $status = $faker->randomElement($statuses);
+
+                StudentAchievement::create([
+                    'student_id' => $student->student_id,
+                    'achievement_id' => $achievement->id,
+                    'event_name' => $eventName,
                     'level' => $faker->randomElement($levels),
-                    'organizer' => $faker->company,
+                    'organizer' => $faker->company(),
                     'event_date' => $faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d'),
-                    'description' => $faker->paragraph,
-                    'certificate_path' => 'certificates/sample.pdf',
-                    'validation_status' => $status = $faker->randomElement($statuses),
-                    'validator_id' => in_array($status, ['Disetujui', 'Ditolak']) ? $validator->id : null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+                    'description' => $faker->paragraph(),
+                    'certificate' => 'certificates/sample.pdf',
+                    'validation_status' => $status,
+                    'validator_id' => \in_array($status, ['Disetujui', 'Ditolak']) ? $validator->id : null,
+                    'submitted_by' => 'student',
+                    'submitted_at' => now(),
+                ]);
             }
         }
 
-        StudentAchievement::insert($prestasiData);
-
-        // 5. Buat ValidationLog untuk setiap Approved/Rejected
+        // 7. Buat ValidationLog untuk prestasi yang sudah divalidasi
         $validatedAchievements = StudentAchievement::whereIn('validation_status', ['Disetujui', 'Ditolak'])->get();
         foreach ($validatedAchievements as $ach) {
             ValidationLog::create([
@@ -141,8 +148,9 @@ class PrestasiMahasiswaSeeder extends Seeder
                 'validator_id' => $ach->validator_id,
                 'old_status' => 'Menunggu',
                 'new_status' => $ach->validation_status,
+                'sk_document' => 'sk_documents/sample.pdf',
                 'validated_at' => now(),
-                'notes' => $ach->validation_status === 'Ditolak' ? 'Bukti tidak valid.' : null,
+                'notes' => $ach->validation_status === 'Ditolak' ? 'Bukti tidak lengkap atau tidak sesuai kriteria.' : null,
             ]);
         }
     }

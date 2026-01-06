@@ -39,19 +39,6 @@ class AdminController extends Controller
         return view('admin.achievements.index', compact('types'));
     }
 
-    public function storeAchievementType(Request $request)
-    {
-        $request->validate(['name' => 'required|string|max:255', 'category' => 'required|in:Akademik,Non-akademik']);
-        Achievement::create($request->only('name', 'category'));
-        return back()->with('success', 'Jenis prestasi berhasil ditambahkan.');
-    }
-
-    public function deleteAchievementType(Achievement $achievement)
-    {
-        $achievement->delete();
-        return back()->with('success', 'Jenis prestasi berhasil dihapus.');
-    }
-
     // Student Achievements
     public function studentAchievements()
     {

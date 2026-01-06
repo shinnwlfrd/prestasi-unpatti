@@ -16,11 +16,15 @@ class ValidationLog extends Model
         'old_status',
         'new_status',
         'notes',
+        'sk_document',
+        'validation_type',
+        'metadata',
         'validated_at',
     ];
 
     protected $casts = [
         'validated_at' => 'datetime',
+        'metadata' => 'array',
     ];
 
     // Relasi
