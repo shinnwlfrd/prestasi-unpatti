@@ -49,18 +49,35 @@
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($users as $u)
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                        <td class="px-4 py-3 text-gray-800 dark:text-gray-200">{{ $u->name }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-800 dark:text-gray-200">{{ $u->name }}</span>
+                                @if($u->provider)
+                                    <span class="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded flex items-center gap-0.5" title="Terhubung dengan SSO">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        SSO
+                                    </span>
+                                @endif
+                            </div>
+                        </td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $u->email }}</td>
                         <td class="px-4 py-3"><span class="px-2.5 py-1 rounded-full text-xs font-medium {{ $u->role == 'Admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' }}">{{ $u->role }}</span></td>
                         <td class="px-4 py-3">
-                            @if($u->id !== auth()->id())
-                            <form action="{{ route('admin.users.delete', $u) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400 text-sm">Hapus</button>
-                            </form>
-                            @else
-                            <span class="text-gray-400 text-sm">-</span>
-                            @endif
+                            <div class="flex items-center gap-2">
+                                @if(!$u->is_active)
+                                    <span class="px-2 py-0.5 text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded">Nonaktif</span>
+                                @endif
+                                @if($u->id !== auth()->id())
+                                <form action="{{ route('admin.users.delete', $u) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400 text-sm">Hapus</button>
+                                </form>
+                                @else
+                                <span class="text-gray-400 text-sm">-</span>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty

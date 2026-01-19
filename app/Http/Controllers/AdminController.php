@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Achievement;
+use App\Models\AuthLog;
 use App\Models\Student;
 use App\Models\StudentAchievement;
 use App\Models\User;
@@ -51,6 +52,31 @@ class AdminController extends Controller
     {
         $logs = ValidationLog::with(['studentAchievement.student', 'validator'])->latest()->paginate(15);
         return view('admin.validation-logs.index', compact('logs'));
+    }
+
+    // Auth Logs
+    public function authLogs()
+    {
+        $logs = AuthLog::with('user')->latest()->paginate(20);
+        
+        $stats = [
+            'login_today' => AuthLog::where('action', 'login')
+                ->whereDate('created_at', today())
+                ->count(),
+            'sso_logins' => AuthLog::where('action', 'login')
+                ->where('method', 'sso')
+                ->whereDate('created_at', today())
+                ->count(),
+            'local_logins' => AuthLog::where('action', 'login')
+                ->where('method', 'local')
+                ->whereDate('created_at', today())
+                ->count(),
+            'failed_logins' => AuthLog::where('action', 'failed_login')
+                ->whereDate('created_at', today())
+                ->count(),
+        ];
+        
+        return view('admin.auth-logs', compact('logs', 'stats'));
     }
 
     // Users

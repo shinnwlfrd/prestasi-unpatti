@@ -1,129 +1,161 @@
-<!DOCTYPE html>
-<html lang="id" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :class="{ 'dark': darkMode }">
-<head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Riwayat Validasi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <h1 class="text-xl font-bold text-gray-800 dark:text-white">Panel Validator</h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                    <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                    <svg x-show="darkMode" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                </button>
-                <span class="text-gray-600 dark:text-gray-300 font-medium">{{ auth()->user()->name }}</span>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Logout</button>
-                </form>
-            </div>
-        </div>
-    </nav>
+@extends('layouts.app')
 
-    <div class="container mx-auto p-6">
-        <!-- Info Validator dengan Foto -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6 border border-gray-200 dark:border-gray-700">
-            <div class="flex flex-col md:flex-row gap-6">
-                <div class="flex-shrink-0">
-                    <img src="{{ auth()->user()->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode(auth()->user()->name) . '&background=10b981&color=fff&size=128' }}" 
-                         alt="Foto Profil" class="w-24 h-24 rounded-2xl object-cover border-4 border-green-100 dark:border-green-900/50 shadow-lg">
-                </div>
-                <div class="flex-1">
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-1">{{ auth()->user()->name }}</h2>
-                    <p class="text-green-600 dark:text-green-400 font-medium mb-3">{{ auth()->user()->role }}</p>
-                    <p class="text-gray-500 dark:text-gray-400 text-sm">Riwayat validasi prestasi mahasiswa</p>
-                </div>
-            </div>
+@section('title', 'Riwayat Validasi')
+@section('subtitle', 'Panel Validator')
+
+@php
+    $userName = auth()->user()->name ?? 'Validator';
+@endphp
+
+@section('nav-links')
+    <div class="hidden md:flex items-center gap-1 bg-gray-100/50 dark:bg-gray-700/50 rounded-xl p-1">
+        <a href="{{ route('validator.dashboard') }}"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.dashboard') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
+            Menunggu
+        </a>
+        <a href="{{ route('validator.history') }}"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.history') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
+            Riwayat
+        </a>
+    </div>
+@endsection
+
+@section('content')
+    <div class="space-y-6 animate-fade-in">
+        <!-- Mobile Tabs -->
+        <div class="flex md:hidden gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl">
+            <a href="{{ route('validator.dashboard') }}"
+                class="flex-1 py-2 text-center rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.dashboard') ? 'bg-white dark:bg-gray-600 text-emerald-600' : 'text-gray-600' }}">Menunggu</a>
+            <a href="{{ route('validator.history') }}"
+                class="flex-1 py-2 text-center rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.history') ? 'bg-white dark:bg-gray-600 text-emerald-600' : 'text-gray-600' }}">Riwayat</a>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
-            <a href="{{ route('validator.dashboard') }}" class="pb-3 px-1 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">Menunggu Validasi</a>
-            <a href="{{ route('validator.history') }}" class="pb-3 px-1 border-b-2 border-green-500 text-green-600 dark:text-green-400 font-medium">Riwayat</a>
-        </div>
-
-        <!-- Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <!-- History Table -->
+        <x-card title="Riwayat Validasi" :padding="false">
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-gray-700/50">
+                <table class="w-full">
+                    <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
                         <tr>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Mahasiswa</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Prestasi</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Tanggal Validasi</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Validator</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Status</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Surat SK</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Catatan</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Mahasiswa</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">
+                                Prestasi</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
+                                Tanggal</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Status</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">
+                                SK</th>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden xl:table-cell">
+                                Catatan</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                         @forelse ($logs as $log)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                            <td class="px-4 py-3">
-                                <div class="font-medium text-gray-800 dark:text-white">{{ $log->studentAchievement->student->name ?? '-' }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $log->studentAchievement->student->student_id ?? '-' }}</div>
-                            </td>
-                            <td class="px-4 py-3">
-                                <div class="text-gray-800 dark:text-gray-200">{{ $log->studentAchievement->event_name ?? '-' }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $log->studentAchievement->achievement->name ?? '-' }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $log->validated_at ? \Carbon\Carbon::parse($log->validated_at)->format('d M Y H:i') : '-' }}</td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $log->validator->name ?? '-' }}</td>
-                            <td class="px-4 py-3">
-                                @php
-                                    $status = $log->new_status;
-                                    $badge = match($status) {
-                                        'Disetujui' => 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300',
-                                        'Ditolak' => 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300',
-                                        default => 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300',
-                                    };
-                                @endphp
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $badge }}">
-                                    {{ $status }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                @if($log->sk_document)
-                                <a href="{{ asset('storage/' . $log->sk_document) }}" target="_blank" class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-xs">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    Lihat SK
-                                </a>
-                                @else
-                                <span class="text-gray-400 text-xs">-</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400 max-w-xs truncate">{{ $log->notes ?? '-' }}</td>
-                        </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                                            {{ strtoupper(substr($log->studentAchievement->student->name ?? 'M', 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-gray-800 dark:text-white">
+                                                {{ $log->studentAchievement->student->name ?? '-' }}</div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ $log->studentAchievement->student->student_id ?? '-' }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 hidden sm:table-cell">
+                                    <div class="text-gray-800 dark:text-white font-medium">
+                                        {{ Str::limit($log->studentAchievement->event_name ?? '-', 30) }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ $log->studentAchievement->achievement->category ?? '-' }}</div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm hidden md:table-cell">
+                                    {{ $log->validated_at ? \Carbon\Carbon::parse($log->validated_at)->format('d M Y H:i') : '-' }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    @php
+                                        $statusStyles = [
+                                            'Disetujui' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+                                            'Ditolak' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                                        ];
+                                    @endphp
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold {{ $statusStyles[$log->new_status] ?? 'bg-gray-100 text-gray-700' }}">
+                                        @if($log->new_status === 'Disetujui')
+                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        @else
+                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        @endif
+                                        {{ $log->new_status }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 hidden lg:table-cell">
+                                    @if($log->sk_document)
+                                        <a href="{{ asset('storage/' . $log->sk_document) }}" target="_blank"
+                                            class="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-700 text-sm font-medium">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            View
+                                        </a>
+                                    @else
+                                        <span class="text-gray-400 text-sm">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm hidden xl:table-cell">
+                                    <span class="truncate max-w-[200px] block"
+                                        title="{{ $log->notes }}">{{ $log->notes ?? '-' }}</span>
+                                </td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Belum ada riwayat validasi.</td>
-                        </tr>
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <div
+                                            class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-800 dark:text-white font-medium">Belum ada riwayat</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Validasi prestasi akan muncul di
+                                                sini.</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        </div>
 
-        @if($logs->hasPages())
-        <div class="mt-4">
-            {{ $logs->links() }}
-        </div>
-        @endif
+            @if($logs->hasPages())
+                <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+                    {{ $logs->links() }}
+                </div>
+            @endif
+        </x-card>
     </div>
-<script src="https://instant.page/5.2.0" type="module" integrity="sha384-jnZyxPjiipYXnSU0ber8UYWa/3y+LA2aLGeB5rWGKbgsNJYgLAw0qauPVhSQqxr4"></script>
-</body>
-</html>
+@endsection

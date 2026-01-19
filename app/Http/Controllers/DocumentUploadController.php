@@ -1,0 +1,318 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\UploadDocumentsRequest;
+use App\Models\AchievementDocument;
+use App\Models\StudentAchievement;
+use App\Services\DocumentUploadService;
+use App\Services\DocumentVerificationService;
+use App\Services\CredibilityService;
+use Illuminate\Http\Request;
+
+class DocumentUploadController extends Controller
+{
+    protected DocumentUploadService $uploadService;
+    protected DocumentVerificationService $verificationService;
+    protected CredibilityService $credibilityService;
+
+    public function __construct(
+        DocumentUploadService $uploadService,
+        DocumentVerificationService $verificationService,
+        CredibilityService $credibilityService
+    ) {
+        $this->uploadService = $uploadService;
+        $this->verificationService = $verificationService;
+        $this->credibilityService = $credibilityService;
+    }
+
+    public function index(StudentAchievement $achievement)
+    {
+        $achievement->load(['documents.revisions', 'documents.verifier']);
+        $documentTypes = AchievementDocument::DOCUMENT_TYPES;
+        $isNonAkademik = $achievement->achievement?->category === 'Non-Akademik';
+        $documentStats = $this->verificationService->getDocumentStatistics($achievement);
+
+        return view('achievements.documents.index', compact(
+            'achievement',
+            'documentTypes',
+            'isNonAkademik',
+            'documentStats'
+        ));
+    }
+
+    public function store(UploadDocumentsRequest $request, StudentAchievement $achievement)
+    {
+        $files = $request->file('documents', []);
+        $types = $request->input('document_types', []);
+        $asDraft = $request->boolean('as_draft', true);
+
+        $result = $this->uploadService->uploadMultipleDocuments($achievement, $files, $types, $asDraft);
+
+        // Handle external links
+        if ($request->has('external_links')) {
+            foreach ($request->external_links as $link) {
+                if (!empty($link['url'])) {
+                    $this->uploadService->addExternalLink(
+                        $achievement,
+                        $link['url'],
+                        $link['title'] ?? 'Link Publikasi',
+                        $asDraft
+                    );
+                }
+            }
+        }
+
+        // Update credibility score
+        $achievement->updateCredibilityScore();
+
+        // Validate document requirements
+        $validationErrors = $this->credibilityService->validateDocumentRequirements($achievement);
+
+        if (!empty($result['errors'])) {
+            return back()
+                ->with('warning', 'Beberapa file gagal diunggah.')
+                ->with('upload_errors', $result['errors']);
+        }
+
+        $message = count($result['uploaded']) . ' dokumen berhasil diunggah sebagai ' . ($asDraft ? 'draft' : 'pending') . '.';
+        if (!empty($validationErrors)) {
+            $message .= ' Perhatian: ' . implode(' ', $validationErrors);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    public function upload(Request $request, StudentAchievement $achievement)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'document_type' => 'required|in:' . implode(',', array_keys(AchievementDocument::DOCUMENT_TYPES)),
+            'as_draft' => 'boolean',
+        ]);
+
+        try {
+            $document = $this->uploadService->uploadDocument(
+                $achievement,
+                $request->file('file'),
+                $request->document_type,
+                $request->boolean('as_draft', true)
+            );
+
+            $achievement->updateCredibilityScore();
+
+            return response()->json([
+                'success' => true,
+                'document' => [
+                    'id' => $document->id,
+                    'file_name' => $document->file_name,
+                    'file_url' => $document->file_url,
+                    'file_size' => $document->file_size_formatted,
+                    'type_name' => $document->type_name,
+                    'status' => $document->status,
+                    'status_label' => $document->status_label,
+                    'is_image' => $document->isImage(),
+                    'can_edit' => $document->canBeEdited(),
+                ],
+                'credibility_score' => $achievement->fresh()->credibility_score,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function replace(Request $request, AchievementDocument $document)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        // Check authorization
+        $achievement = $document->studentAchievement;
+        $this->authorizeDocumentAccess($achievement);
+
+        if (!$document->canBeEdited()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Dokumen tidak dapat diubah karena sudah diverifikasi.',
+            ], 403);
+        }
+
+        try {
+            $document = $this->uploadService->replaceDocument($document, $request->file('file'));
+            $achievement->updateCredibilityScore();
+
+            return response()->json([
+                'success' => true,
+                'document' => [
+                    'id' => $document->id,
+                    'file_name' => $document->file_name,
+                    'file_url' => $document->file_url,
+                    'file_size' => $document->file_size_formatted,
+                    'status' => $document->status,
+                    'status_label' => $document->status_label,
+                ],
+                'credibility_score' => $achievement->fresh()->credibility_score,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function submit(StudentAchievement $achievement)
+    {
+        $this->authorizeDocumentAccess($achievement);
+
+        $count = $this->uploadService->submitDocuments($achievement);
+
+        if ($count === 0) {
+            return back()->with('warning', 'Tidak ada dokumen draft yang bisa disubmit.');
+        }
+
+        return back()->with('success', $count . ' dokumen berhasil disubmit untuk verifikasi.');
+    }
+
+    public function submitSingle(AchievementDocument $document)
+    {
+        $this->authorizeDocumentAccess($document->studentAchievement);
+
+        if ($this->uploadService->submitSingleDocument($document)) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => $document->fresh()->status,
+                    'status_label' => $document->fresh()->status_label,
+                ]);
+            }
+            return back()->with('success', 'Dokumen berhasil disubmit untuk verifikasi.');
+        }
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => false, 'error' => 'Dokumen tidak dapat disubmit.'], 422);
+        }
+        return back()->with('error', 'Dokumen tidak dapat disubmit.');
+    }
+
+    public function destroy(AchievementDocument $document)
+    {
+        $achievement = $document->studentAchievement;
+        $this->authorizeDocumentAccess($achievement);
+
+        if (!$document->canBeDeleted()) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Dokumen tidak dapat dihapus karena sudah diverifikasi.',
+                ], 403);
+            }
+            return back()->with('error', 'Dokumen tidak dapat dihapus karena sudah diverifikasi.');
+        }
+
+        try {
+            $this->uploadService->deleteDocument($document);
+            $achievement->updateCredibilityScore();
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'credibility_score' => $achievement->fresh()->credibility_score,
+                ]);
+            }
+
+            return back()->with('success', 'Dokumen berhasil dihapus.');
+        } catch (\Exception $e) {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 422);
+            }
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function preview(AchievementDocument $document)
+    {
+        if ($document->document_type === AchievementDocument::TYPE_LINK_PUBLIKASI) {
+            return redirect()->away($document->external_link);
+        }
+
+        if (!$document->file_path) {
+            abort(404);
+        }
+
+        return response()->file(storage_path('app/public/' . $document->file_path));
+    }
+
+    public function history(AchievementDocument $document)
+    {
+        $document->load(['revisions.performer', 'studentAchievement']);
+
+        return view('achievements.documents.history', compact('document'));
+    }
+
+    // Admin/Validator methods
+    public function verify(Request $request, AchievementDocument $document)
+    {
+        $request->validate([
+            'action' => 'required|in:approve,reject,revision',
+            'notes' => 'required_if:action,reject,revision|nullable|string|max:1000',
+        ]);
+
+        $user = auth()->user();
+
+        $result = match($request->action) {
+            'approve' => $this->verificationService->approveDocument($document, $user, $request->notes),
+            'reject' => $this->verificationService->rejectDocument($document, $user, $request->notes),
+            'revision' => $this->verificationService->requestRevision($document, $user, $request->notes),
+            default => false,
+        };
+
+        if ($result) {
+            $message = match($request->action) {
+                'approve' => 'Dokumen berhasil disetujui.',
+                'reject' => 'Dokumen berhasil ditolak.',
+                'revision' => 'Permintaan revisi berhasil dikirim.',
+                default => 'Status dokumen berhasil diperbarui.',
+            };
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'document' => [
+                        'status' => $document->fresh()->status,
+                        'status_label' => $document->fresh()->status_label,
+                    ],
+                ]);
+            }
+
+            return back()->with('success', $message);
+        }
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => false, 'error' => 'Gagal memproses verifikasi.'], 422);
+        }
+        return back()->with('error', 'Gagal memproses verifikasi.');
+    }
+
+    protected function authorizeDocumentAccess(StudentAchievement $achievement): void
+    {
+        $user = auth()->user();
+        
+        // Admin and validator can access all
+        if (in_array($user->role, ['Admin', 'Validator'])) {
+            return;
+        }
+
+        // Student can only access their own
+        if ($user->student && $achievement->student_id === $user->student->student_id) {
+            return;
+        }
+
+        abort(403, 'Unauthorized access.');
+    }
+}

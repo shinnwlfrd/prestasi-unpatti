@@ -23,12 +23,11 @@ class StudentAchievementController extends Controller
             'organizer' => 'required|string|max:255',
             'event_date' => 'required|date',
             'description' => 'nullable|string',
-            'certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'ranking' => 'nullable|string|max:100',
+            'certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
-        $path = $request->file('certificate')->store('certificates', 'public');
-
-        StudentAchievement::create([
+        $achievement = StudentAchievement::create([
             'student_id' => session('student_id'),
             'achievement_id' => $request->achievement_id,
             'event_name' => $request->event_name,
@@ -36,12 +35,29 @@ class StudentAchievementController extends Controller
             'organizer' => $request->organizer,
             'event_date' => $request->event_date,
             'description' => $request->description,
-            'certificate' => $path,
+            'ranking' => $request->ranking,
             'submitted_at' => now(),
-            'validation_status' => 'Menunggu',
+            'validation_status' => 'pending',
             'submitted_by' => 'student',
         ]);
 
-        return redirect()->route('student.dashboard')->with('success', 'Prestasi berhasil diajukan!');
+        // If certificate uploaded, create document
+        if ($request->hasFile('certificate')) {
+            $path = $request->file('certificate')->store('achievements/' . $achievement->sa_id, 'public');
+            $file = $request->file('certificate');
+            
+            \App\Models\AchievementDocument::create([
+                'sa_id' => $achievement->sa_id,
+                'document_type' => 'sertifikat',
+                'file_path' => $path,
+                'file_name' => $file->getClientOriginalName(),
+                'file_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'status' => 'draft',
+            ]);
+        }
+
+        return redirect()->route('achievements.documents.index', $achievement)
+            ->with('success', 'Prestasi berhasil diajukan! Silakan upload dokumen pendukung.');
     }
 }

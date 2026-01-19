@@ -1,130 +1,216 @@
-<!DOCTYPE html>
-<html lang="id" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :class="{ 'dark': darkMode }">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Dashboard Mahasiswa</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                    </svg>
-                </div>
-                <h1 class="text-xl font-bold text-gray-800 dark:text-white">Portal Prestasi</h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                    <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                    <svg x-show="darkMode" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                </button>
-                <span class="text-gray-600 dark:text-gray-300 font-medium">{{ $student->name ?? 'Mahasiswa' }}</span>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Logout</button>
-                </form>
-            </div>
-        </div>
-    </nav>
+@extends('layouts.app')
 
-    <div class="container mx-auto p-6">
-        @if(session('success'))
-        <div class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 p-4 rounded-xl mb-6">
-            {{ session('success') }}
-        </div>
-        @endif
+@section('title', 'Dashboard Mahasiswa')
+@section('subtitle', 'Portal Mahasiswa')
 
-        <!-- Info Mahasiswa dengan Foto -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6 border border-gray-200 dark:border-gray-700">
+@php
+    $userName = $student->name ?? 'Mahasiswa';
+    $totalAchievements = $studentAchievements->count();
+    $approved = $studentAchievements->where('validation_status', 'approved')->count();
+    $pending = $studentAchievements->where('validation_status', 'pending')->count();
+    $rejected = $studentAchievements->where('validation_status', 'rejected')->count();
+    $needRevision = $studentAchievements->where('validation_status', 'need_revision')->count();
+@endphp
+
+@section('content')
+    <div class="space-y-6 animate-fade-in">
+        <!-- Profile Card -->
+        <x-card>
             <div class="flex flex-col md:flex-row gap-6">
-                <!-- Foto Profil -->
+                <!-- Profile Photo -->
                 <div class="flex-shrink-0">
-                    <img src="{{ $student->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($student->name ?? 'M') . '&background=3b82f6&color=fff&size=128' }}" 
-                         alt="Foto Profil" 
-                         class="w-32 h-32 rounded-2xl object-cover border-4 border-blue-100 dark:border-blue-900/50 shadow-lg">
+                    <div class="relative">
+                        <img src="{{ $student->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($student->name ?? 'M') . '&background=6366f1&color=fff&size=128' }}"
+                            alt="Foto Profil"
+                            class="w-28 h-28 rounded-2xl object-cover border-4 border-indigo-100 dark:border-indigo-900/50 shadow-lg">
+                        <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-800">
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
-                <!-- Informasi -->
+
+                <!-- Profile Info -->
                 <div class="flex-1">
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-1">{{ $student->name ?? '-' }}</h2>
-                    <p class="text-blue-600 dark:text-blue-400 font-medium mb-4">{{ $student->student_id ?? '-' }}</p>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                            <span class="text-gray-500 dark:text-gray-400 text-xs">Fakultas</span>
-                            <p class="font-semibold text-gray-800 dark:text-white">{{ $student->faculty ?? '-' }}</p>
+                    <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{{ $student->name ?? '-' }}</h2>
+                            <p class="text-indigo-600 dark:text-indigo-400 font-semibold">{{ $student->student_id ?? '-' }}</p>
                         </div>
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                            <span class="text-gray-500 dark:text-gray-400 text-xs">Program Studi</span>
-                            <p class="font-semibold text-gray-800 dark:text-white">{{ $student->program_study ?? '-' }}</p>
+                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                            Semester {{ $student->semester ?? '-' }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Fakultas</span>
+                            <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->faculty ?? '-' }}</p>
                         </div>
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                            <span class="text-gray-500 dark:text-gray-400 text-xs">Semester</span>
-                            <p class="font-semibold text-gray-800 dark:text-white">{{ $student->semester ?? '-' }}</p>
+                        <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Program Studi</span>
+                            <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->program_study ?? '-' }}</p>
                         </div>
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                            <span class="text-gray-500 dark:text-gray-400 text-xs">IPK</span>
-                            <p class="font-semibold text-gray-800 dark:text-white">{{ $student->gpa ?? '-' }}</p>
+                        <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Email</span>
+                            <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->email ?? '-' }}</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl p-3 border border-indigo-100 dark:border-indigo-800">
+                            <span class="text-xs text-indigo-500 dark:text-indigo-400">IPK</span>
+                            <p class="font-bold text-indigo-600 dark:text-indigo-400 text-lg mt-0.5">{{ number_format($student->gpa ?? 0, 2) }}</p>
                         </div>
                     </div>
                 </div>
             </div>
+        </x-card>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <x-stat-card title="Total Prestasi" :value="$totalAchievements" icon="trophy" color="purple" />
+            <x-stat-card title="Menunggu" :value="$pending" icon="clock" color="yellow" />
+            <x-stat-card title="Disetujui" :value="$approved" icon="check" color="green" />
+            <x-stat-card title="Perlu Revisi" :value="$needRevision" icon="refresh" color="blue" />
+            <x-stat-card title="Ditolak" :value="$rejected" icon="x" color="red" />
         </div>
 
-        <!-- Tombol Submit -->
-        <div class="mb-6">
-            <a href="{{ route('student.achievement.create') }}" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <!-- Action Button -->
+        <div>
+            <x-button href="{{ route('student.achievement.create') }}" variant="primary" size="lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
                 Ajukan Prestasi Baru
-            </a>
+            </x-button>
         </div>
 
-        <!-- Daftar Prestasi -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Daftar Prestasi Saya</h2>
-            </div>
+        <!-- Achievements Table -->
+        <x-card title="Daftar Prestasi Saya" :padding="false">
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-gray-700/50">
+                <table class="w-full">
+                    <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
                         <tr>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Nama Event</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Jenis</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Level</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Tanggal</th>
-                            <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Event</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Kategori</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">Level</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kredibilitas</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                         @forelse($studentAchievements as $item)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                            <td class="px-4 py-3 text-gray-800 dark:text-gray-200">{{ $item->event_name }}</td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $item->achievement->category ?? '-' }}</td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $item->level }}</td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ \Carbon\Carbon::parse($item->event_date)->format('d M Y') }}</td>
-                            <td class="px-4 py-3">
-                                @php
-                                    $statusColor = match($item->validation_status) {
-                                        'Disetujui' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                        'Ditolak' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                        default => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-                                    };
-                                @endphp
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ $statusColor }}">{{ $item->validation_status }}</span>
-                            </td>
-                        </tr>
+                            @php
+                                $statusConfig = [
+                                    'approved' => ['label' => 'Disetujui', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
+                                    'rejected' => ['label' => 'Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
+                                    'pending' => ['label' => 'Menunggu', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
+                                    'need_revision' => ['label' => 'Perlu Revisi', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
+                                ];
+                                $status = $statusConfig[$item->validation_status] ?? $statusConfig['pending'];
+                                $score = $item->credibility_score ?? 0;
+                                $scoreColor = $score >= 80 ? 'green' : ($score >= 70 ? 'yellow' : 'red');
+                            @endphp
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium text-gray-800 dark:text-white">{{ $item->event_name }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400 sm:hidden">{{ $item->achievement->category ?? '-' }}</div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-400 hidden sm:table-cell">
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                                        {{ $item->achievement->category ?? '-' }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-400 hidden md:table-cell">{{ $item->level }}</td>
+                                <td class="px-6 py-4 hidden lg:table-cell">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                            <div class="h-full bg-{{ $scoreColor }}-500 rounded-full" style="width: {{ $score }}%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium text-{{ $scoreColor }}-600 dark:text-{{ $scoreColor }}-400">{{ number_format($score, 0) }}%</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold {{ $status['class'] }}">
+                                        @if($status['icon'] === 'check')
+                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        @elseif($status['icon'] === 'x')
+                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        @elseif($status['icon'] === 'refresh')
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                        @else
+                                            <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        @endif
+                                        {{ $status['label'] }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ route('achievements.documents.index', $item) }}" 
+                                            class="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                            title="Kelola Dokumen">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </a>
+                                        @if($item->validation_status === 'rejected')
+                                            <a href="{{ route('achievements.appeal.create', $item) }}" 
+                                                class="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                                                title="Ajukan Banding">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
                         @empty
-                        <tr><td colspan="5" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">Belum ada prestasi yang diajukan.</td></tr>
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-800 dark:text-white font-medium">Belum ada prestasi</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Mulai ajukan prestasi pertamamu!</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+        </x-card>
+
+        <!-- Info Card for Need Revision -->
+        @if($needRevision > 0)
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+            <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-blue-800 dark:text-blue-300">Perhatian: Ada {{ $needRevision }} prestasi yang perlu revisi</h4>
+                    <p class="text-sm text-blue-600 dark:text-blue-400 mt-1">Silakan periksa catatan dari validator dan upload dokumen yang diperlukan melalui menu "Kelola Dokumen".</p>
+                </div>
+            </div>
         </div>
+        @endif
     </div>
-<script src="https://instant.page/5.2.0" type="module" integrity="sha384-jnZyxPjiipYXnSU0ber8UYWa/3y+LA2aLGeB5rWGKbgsNJYgLAw0qauPVhSQqxr4"></script>
-</body>
-</html>
+@endsection

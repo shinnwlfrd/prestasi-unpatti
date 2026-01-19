@@ -13,11 +13,23 @@ use App\Http\Controllers\StudentAchievementController;
 |
 */
 
-// Contoh rute API sederhana yang memerlukan otentikasi
-// routes/api.php
+// Contoh rute API untuk user yang terautentikasi
 Route::middleware(['auth:sanctum'])->group(function () {
+    // Get current user info
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // Student achievement endpoints
     Route::prefix('student')->group(function () {
         Route::post('/achievements', [StudentAchievementController::class, 'store']);
         Route::get('/achievements', [StudentAchievementController::class, 'index']);
     });
-});    return $request->user();
+});
+
+// SIKAD Integration API (akan diimplementasikan)
+Route::prefix('sikad')->group(function () {
+    // Endpoint placeholder untuk integrasi SIKAD
+    // Route::get('/student/{nim}', [SikadController::class, 'getStudent']);
+    // Route::post('/sync/{nim}', [SikadController::class, 'syncStudent']);
+});

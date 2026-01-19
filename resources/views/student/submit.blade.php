@@ -1,93 +1,187 @@
-<!DOCTYPE html>
-<html lang="id" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :class="{ 'dark': darkMode }">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Ajukan Prestasi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                    </svg>
-                </div>
-                <h1 class="text-xl font-bold text-gray-800 dark:text-white">Portal Prestasi</h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                    <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                    <svg x-show="darkMode" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                </button>
-                <a href="{{ route('student.dashboard') }}" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">← Kembali</a>
-            </div>
+@extends('layouts.app')
+
+@section('title', 'Ajukan Prestasi')
+@section('subtitle', 'Form Pengajuan')
+
+@php
+    $userName = session('student_id') ?? 'Mahasiswa';
+@endphp
+
+@section('content')
+    <div class="max-w-2xl mx-auto animate-fade-in">
+        <!-- Back Button -->
+        <div class="mb-6">
+            <a href="{{ route('student.dashboard') }}"
+                class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Kembali ke Dashboard
+            </a>
         </div>
-    </nav>
 
-    <div class="container mx-auto p-6 max-w-2xl">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-6">Form Pengajuan Prestasi</h2>
-
-            @if($errors->any())
-            <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-4 rounded-xl mb-6">
-                <ul class="list-disc list-inside">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-            </div>
-            @endif
-
-            <form action="{{ route('student.achievement.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+        <!-- Form Card -->
+        <x-card title="Form Pengajuan Prestasi">
+            <form action="{{ route('student.achievement.store') }}" method="POST" enctype="multipart/form-data"
+                class="space-y-5" x-data="{ loading: false }" @submit="loading = true">
                 @csrf
+
+                <!-- Kategori -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Kategori Prestasi <span class="text-red-500">*</span>
                     </label>
-                    <select name="achievement_id" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+                    <select name="achievement_id" required
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                         <option value="">-- Pilih Kategori --</option>
                         @foreach($types as $type)
-                        <option value="{{ $type->id }}" {{ old('achievement_id') == $type->id ? 'selected' : '' }}>{{ $type->category }}</option>
+                            <option value="{{ $type->id }}" {{ old('achievement_id') == $type->id ? 'selected' : '' }}>
+                                {{ $type->category }}</option>
                         @endforeach
                     </select>
+                    @error('achievement_id')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
+
+                <!-- Nama Event -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nama Event</label>
-                    <input type="text" name="event_name" value="{{ old('event_name') }}" required placeholder="Contoh: Lomba Debat Nasional 2024" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Nama Event <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="event_name" value="{{ old('event_name') }}" required
+                        placeholder="Contoh: Lomba Debat Nasional 2024"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                    @error('event_name')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
+
+                <!-- Level -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Level</label>
-                    <select name="level" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Pilih Level --</option>
-                        <option value="Universitas" {{ old('level') == 'Universitas' ? 'selected' : '' }}>Universitas</option>
-                        <option value="Nasional" {{ old('level') == 'Nasional' ? 'selected' : '' }}>Nasional</option>
-                        <option value="Internasional" {{ old('level') == 'Internasional' ? 'selected' : '' }}>Internasional</option>
-                    </select>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Level <span class="text-red-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-3 gap-3">
+                        @foreach(['Universitas', 'Nasional', 'Internasional'] as $lvl)
+                            <label class="relative">
+                                <input type="radio" name="level" value="{{ $lvl }}" {{ old('level') == $lvl ? 'checked' : '' }}
+                                    required class="peer sr-only">
+                                <div
+                                    class="px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-center cursor-pointer transition-all peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 hover:border-gray-300 dark:hover:border-gray-500">
+                                    <span
+                                        class="text-sm font-medium text-gray-700 dark:text-gray-300 peer-checked:text-indigo-600 dark:peer-checked:text-indigo-400">{{ $lvl }}</span>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('level')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
+
+                <!-- Penyelenggara -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Penyelenggara</label>
-                    <input type="text" name="organizer" value="{{ old('organizer') }}" required placeholder="Contoh: Kementerian Pendidikan" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Penyelenggara <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="organizer" value="{{ old('organizer') }}" required
+                        placeholder="Contoh: Kementerian Pendidikan"
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                    @error('organizer')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
+
+                <!-- Tanggal & Peringkat -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Tanggal Event <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="event_date" value="{{ old('event_date') }}" required
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        @error('event_date')
+                            <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Peringkat/Ranking <span class="text-gray-400 text-xs">(Opsional)</span>
+                        </label>
+                        <input type="text" name="ranking" value="{{ old('ranking') }}"
+                            placeholder="Contoh: Juara 1, Finalis"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        @error('ranking')
+                            <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Deskripsi -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tanggal Event</label>
-                    <input type="date" name="event_date" value="{{ old('event_date') }}" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Deskripsi <span class="text-gray-400 text-xs">(Opsional)</span>
+                    </label>
+                    <textarea name="description" rows="3" placeholder="Jelaskan prestasi yang diraih..."
+                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">{{ old('description') }}</textarea>
                 </div>
+
+                <!-- Upload File -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi (Opsional)</label>
-                    <textarea name="description" rows="3" placeholder="Jelaskan prestasi yang diraih..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500">{{ old('description') }}</textarea>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Upload Sertifikat/Bukti <span class="text-gray-400 text-xs">(Opsional - bisa upload nanti)</span>
+                    </label>
+                    <div class="relative">
+                        <input type="file" name="certificate" accept="application/pdf,image/jpeg,image/jpg,image/png"
+                            class="w-full px-4 py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-900/30 dark:file:text-indigo-400 hover:border-indigo-400 transition-colors">
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Format: PDF, JPG, PNG. Ukuran maksimal: 5MB. Anda bisa upload dokumen tambahan setelah submit.
+                    </p>
+                    @error('certificate')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Sertifikat/Bukti</label>
-                    <input type="file" name="certificate" required accept=".pdf,.jpg,.jpeg,.png" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/30 dark:file:text-blue-400">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: PDF, JPG, PNG. Maks: 5MB</p>
+
+                <!-- Info Box -->
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-blue-800 dark:text-blue-300 text-sm">Tips untuk Kredibilitas Tinggi</h4>
+                            <ul class="text-xs text-blue-600 dark:text-blue-400 mt-1 space-y-1">
+                                <li>• Sertakan Sertifikat/Piagam </li>
+                                <li>• Tambahkan Surat Keterangan </li>
+                                <li>• Untuk Non-Akademik: minimal 2 jenis dokumen berbeda</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all">
-                    Ajukan Prestasi
-                </button>
+
+                <!-- Submit Button -->
+                <div class="pt-4">
+                    <button type="submit" :disabled="loading"
+                        class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3">
+                        <svg x-show="loading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <svg x-show="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span x-text="loading ? 'Mengirim...' : 'Ajukan Prestasi'"></span>
+                    </button>
+                </div>
             </form>
-        </div>
+        </x-card>
     </div>
-<script src="https://instant.page/5.2.0" type="module" integrity="sha384-jnZyxPjiipYXnSU0ber8UYWa/3y+LA2aLGeB5rWGKbgsNJYgLAw0qauPVhSQqxr4"></script>
-</body>
-</html>
+@endsection
