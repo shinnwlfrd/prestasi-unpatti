@@ -75,19 +75,21 @@ Route::middleware(['auth.student'])->group(function () {
 });
 
 // Document preview & history - accessible by all authenticated users (student, admin, validator)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth.any'])->group(function () {
     Route::get('/documents/{document}/preview', [DocumentUploadController::class, 'preview'])
         ->name('achievements.documents.preview');
     Route::get('/documents/{document}/history', [DocumentUploadController::class, 'history'])
         ->name('achievements.documents.history');
-    
-    // Profile
+});
+
+// Profile - only for regular users (admin/validator)
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'index'])->name('profile');
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 });
 
 // Validator routes (hanya untuk role Validator)
-Route::middleware(['auth'])->prefix('validator')->name('validator.')->group(function () {
+Route::middleware(['auth', 'auth.validator'])->prefix('validator')->name('validator.')->group(function () {
     Route::get('/', [ValidatorController::class, 'dashboard'])->name('dashboard');
     Route::get('/history', [ValidatorController::class, 'history'])->name('history');
     Route::get('/submit', [ValidatorController::class, 'submitForm'])->name('submit.form');
@@ -106,7 +108,7 @@ Route::middleware(['auth'])->prefix('validator')->name('validator.')->group(func
 
 
 // Admin routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/students', [AdminController::class, 'students'])->name('students');
     Route::get('/achievements', [AdminController::class, 'achievementTypes'])->name('achievements');

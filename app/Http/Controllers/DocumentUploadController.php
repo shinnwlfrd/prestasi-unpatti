@@ -236,6 +236,9 @@ class DocumentUploadController extends Controller
 
     public function preview(AchievementDocument $document)
     {
+        // Check authorization
+        $this->authorizeDocumentAccess($document->studentAchievement);
+
         if ($document->document_type === AchievementDocument::TYPE_LINK_PUBLIKASI) {
             return redirect()->away($document->external_link);
         }
@@ -249,6 +252,9 @@ class DocumentUploadController extends Controller
 
     public function history(AchievementDocument $document)
     {
+        // Check authorization
+        $this->authorizeDocumentAccess($document->studentAchievement);
+
         $document->load(['revisions.performer', 'studentAchievement']);
 
         return view('achievements.documents.history', compact('document'));
@@ -301,18 +307,35 @@ class DocumentUploadController extends Controller
 
     protected function authorizeDocumentAccess(StudentAchievement $achievement): void
     {
-        $user = auth()->user();
-        
-        // Admin and validator can access all
-        if (in_array($user->role, ['Admin', 'Validator'])) {
-            return;
+        // IMPORTANT: Check regular user auth FIRST to prevent session conflicts
+        // This ensures validators/admins are never confused with students
+        if (auth()->check()) {
+            $user = auth()->user();
+            
+            // Admin and validator can access all documents
+            if (in_array($user->role, ['Admin', 'Validator'])) {
+                return;
+            }
+
+            // Regular user with student relation can access their own
+            if ($user->student && $achievement->student_id === $user->student->student_id) {
+                return;
+            }
+            
+            // Authenticated but not authorized for this document
+            abort(403, 'Unauthorized access.');
         }
 
-        // Student can only access their own
-        if ($user->student && $achievement->student_id === $user->student->student_id) {
-            return;
+        // Only check student session if NOT authenticated as regular user
+        if (session('auth_role') === 'student' && session('student_id')) {
+            // Student can only access their own achievements
+            if ($achievement->student_id === session('student_id')) {
+                return;
+            }
+            abort(403, 'Unauthorized access.');
         }
 
+        // Not authenticated at all
         abort(403, 'Unauthorized access.');
     }
 }

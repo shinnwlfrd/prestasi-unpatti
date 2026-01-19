@@ -173,19 +173,25 @@
                     </div>
 
                     <div class="flex gap-3">
-                        <button type="submit" name="action" value="approve" @click="selectedAction = 'approve'" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+                        <button type="submit" name="action" value="approve" 
+                            @click.prevent="selectedAction = 'approve'; $nextTick(() => $el.closest('form').submit())"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
                             Approve
                         </button>
-                        <button type="submit" name="action" value="reject" @click="selectedAction = 'reject'" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+                        <button type="submit" name="action" value="reject" 
+                            @click.prevent="selectedAction = 'reject'; if(document.querySelector('[name=rejection_reason]').value) { $el.closest('form').submit(); } else { alert('Alasan penolakan wajib diisi'); }"
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                             Reject
                         </button>
-                        <button type="submit" name="action" value="request_revision" @click="selectedAction = 'request_revision'" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+                        <button type="submit" name="action" value="request_revision" 
+                            @click.prevent="selectedAction = 'request_revision'; if(document.querySelector('[name=revision_reason]').value) { $el.closest('form').submit(); } else { alert('Alasan revisi wajib diisi'); }"
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>

@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'auth.student' => \App\Http\Middleware\AuthStudent::class,
+            'auth.validator' => \App\Http\Middleware\EnsureUserIsValidator::class,
+            'auth.admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'auth.any' => \App\Http\Middleware\AuthenticateAny::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -95,7 +95,19 @@
     class="bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 min-h-screen transition-colors duration-300">
 
     @php
-        $role = session('auth_role') ?? (auth()->user()->role ?? 'guest');
+        // IMPORTANT: Check auth()->check() FIRST to prevent role confusion
+        // Validators/Admins use Laravel auth, Students use session
+        if (auth()->check()) {
+            $role = auth()->user()->role;
+            $userName = auth()->user()->name;
+        } elseif (session('auth_role') === 'student') {
+            $role = 'student';
+            $userName = session('student_name', 'Mahasiswa');
+        } else {
+            $role = 'guest';
+            $userName = 'Guest';
+        }
+        
         $roleColors = [
             'student' => ['from-blue-500', 'to-indigo-600', 'bg-blue-500', 'text-blue-600', 'border-blue-200'],
             'Validator' => ['from-emerald-500', 'to-teal-600', 'bg-emerald-500', 'text-emerald-600', 'border-emerald-200'],
