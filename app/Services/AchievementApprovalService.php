@@ -122,11 +122,23 @@ class AchievementApprovalService
         $needRevision = StudentAchievement::needRevision()->count();
 
         // Average time to approve (in days)
-        $avgTimeToApprove = ValidationLog::where('new_status', StudentAchievement::STATUS_APPROVED)
-            ->whereNotNull('validated_at')
-            ->join('student_achievements', 'validation_logs.sa_id', '=', 'student_achievements.sa_id')
-            ->selectRaw('AVG(DATEDIFF(validation_logs.validated_at, student_achievements.submitted_at)) as avg_days')
-            ->value('avg_days') ?? 0;
+        $dbDriver = config('database.default');
+        
+        if ($dbDriver === 'sqlite') {
+            // SQLite uses JULIANDAY for date calculations
+            $avgTimeToApprove = ValidationLog::where('new_status', StudentAchievement::STATUS_APPROVED)
+                ->whereNotNull('validated_at')
+                ->join('student_achievements', 'validation_logs.sa_id', '=', 'student_achievements.sa_id')
+                ->selectRaw('AVG(JULIANDAY(validation_logs.validated_at) - JULIANDAY(student_achievements.submitted_at)) as avg_days')
+                ->value('avg_days') ?? 0;
+        } else {
+            // MySQL and other databases use DATEDIFF
+            $avgTimeToApprove = ValidationLog::where('new_status', StudentAchievement::STATUS_APPROVED)
+                ->whereNotNull('validated_at')
+                ->join('student_achievements', 'validation_logs.sa_id', '=', 'student_achievements.sa_id')
+                ->selectRaw('AVG(DATEDIFF(validation_logs.validated_at, student_achievements.submitted_at)) as avg_days')
+                ->value('avg_days') ?? 0;
+        }
 
         return [
             'total' => $total,

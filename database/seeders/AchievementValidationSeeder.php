@@ -75,7 +75,6 @@ class AchievementValidationSeeder extends Seeder
 
         $statuses = ['Menunggu', 'Disetujui', 'Ditolak','Revisi'];
         $docStatuses = ['draft', 'pending', 'approved', 'rejected', 'revision'];
-        $rankings = ['Juara 1', 'Juara 2', 'Juara 3', 'Finalis', 'Peserta Terbaik'];
 
         foreach ($students as $student) {
             // Create 2-3 achievements per student
@@ -93,7 +92,6 @@ class AchievementValidationSeeder extends Seeder
                     'organizer' => $competition['organizer'],
                     'event_date' => now()->subDays(rand(30, 365)),
                     'description' => 'Partisipasi dalam ' . $competition['name'] . ' yang diselenggarakan oleh ' . $competition['organizer'],
-                    'ranking' => $rankings[array_rand($rankings)],
                     'validation_status' => $status,
                     'submitted_at' => now()->subDays(rand(1, 30)),
                     'validator_id' => $status !== 'pending' ? $validator->id : null,
