@@ -7,7 +7,11 @@
     <!-- Header with Back Button -->
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <div class="flex items-center gap-4 mb-4">
-            <a href="{{ route('student.dashboard') }}" 
+            @php
+                $isValidator = auth()->check() && auth()->user()->role === 'Validator';
+                $backRoute = $isValidator ? route('validator.dashboard') : route('student.dashboard');
+            @endphp
+            <a href="{{ $backRoute }}" 
                 class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                 <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -18,6 +22,39 @@
                 <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $achievement->event_name }}</p>
             </div>
         </div>
+        
+        <!-- Info SK Resmi -->
+        @if(!isset($isValidatorOrAdmin) || !$isValidatorOrAdmin)
+        <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div class="flex gap-3">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <p class="font-medium text-blue-800 dark:text-blue-200">Informasi Upload Dokumen</p>
+                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                        Anda dapat mengupload <strong>Sertifikat</strong> dan <strong>Dokumen Pendukung</strong> lainnya. 
+                        <strong>SK Resmi</strong> akan diupload oleh Validator/Admin saat proses approval.
+                    </p>
+                </div>
+            </div>
+        </div>
+        @else
+        <div class="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+            <div class="flex gap-3">
+                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <p class="font-medium text-emerald-800 dark:text-emerald-200">Mode Validator/Admin</p>
+                    <p class="text-sm text-emerald-700 dark:text-emerald-300 mt-1">
+                        Anda dapat mengupload <strong>semua jenis dokumen</strong> termasuk <strong>SK Resmi</strong>, 
+                        <strong>Sertifikat</strong>, dan <strong>Dokumen Pendukung</strong> lainnya.
+                    </p>
+                </div>
+            </div>
+        </div>
+        @endif
         
         @if($isNonAkademik)
         <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
@@ -35,7 +72,7 @@
     </div>
 
     <!-- Upload Form -->
-    <form action="{{ route('achievements.documents.store', $achievement) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <form id="uploadForm" action="{{ route('achievements.documents.store', $achievement) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6" @submit.prevent="submitForm()">
         @csrf
         
         <!-- Drag & Drop Area -->
@@ -147,14 +184,9 @@
             </template>
         </div>
 
-        <!-- Hidden file inputs -->
-        <template x-for="(file, index) in files" :key="'input-' + index">
-            <input type="file" :name="'documents[' + index + ']'" class="hidden" :data-index="index">
-        </template>
-
         <!-- Submit Button -->
         <div class="mt-6 flex justify-end gap-3">
-            <a href="{{ route('student.dashboard') }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <a href="{{ $backRoute ?? (auth()->check() && auth()->user()->role === 'Validator' ? route('validator.dashboard') : route('student.dashboard')) }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                 Batal
             </a>
             <button 
@@ -262,6 +294,58 @@ function documentUploader() {
         
         allTypesSelected() {
             return this.files.every(f => f.type !== '');
+        },
+        
+        submitForm() {
+            if (this.files.length === 0) {
+                alert('Minimal satu dokumen harus diunggah.');
+                return;
+            }
+            
+            if (!this.allTypesSelected()) {
+                alert('Pilih jenis untuk setiap dokumen.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            
+            // Add files
+            this.files.forEach((fileObj, index) => {
+                formData.append(`documents[${index}]`, fileObj.file);
+                formData.append(`document_types[${index}]`, fileObj.type);
+            });
+            
+            // Add external links
+            this.externalLinks.forEach((link, index) => {
+                if (link.url) {
+                    formData.append(`external_links[${index}][url]`, link.url);
+                    formData.append(`external_links[${index}][title]`, link.title || '');
+                }
+            });
+            
+            // Submit via fetch
+            fetch('{{ route("achievements.documents.store", $achievement) }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok || response.redirected) {
+                    window.location.reload();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Gagal upload dokumen');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message || 'Terjadi kesalahan saat upload dokumen');
+            });
         }
     }
 }

@@ -54,9 +54,9 @@ class StudentController extends Controller
         $achievements = StudentAchievement::where('student_id', $studentId)->get();
         $stats = [
             'total' => $achievements->count(),
-            'approved' => $achievements->where('validation_status', 'approved')->count(),
-            'pending' => $achievements->where('validation_status', 'pending')->count(),
-            'rejected' => $achievements->where('validation_status', 'rejected')->count(),
+            'approved' => $achievements->where('validation_status', 'Disetujui')->count(),
+            'pending' => $achievements->where('validation_status', 'Menunggu')->count(),
+            'rejected' => $achievements->where('validation_status', 'Ditolak')->count(),
         ];
 
         return view('student.profile', compact('student', 'stats'));

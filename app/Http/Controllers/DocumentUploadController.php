@@ -29,7 +29,26 @@ class DocumentUploadController extends Controller
     public function index(StudentAchievement $achievement)
     {
         $achievement->load(['documents.revisions', 'documents.verifier']);
-        $documentTypes = AchievementDocument::DOCUMENT_TYPES;
+        
+        // Check if user is validator/admin - they can upload all document types including SK Resmi
+        $isValidatorOrAdmin = auth()->check() && in_array(auth()->user()->role, ['Admin', 'Validator']);
+        
+        // Filter document types
+        if ($isValidatorOrAdmin) {
+            // Admin/Validator: Exclude SK Resmi and Link Publikasi (SK via modal, Link not needed)
+            $documentTypes = collect(AchievementDocument::DOCUMENT_TYPES)
+                ->except([
+                    AchievementDocument::TYPE_SK_RESMI,
+                    AchievementDocument::TYPE_LINK_PUBLIKASI
+                ])
+                ->toArray();
+        } else {
+            // Student: Exclude SK Resmi only
+            $documentTypes = collect(AchievementDocument::DOCUMENT_TYPES)
+                ->except([AchievementDocument::TYPE_SK_RESMI])
+                ->toArray();
+        }
+        
         $isNonAkademik = $achievement->achievement?->category === 'Non-Akademik';
         $documentStats = $this->verificationService->getDocumentStatistics($achievement);
 
@@ -37,7 +56,8 @@ class DocumentUploadController extends Controller
             'achievement',
             'documentTypes',
             'isNonAkademik',
-            'documentStats'
+            'documentStats',
+            'isValidatorOrAdmin'
         ));
     }
 
@@ -62,9 +82,6 @@ class DocumentUploadController extends Controller
                 }
             }
         }
-
-        // Update credibility score
-        $achievement->updateCredibilityScore();
 
         // Validate document requirements
         $validationErrors = $this->credibilityService->validateDocumentRequirements($achievement);
@@ -98,8 +115,6 @@ class DocumentUploadController extends Controller
                 $request->document_type,
                 $request->boolean('as_draft', true)
             );
-
-            $achievement->updateCredibilityScore();
 
             return response()->json([
                 'success' => true,
@@ -142,7 +157,6 @@ class DocumentUploadController extends Controller
 
         try {
             $document = $this->uploadService->replaceDocument($document, $request->file('file'));
-            $achievement->updateCredibilityScore();
 
             return response()->json([
                 'success' => true,

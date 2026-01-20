@@ -6,10 +6,10 @@
 @php
     $userName = $student->name ?? 'Mahasiswa';
     $totalAchievements = $studentAchievements->count();
-    $approved = $studentAchievements->where('validation_status', 'approved')->count();
-    $pending = $studentAchievements->where('validation_status', 'pending')->count();
-    $rejected = $studentAchievements->where('validation_status', 'rejected')->count();
-    $needRevision = $studentAchievements->where('validation_status', 'need_revision')->count();
+    $approved = $studentAchievements->where('validation_status', 'Disetujui')->count();
+    $pending = $studentAchievements->where('validation_status', 'Menunggu')->count();
+    $rejected = $studentAchievements->where('validation_status', 'Ditolak')->count();
+    $needRevision = $studentAchievements->where('validation_status', 'Revisi')->count();
 @endphp
 
 @section('content')
@@ -101,12 +101,18 @@
                         @forelse($studentAchievements as $item)
                             @php
                                 $statusConfig = [
-                                    'approved' => ['label' => 'Disetujui', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
-                                    'rejected' => ['label' => 'Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
-                                    'pending' => ['label' => 'Menunggu', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
-                                    'need_revision' => ['label' => 'Perlu Revisi', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
+                                    'Disetujui' => ['label' => 'Disetujui', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
+                                    'Ditolak' => ['label' => 'Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
+                                    'Menunggu' => ['label' => 'Menunggu', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
+                                    'Revisi' => ['label' => 'Perlu Revisi', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
                                 ];
-                                $status = $statusConfig[$item->validation_status] ?? $statusConfig['pending'];
+                                $status = $statusConfig[$item->validation_status] ?? $statusConfig['Menunggu'];
+                                
+                                // Get latest validation log for rejection/revision reason
+                                $latestLog = $item->validationLogs()
+                                    ->whereIn('new_status', ['Ditolak', 'Revisi'])
+                                    ->latest('validated_at')
+                                    ->first();
                             @endphp
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                 <td class="px-6 py-4">
@@ -120,27 +126,32 @@
                                 </td>
                                 <td class="px-6 py-4 text-gray-600 dark:text-gray-400 hidden md:table-cell">{{ $item->level }}</td>
                                 <td class="px-6 py-4">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold {{ $status['class'] }}">
-                                        @if($status['icon'] === 'check')
-                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                            </svg>
-                                        @elseif($status['icon'] === 'x')
-                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                            </svg>
-                                        @elseif($status['icon'] === 'refresh')
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                            </svg>
-                                        @else
-                                            <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
+                                    <div class="space-y-1">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold {{ $status['class'] }}">
+                                            @if($status['icon'] === 'check')
+                                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            @elseif($status['icon'] === 'x')
+                                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                </svg>
+                                            @elseif($status['icon'] === 'refresh')
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                            @else
+                                                <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            @endif
+                                            {{ $status['label'] }}
+                                        </span>
+                                        @if($latestLog && $latestLog->notes)
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 italic">{{ Str::limit($latestLog->notes, 50) }}</p>
                                         @endif
-                                        {{ $status['label'] }}
-                                    </span>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
@@ -151,7 +162,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                         </a>
-                                        @if($item->validation_status === 'rejected')
+                                        @if($item->validation_status === 'Revisi')
                                             <a href="{{ route('achievements.appeal.create', $item) }}" 
                                                 class="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
                                                 title="Ajukan Banding">
@@ -196,7 +207,10 @@
                 </div>
                 <div>
                     <h4 class="font-semibold text-blue-800 dark:text-blue-300">Perhatian: Ada {{ $needRevision }} prestasi yang perlu revisi</h4>
-                    <p class="text-sm text-blue-600 dark:text-blue-400 mt-1">Silakan periksa catatan dari validator dan upload dokumen yang diperlukan melalui menu "Kelola Dokumen".</p>
+                    <p class="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                        Silakan periksa catatan dari validator dan upload dokumen yang diperlukan melalui menu "Kelola Dokumen". 
+                        Atau jika Anda merasa sudah memenuhi persyaratan, Anda dapat mengajukan banding melalui tombol banding.
+                    </p>
                 </div>
             </div>
         </div>

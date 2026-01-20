@@ -51,7 +51,15 @@ Route::middleware(['auth.student'])->group(function () {
     Route::get('/submit', [StudentAchievementController::class, 'create'])->name('student.achievement.create');
     Route::post('/submit', [StudentAchievementController::class, 'store'])->name('student.achievement.store');
     
-    // Achievement documents (student only)
+    // Appeals (student only)
+    Route::get('/achievements/{achievement}/appeal', [AchievementAppealController::class, 'create'])
+        ->name('achievements.appeal.create');
+    Route::post('/achievements/{achievement}/appeal', [AchievementAppealController::class, 'store'])
+        ->name('achievements.appeal.store');
+});
+
+// Achievement documents - accessible by students, validators, and admins
+Route::middleware(['auth.any'])->group(function () {
     Route::get('/achievements/{achievement}/documents', [DocumentUploadController::class, 'index'])
         ->name('achievements.documents.index');
     Route::post('/achievements/{achievement}/documents', [DocumentUploadController::class, 'store'])
@@ -66,12 +74,6 @@ Route::middleware(['auth.student'])->group(function () {
         ->name('achievements.documents.submitSingle');
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])
         ->name('achievements.documents.destroy');
-    
-    // Appeals
-    Route::get('/achievements/{achievement}/appeal', [AchievementAppealController::class, 'create'])
-        ->name('achievements.appeal.create');
-    Route::post('/achievements/{achievement}/appeal', [AchievementAppealController::class, 'store'])
-        ->name('achievements.appeal.store');
 });
 
 // Document preview & history - accessible by all authenticated users (student, admin, validator)
@@ -80,6 +82,8 @@ Route::middleware(['auth.any'])->group(function () {
         ->name('achievements.documents.preview');
     Route::get('/documents/{document}/history', [DocumentUploadController::class, 'history'])
         ->name('achievements.documents.history');
+    
+    // Note: Document upload routes are now also in auth.any group above
 });
 
 // Profile - only for regular users (admin/validator)
@@ -118,6 +122,16 @@ Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
     Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
+    
+    // Submit Achievement (Admin can submit on behalf of student)
+    Route::get('/submit-achievement', [\App\Http\Controllers\Admin\AdminAchievementController::class, 'create'])->name('submit.create');
+    Route::post('/submit-achievement', [\App\Http\Controllers\Admin\AdminAchievementController::class, 'store'])->name('submit.store');
+    
+    // Achievement Categories CRUD
+    Route::resource('categories', \App\Http\Controllers\Admin\AchievementCategoryController::class);
+    
+    // Achievement Levels CRUD
+    Route::resource('levels', \App\Http\Controllers\Admin\AchievementLevelController::class);
     
     // Achievement Validation System
     Route::prefix('achievements')->name('achievements.')->group(function () {

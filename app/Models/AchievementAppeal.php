@@ -13,6 +13,7 @@ class AchievementAppeal extends Model
         'sa_id',
         'student_id',
         'appeal_reason',
+        'publication_link',
         'status',
         'reviewed_by',
         'review_notes',

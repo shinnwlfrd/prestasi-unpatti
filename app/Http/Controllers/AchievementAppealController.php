@@ -45,6 +45,7 @@ class AchievementAppealController extends Controller
             'sa_id' => $achievement->sa_id,
             'student_id' => $achievement->student_id,
             'appeal_reason' => $request->appeal_reason,
+            'publication_link' => $request->publication_link,
             'status' => AchievementAppeal::STATUS_PENDING,
         ]);
 
@@ -53,14 +54,23 @@ class AchievementAppealController extends Controller
             $files = $request->file('additional_documents');
             $types = $request->input('document_types', []);
             $this->uploadService->uploadMultipleDocuments($achievement, $files, $types);
-            $achievement->updateCredibilityScore();
+        }
+
+        // Add publication link as document if provided
+        if ($request->filled('publication_link')) {
+            $this->uploadService->addExternalLink(
+                $achievement,
+                $request->publication_link,
+                'Link Publikasi (Banding)',
+                false // Not draft, submit directly
+            );
         }
 
         // Update achievement status to pending for re-review
         $achievement->update(['validation_status' => StudentAchievement::STATUS_PENDING]);
 
         return redirect()
-            ->route('achievements.show', $achievement)
+            ->route('student.dashboard')
             ->with('success', 'Banding berhasil diajukan. Tim validator akan meninjau kembali prestasi Anda.');
     }
 

@@ -102,12 +102,22 @@ class ValidatorController extends Controller
 
         $validator = auth()->user();
 
+        // Validasi SK Resmi WAJIB untuk approve
+        if ($request->action === 'approve' && !$request->hasFile('sk_resmi')) {
+            return back()->withErrors(['sk_resmi' => 'SK Resmi wajib diupload untuk approve prestasi.'])->withInput();
+        }
+
         // Save checklist if provided
         if ($request->has('checklist')) {
             $checklistData = $request->input('checklist');
             $checklistData['sa_id'] = $achievement->sa_id;
             $checklistData['validator_id'] = $validator->id;
             $this->approvalService->processChecklist($achievement, $validator, $checklistData);
+        }
+
+        // Handle SK Resmi upload (WAJIB untuk approve)
+        if ($request->action === 'approve' && $request->hasFile('sk_resmi')) {
+            $this->uploadSkResmi($request, $achievement, $validator);
         }
 
         // Process action
@@ -120,7 +130,7 @@ class ValidatorController extends Controller
 
         if ($success) {
             $message = match($request->action) {
-                'approve' => 'Prestasi berhasil disetujui.',
+                'approve' => 'Prestasi berhasil disetujui dan SK Resmi telah diupload.',
                 'reject' => 'Prestasi berhasil ditolak.',
                 'request_revision' => 'Permintaan revisi berhasil dikirim.',
                 default => 'Status berhasil diperbarui.',
@@ -130,6 +140,29 @@ class ValidatorController extends Controller
         }
 
         return back()->with('error', 'Gagal memproses validasi.');
+    }
+
+    protected function uploadSkResmi(Request $request, StudentAchievement $achievement, $validator)
+    {
+        $request->validate([
+            'sk_resmi' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB
+        ]);
+
+        $file = $request->file('sk_resmi');
+        $fileName = 'SK_Resmi_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+
+        // Create document record
+        $achievement->documents()->create([
+            'document_type' => AchievementDocument::TYPE_SK_RESMI,
+            'file_path' => $filePath,
+            'file_name' => $fileName,
+            'file_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+            'status' => AchievementDocument::STATUS_APPROVED, // Auto approved karena diupload oleh validator
+            'verified_by' => $validator->id,
+            'verified_at' => now(),
+        ]);
     }
 
     /**
@@ -208,7 +241,7 @@ class ValidatorController extends Controller
 
         $certificatePath = $request->file('certificate')->store('certificates', 'public');
 
-        StudentAchievement::create([
+        $achievement = StudentAchievement::create([
             'student_id' => $validated['student_id'],
             'achievement_id' => $validated['achievement_id'],
             'event_name' => $validated['event_name'],
@@ -217,13 +250,14 @@ class ValidatorController extends Controller
             'event_date' => $validated['event_date'],
             'description' => $validated['description'] ?? null,
             'certificate' => $certificatePath,
-            'validation_status' => 'pending',
+            'validation_status' => 'Menunggu',
             'submitted_by' => 'validator',
             'submitted_at' => now(),
         ]);
 
-        return redirect()->route('validator.dashboard')
-            ->with('success', 'Prestasi mahasiswa berhasil diajukan.');
+        // Redirect to document upload page so validator can add more documents
+        return redirect()->route('achievements.documents.index', $achievement)
+            ->with('success', 'Prestasi mahasiswa berhasil diajukan. Anda dapat menambahkan dokumen tambahan di bawah ini.');
     }
 
     /**
@@ -248,7 +282,7 @@ class ValidatorController extends Controller
             $skPath = $request->file('sk_document')->store('sk_documents', 'public');
 
             $achievement->update([
-                'validation_status' => 'approved',
+                'validation_status' => 'Disetujui',
                 'validator_id' => Auth::id(),
             ]);
 
@@ -286,7 +320,7 @@ class ValidatorController extends Controller
             $skPath = $request->file('sk_document')->store('sk_documents', 'public');
 
             $achievement->update([
-                'validation_status' => 'rejected',
+                'validation_status' => 'Ditolak',
                 'validator_id' => Auth::id(),
             ]);
 

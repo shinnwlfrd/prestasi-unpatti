@@ -37,7 +37,7 @@ class StudentAchievementController extends Controller
             'description' => $request->description,
             'ranking' => $request->ranking,
             'submitted_at' => now(),
-            'validation_status' => 'pending',
+            'validation_status' => 'Menunggu',
             'submitted_by' => 'student',
         ]);
 

@@ -78,12 +78,22 @@ class AchievementValidationController extends Controller
     {
         $validator = auth()->user();
 
+        // Validasi SK Resmi WAJIB untuk approve
+        if ($request->action === 'approve' && !$request->hasFile('sk_resmi')) {
+            return back()->withErrors(['sk_resmi' => 'SK Resmi wajib diupload untuk approve prestasi.'])->withInput();
+        }
+
         // Save checklist first
         if ($request->has('checklist')) {
             $checklistData = $request->input('checklist');
             $checklistData['sa_id'] = $achievement->sa_id;
             $checklistData['validator_id'] = $validator->id;
             $this->approvalService->processChecklist($achievement, $validator, $checklistData);
+        }
+
+        // Handle SK Resmi upload (WAJIB untuk approve)
+        if ($request->action === 'approve' && $request->hasFile('sk_resmi')) {
+            $this->uploadSkResmi($request, $achievement, $validator);
         }
 
         // Process action
@@ -101,7 +111,7 @@ class AchievementValidationController extends Controller
 
         if ($success) {
             $message = match($request->action) {
-                'approve' => 'Prestasi berhasil disetujui.',
+                'approve' => 'Prestasi berhasil disetujui dan SK Resmi telah diupload.',
                 'reject' => 'Prestasi berhasil ditolak.',
                 'request_revision' => 'Permintaan revisi berhasil dikirim.',
                 default => 'Status berhasil diperbarui.',
@@ -113,6 +123,29 @@ class AchievementValidationController extends Controller
         }
 
         return back()->with('error', 'Gagal memproses validasi.');
+    }
+
+    protected function uploadSkResmi(Request $request, StudentAchievement $achievement, $validator)
+    {
+        $request->validate([
+            'sk_resmi' => 'required|file|mimes:pdf|max:10240', // 10MB
+        ]);
+
+        $file = $request->file('sk_resmi');
+        $fileName = 'SK_Resmi_' . $achievement->sa_id . '_' . time() . '.pdf';
+        $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+
+        // Create document record
+        $achievement->documents()->create([
+            'document_type' => \App\Models\AchievementDocument::TYPE_SK_RESMI,
+            'file_path' => $filePath,
+            'file_name' => $fileName,
+            'file_type' => $file->getMimeType(),
+            'file_size' => $file->getSize(),
+            'status' => \App\Models\AchievementDocument::STATUS_APPROVED, // Auto approved karena diupload oleh validator
+            'verified_by' => $validator->id,
+            'verified_at' => now(),
+        ]);
     }
 
     public function saveChecklist(Request $request, StudentAchievement $achievement)

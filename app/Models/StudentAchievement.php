@@ -32,10 +32,11 @@ class StudentAchievement extends Model
         'submitted_at' => 'datetime',
     ];
 
-    const STATUS_PENDING = 'pending';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';
-    const STATUS_NEED_REVISION = 'need_revision';
+    // Status constants - sesuai dengan ENUM di database
+    const STATUS_PENDING = 'Menunggu';
+    const STATUS_APPROVED = 'Disetujui';
+    const STATUS_REJECTED = 'Ditolak';
+    const STATUS_NEED_REVISION = 'Revisi';
 
     const LEVEL_UNIVERSITAS = 'Universitas';
     const LEVEL_NASIONAL = 'Nasional';
@@ -122,7 +123,7 @@ class StudentAchievement extends Model
 
     public function canBeAppealed(): bool
     {
-        return $this->validation_status === self::STATUS_REJECTED 
+        return $this->validation_status === self::STATUS_NEED_REVISION 
             && !$this->appeals()->where('status', 'pending')->exists();
     }
 
