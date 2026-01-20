@@ -114,7 +114,6 @@ class DocumentUploadController extends Controller
                     'is_image' => $document->isImage(),
                     'can_edit' => $document->canBeEdited(),
                 ],
-                'credibility_score' => $achievement->fresh()->credibility_score,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -155,7 +154,6 @@ class DocumentUploadController extends Controller
                     'status' => $document->status,
                     'status_label' => $document->status_label,
                 ],
-                'credibility_score' => $achievement->fresh()->credibility_score,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -216,12 +214,10 @@ class DocumentUploadController extends Controller
 
         try {
             $this->uploadService->deleteDocument($document);
-            $achievement->updateCredibilityScore();
 
             if (request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'credibility_score' => $achievement->fresh()->credibility_score,
                 ]);
             }
 

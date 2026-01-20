@@ -34,20 +34,6 @@
         @endif
     </div>
 
-    <!-- Credibility Score -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="font-semibold text-gray-900 dark:text-white">Skor Kredibilitas</h3>
-            <span class="text-2xl font-bold" :class="credibilityColor">
-                <span x-text="credibilityScore">{{ $achievement->credibility_score }}</span>%
-            </span>
-        </div>
-        <x-progress-bar :percentage="$achievement->credibility_score" :showLabel="false" />
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            Skor kredibilitas dihitung berdasarkan jenis dan jumlah dokumen yang diunggah.
-        </p>
-    </div>
-
     <!-- Upload Form -->
     <form action="{{ route('achievements.documents.store', $achievement) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         @csrf
@@ -200,13 +186,6 @@ function documentUploader() {
         files: [],
         externalLinks: [],
         isDragging: false,
-        credibilityScore: {{ $achievement->credibility_score }},
-        
-        get credibilityColor() {
-            if (this.credibilityScore >= 80) return 'text-green-600 dark:text-green-400';
-            if (this.credibilityScore >= 70) return 'text-yellow-600 dark:text-yellow-400';
-            return 'text-red-600 dark:text-red-400';
-        },
         
         handleDrop(event) {
             this.isDragging = false;

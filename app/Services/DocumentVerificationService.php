@@ -11,24 +11,12 @@ class DocumentVerificationService
 {
     public function approveDocument(AchievementDocument $document, User $verifier, ?string $notes = null): bool
     {
-        $result = $document->approve($verifier, $notes);
-        
-        if ($result) {
-            $this->updateAchievementCredibility($document->studentAchievement);
-        }
-        
-        return $result;
+        return $document->approve($verifier, $notes);
     }
 
     public function rejectDocument(AchievementDocument $document, User $verifier, string $reason): bool
     {
-        $result = $document->reject($verifier, $reason);
-        
-        if ($result) {
-            $this->updateAchievementCredibility($document->studentAchievement);
-        }
-        
-        return $result;
+        return $document->reject($verifier, $reason);
     }
 
     public function requestRevision(AchievementDocument $document, User $verifier, string $reason): bool
@@ -49,15 +37,6 @@ class DocumentVerificationService
             }
         }
 
-        // Update credibility for affected achievements
-        $achievementIds = $documents->pluck('sa_id')->unique();
-        foreach ($achievementIds as $saId) {
-            $achievement = StudentAchievement::find($saId);
-            if ($achievement) {
-                $this->updateAchievementCredibility($achievement);
-            }
-        }
-
         return ['approved' => $approved, 'failed' => $failed];
     }
 
@@ -71,15 +50,6 @@ class DocumentVerificationService
                 $rejected++;
             } else {
                 $failed++;
-            }
-        }
-
-        // Update credibility for affected achievements
-        $achievementIds = $documents->pluck('sa_id')->unique();
-        foreach ($achievementIds as $saId) {
-            $achievement = StudentAchievement::find($saId);
-            if ($achievement) {
-                $this->updateAchievementCredibility($achievement);
             }
         }
 
@@ -145,37 +115,5 @@ class DocumentVerificationService
             'can_approve' => empty($errors),
             'errors' => $errors,
         ];
-    }
-
-    protected function updateAchievementCredibility(StudentAchievement $achievement): void
-    {
-        // Only count approved documents for credibility
-        $approvedDocs = $achievement->documents()
-            ->where('status', AchievementDocument::STATUS_APPROVED)
-            ->get();
-
-        $score = 0;
-        $documentTypes = $approvedDocs->pluck('document_type')->unique();
-
-        foreach ($documentTypes as $type) {
-            $score += AchievementDocument::CREDIBILITY_SCORES[$type] ?? 0;
-        }
-
-        // Bonus for multiple approved documents
-        if ($approvedDocs->count() > $documentTypes->count()) {
-            $bonus = min(($approvedDocs->count() - $documentTypes->count()) * 2, 10);
-            $score += $bonus;
-        }
-
-        // Level bonus
-        $score += match($achievement->level) {
-            StudentAchievement::LEVEL_INTERNASIONAL => 10,
-            StudentAchievement::LEVEL_NASIONAL => 5,
-            default => 0,
-        };
-
-        $achievement->credibility_score = min($score, 100);
-        $achievement->requires_extra_review = $score < 70;
-        $achievement->save();
     }
 }

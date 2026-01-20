@@ -50,11 +50,10 @@
         </x-card>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <x-stat-card title="Menunggu Validasi" :value="$pendingCount" icon="clock" color="yellow" />
-            <x-stat-card title="Perlu Review Ekstra" :value="$pendingAchievements->where('requires_extra_review', true)->count()" icon="alert" color="red" />
-            <x-stat-card title="Kredibilitas Rendah" :value="$pendingAchievements->where('credibility_score', '<', 70)->count()" icon="chart" color="orange" />
             <x-stat-card title="Dokumen Pending" :value="$pendingAchievements->sum(fn($a) => $a->documents->where('status', 'pending')->count())" icon="document" color="blue" />
+            <x-stat-card title="Total Prestasi" :value="$pendingAchievements->count()" icon="trophy" color="purple" />
         </div>
 
         <!-- Mobile Tabs -->
@@ -72,7 +71,6 @@
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mahasiswa</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Prestasi</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">Level</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kredibilitas</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dokumen</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
                         </tr>
@@ -103,21 +101,6 @@
                                 <td class="px-6 py-4 text-gray-600 dark:text-gray-400 hidden md:table-cell">
                                     <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700">{{ $ach->level }}</span>
                                 </td>
-                                <td class="px-6 py-4 hidden lg:table-cell">
-                                    @php
-                                        $score = $ach->credibility_score ?? 0;
-                                        $scoreColor = $score >= 80 ? 'emerald' : ($score >= 70 ? 'amber' : 'red');
-                                    @endphp
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                            <div class="h-full bg-{{ $scoreColor }}-500 rounded-full" style="width: {{ $score }}%"></div>
-                                        </div>
-                                        <span class="text-sm font-medium text-{{ $scoreColor }}-600 dark:text-{{ $scoreColor }}-400">{{ number_format($score, 0) }}%</span>
-                                        @if($ach->requires_extra_review)
-                                            <span class="px-1.5 py-0.5 text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded" title="Perlu review ekstra">!</span>
-                                        @endif
-                                    </div>
-                                </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
                                         <span class="text-sm text-gray-600 dark:text-gray-400">{{ $approvedDocs }}/{{ $docCount }}</span>
@@ -147,7 +130,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center">
+                                <td colspan="5" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center gap-4">
                                         <div class="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
                                             <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

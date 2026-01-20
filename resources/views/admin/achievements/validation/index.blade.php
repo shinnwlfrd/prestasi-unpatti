@@ -79,7 +79,7 @@
 
     <!-- Filters -->
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama/Lomba..." class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-purple-500 focus:ring-purple-500">
@@ -104,17 +104,12 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kredibilitas</label>
-                <select name="credibility" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-purple-500 focus:ring-purple-500">
-                    <option value="">Semua</option>
-                    <option value="high" {{ request('credibility') === 'high' ? 'selected' : '' }}>Tinggi (≥80%)</option>
-                    <option value="medium" {{ request('credibility') === 'medium' ? 'selected' : '' }}>Sedang (70-79%)</option>
-                    <option value="low" {{ request('credibility') === 'low' ? 'selected' : '' }}>Rendah (&lt;70%)</option>
-                </select>
-            </div>
-            <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dari Tanggal</label>
                 <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-purple-500 focus:ring-purple-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sampai Tanggal</label>
+                <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-purple-500 focus:ring-purple-500">
             </div>
             <div class="flex items-end gap-2">
                 <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium">Filter</button>
@@ -133,14 +128,13 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lomba</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tingkat</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Kredibilitas</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tanggal Submit</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($achievements as $achievement)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/30 {{ $achievement->requires_extra_review ? 'bg-red-50 dark:bg-red-900/10' : '' }}">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/30">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
@@ -166,20 +160,6 @@
                                 {{ $achievement->status_label }}
                             </x-badge>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-2">
-                                <x-badge :type="$achievement->credibility_badge">
-                                    {{ number_format($achievement->credibility_score, 0) }}%
-                                </x-badge>
-                                @if($achievement->requires_extra_review)
-                                <span class="text-red-500" title="Perlu review ekstra">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                    </svg>
-                                </span>
-                                @endif
-                            </div>
-                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {{ $achievement->submitted_at?->format('d M Y H:i') ?? '-' }}
                         </td>
@@ -201,7 +181,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                             Tidak ada data prestasi
                         </td>
                     </tr>

@@ -31,15 +31,6 @@ class AchievementValidationController extends Controller
             $query->where('level', $request->level);
         }
 
-        if ($request->filled('credibility')) {
-            match($request->credibility) {
-                'high' => $query->where('credibility_score', '>=', 80),
-                'medium' => $query->whereBetween('credibility_score', [70, 79.99]),
-                'low' => $query->where('credibility_score', '<', 70),
-                default => null,
-            };
-        }
-
         if ($request->filled('date_from')) {
             $query->whereDate('submitted_at', '>=', $request->date_from);
         }
@@ -56,10 +47,6 @@ class AchievementValidationController extends Controller
                         $sq->where('name', 'like', "%{$search}%");
                     });
             });
-        }
-
-        if ($request->filled('extra_review')) {
-            $query->where('requires_extra_review', true);
         }
 
         $achievements = $query->paginate(15)->withQueryString();

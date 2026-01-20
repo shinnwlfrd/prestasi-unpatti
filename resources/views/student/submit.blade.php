@@ -157,11 +157,11 @@
                             </svg>
                         </div>
                         <div>
-                            <h4 class="font-semibold text-blue-800 dark:text-blue-300 text-sm">Tips untuk Kredibilitas Tinggi</h4>
+                            <h4 class="font-semibold text-blue-800 dark:text-blue-300 text-sm">Tips Pengajuan Prestasi</h4>
                             <ul class="text-xs text-blue-600 dark:text-blue-400 mt-1 space-y-1">
-                                <li>• Sertakan Sertifikat/Piagam </li>
-                                <li>• Tambahkan Surat Keterangan </li>
-                                <li>• Untuk Non-Akademik: minimal 2 jenis dokumen berbeda</li>
+                                <li>• Pastikan data yang diisi lengkap dan akurat</li>
+                                <li>• Sertakan Sertifikat/Piagam resmi</li>
+                                <li>• Tambahkan Surat Keterangan jika diperlukan</li>
                             </ul>
                         </div>
                     </div>

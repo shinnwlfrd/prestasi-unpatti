@@ -20,20 +20,24 @@ class PrestasiMahasiswaSeeder extends Seeder
         $faker = Faker::create('id_ID');
 
         // 1. Buat User Admin
-        User::create([
-            'name' => 'Admin Sistem',
-            'email' => 'admin@univ.ac.id',
-            'password' => Hash::make('password'),
-            'role' => 'Admin',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@unpatti.ac.id'],
+            [
+                'name' => 'Admin Sistem',
+                'password' => Hash::make('password'),
+                'role' => 'Admin',
+            ]
+        );
 
         // 2. Buat User Validator
-        $validator = User::create([
-            'name' => 'Validator Prestasi',
-            'email' => 'validator@univ.ac.id',
-            'password' => Hash::make('password'),
-            'role' => 'Validator',
-        ]);
+        $validator = User::firstOrCreate(
+            ['email' => 'validator@unpatti.ac.id'],
+            [
+                'name' => 'Validator Prestasi',
+                'password' => Hash::make('password'),
+                'role' => 'Validator',
+            ]
+        );
 
         ValidatorProfile::create([
             'user_id' => $validator->id,
@@ -42,6 +46,7 @@ class PrestasiMahasiswaSeeder extends Seeder
             'phone' => '081234567890',
             'department' => 'Bidang Kemahasiswaan',
         ]);
+
 
         // 3. Buat 2 Kategori Prestasi
         $akademik = Achievement::create(['category' => 'Akademik']);

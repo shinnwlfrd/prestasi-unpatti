@@ -27,22 +27,14 @@ class AchievementDashboardController extends Controller
         $pendingReview = StudentAchievement::with(['student', 'achievement'])
             ->pending()
             ->latest('submitted_at')
-            ->take(5)
-            ->get();
-
-        $lowCredibility = StudentAchievement::with(['student', 'achievement'])
-            ->lowCredibility()
-            ->pending()
-            ->latest('submitted_at')
-            ->take(5)
+            ->take(10)
             ->get();
 
         return view('admin.achievements.dashboard', compact(
             'statistics',
             'monthlyTrend',
             'levelDistribution',
-            'pendingReview',
-            'lowCredibility'
+            'pendingReview'
         ));
     }
 
@@ -92,7 +84,6 @@ class AchievementDashboardController extends Controller
                 'Tanggal' => $achievement->event_date?->format('d/m/Y'),
                 'Peringkat' => $achievement->ranking ?? '-',
                 'Status' => $achievement->status_label,
-                'Skor Kredibilitas' => $achievement->credibility_score . '%',
                 'Tanggal Submit' => $achievement->submitted_at?->format('d/m/Y H:i'),
                 'Validator' => $achievement->validator?->name ?? '-',
             ];

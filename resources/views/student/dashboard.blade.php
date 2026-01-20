@@ -93,7 +93,6 @@
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Event</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Kategori</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">Level</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">Kredibilitas</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
                         </tr>
@@ -108,8 +107,6 @@
                                     'need_revision' => ['label' => 'Perlu Revisi', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
                                 ];
                                 $status = $statusConfig[$item->validation_status] ?? $statusConfig['pending'];
-                                $score = $item->credibility_score ?? 0;
-                                $scoreColor = $score >= 80 ? 'green' : ($score >= 70 ? 'yellow' : 'red');
                             @endphp
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                 <td class="px-6 py-4">
@@ -122,14 +119,6 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-600 dark:text-gray-400 hidden md:table-cell">{{ $item->level }}</td>
-                                <td class="px-6 py-4 hidden lg:table-cell">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                            <div class="h-full bg-{{ $scoreColor }}-500 rounded-full" style="width: {{ $score }}%"></div>
-                                        </div>
-                                        <span class="text-sm font-medium text-{{ $scoreColor }}-600 dark:text-{{ $scoreColor }}-400">{{ number_format($score, 0) }}%</span>
-                                    </div>
-                                </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold {{ $status['class'] }}">
                                         @if($status['icon'] === 'check')

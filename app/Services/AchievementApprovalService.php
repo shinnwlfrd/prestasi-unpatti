@@ -11,13 +11,6 @@ use Illuminate\Support\Facades\DB;
 
 class AchievementApprovalService
 {
-    protected CredibilityService $credibilityService;
-
-    public function __construct(CredibilityService $credibilityService)
-    {
-        $this->credibilityService = $credibilityService;
-    }
-
     public function approve(StudentAchievement $achievement, User $validator, ?string $notes = null): bool
     {
         return DB::transaction(function () use ($achievement, $validator, $notes) {
@@ -72,18 +65,8 @@ class AchievementApprovalService
 
     public function submitForReview(StudentAchievement $achievement): bool
     {
-        // Calculate credibility score
-        $score = $this->credibilityService->calculateScore($achievement);
-        $requiresExtraReview = $this->credibilityService->requiresExtraReview($score);
-
-        // Determine approval level based on competition level
-        $approvalLevel = $achievement->determineApprovalLevel();
-
         $achievement->update([
             'validation_status' => StudentAchievement::STATUS_PENDING,
-            'credibility_score' => $score,
-            'requires_extra_review' => $requiresExtraReview,
-            'approval_level' => $approvalLevel,
             'submitted_at' => now(),
         ]);
 
@@ -142,7 +125,7 @@ class AchievementApprovalService
         $avgTimeToApprove = ValidationLog::where('new_status', StudentAchievement::STATUS_APPROVED)
             ->whereNotNull('validated_at')
             ->join('student_achievements', 'validation_logs.sa_id', '=', 'student_achievements.sa_id')
-            ->selectRaw('AVG(JULIANDAY(validation_logs.validated_at) - JULIANDAY(student_achievements.submitted_at)) as avg_days')
+            ->selectRaw('AVG(DATEDIFF(validation_logs.validated_at, student_achievements.submitted_at)) as avg_days')
             ->value('avg_days') ?? 0;
 
         return [

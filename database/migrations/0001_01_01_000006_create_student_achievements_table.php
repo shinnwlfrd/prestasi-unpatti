@@ -25,7 +25,7 @@ return new class extends Migration {
             $table->text('description')->nullable();
             $table->string('certificate')->nullable();
             $table->timestamp('submitted_at')->nullable();
-            $table->enum('validation_status', ['Menunggu', 'Disetujui', 'Ditolak'])->default('Menunggu');
+            $table->enum('validation_status', ['Menunggu', 'Disetujui', 'Ditolak','Revisi'])->default('Menunggu');
             $table->foreignId('validator_id')->nullable();
             $table->enum('submitted_by', ['student', 'validator'])->default('student');
             $table->timestamps();

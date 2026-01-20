@@ -24,6 +24,8 @@ class AchievementValidationSeeder extends Seeder
                 'name' => 'Validator Prestasi',
                 'password' => Hash::make('password'),
                 'role' => 'Validator',
+                'is_active' => true,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -34,6 +36,8 @@ class AchievementValidationSeeder extends Seeder
                 'name' => 'Admin Sistem',
                 'password' => Hash::make('password'),
                 'role' => 'Admin',
+                'is_active' => true,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -69,7 +73,7 @@ class AchievementValidationSeeder extends Seeder
             ['name' => 'Festival Seni Budaya', 'level' => 'Universitas', 'organizer' => 'Unpatti', 'category' => $nonAkademik->id],
         ];
 
-        $statuses = ['pending', 'approved', 'rejected', 'need_revision'];
+        $statuses = ['Menunggu', 'Disetujui', 'Ditolak','Revisi'];
         $docStatuses = ['draft', 'pending', 'approved', 'rejected', 'revision'];
         $rankings = ['Juara 1', 'Juara 2', 'Juara 3', 'Finalis', 'Peserta Terbaik'];
 
@@ -80,7 +84,6 @@ class AchievementValidationSeeder extends Seeder
 
             foreach ($selectedCompetitions as $competition) {
                 $status = $statuses[array_rand($statuses)];
-                $credibilityScore = rand(40, 100);
 
                 $achievement = StudentAchievement::create([
                     'student_id' => $student->student_id,
@@ -92,9 +95,6 @@ class AchievementValidationSeeder extends Seeder
                     'description' => 'Partisipasi dalam ' . $competition['name'] . ' yang diselenggarakan oleh ' . $competition['organizer'],
                     'ranking' => $rankings[array_rand($rankings)],
                     'validation_status' => $status,
-                    'credibility_score' => $credibilityScore,
-                    'requires_extra_review' => $credibilityScore < 70,
-                    'approval_level' => $competition['level'] === 'Internasional' ? 'university' : ($competition['level'] === 'Nasional' ? 'faculty' : 'standard'),
                     'submitted_at' => now()->subDays(rand(1, 30)),
                     'validator_id' => $status !== 'pending' ? $validator->id : null,
                 ]);
@@ -116,7 +116,7 @@ class AchievementValidationSeeder extends Seeder
                         'approved' => 'approved',
                         'rejected' => rand(0, 1) ? 'rejected' : 'approved',
                         'need_revision' => 'revision',
-                        default => $docStatuses[array_rand(['draft', 'pending'])],
+                        default => collect(['draft', 'pending'])->random(),
                     };
 
                     // Copy sample file to achievement folder

@@ -122,34 +122,38 @@
         </div>
 
         <!-- Low Credibility -->
+        <!-- Recent Submissions -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
                     </svg>
-                    Kredibilitas Rendah
+                    Pengajuan Terbaru
                 </h3>
-                <a href="{{ route('admin.achievements.validation.index', ['credibility' => 'low']) }}" class="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400">
+                <a href="{{ route('admin.achievements.validation.index') }}" class="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400">
                     Lihat Semua →
                 </a>
             </div>
-            @if($lowCredibility->isEmpty())
-                <p class="text-center text-gray-500 dark:text-gray-400 py-8">Tidak ada prestasi dengan kredibilitas rendah</p>
+            @if($pendingReview->isEmpty())
+                <p class="text-center text-gray-500 dark:text-gray-400 py-8">Tidak ada pengajuan baru</p>
             @else
                 <div class="space-y-3">
-                    @foreach($lowCredibility as $achievement)
-                    <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800">
+                    @foreach($pendingReview->take(5) as $achievement)
+                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-600">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                                <span class="text-red-600 dark:text-red-400 font-bold">{{ number_format($achievement->credibility_score, 0) }}%</span>
+                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-900 dark:text-white">{{ Str::limit($achievement->event_name, 30) }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $achievement->student?->name }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $achievement->student?->name }} • {{ $achievement->level }}</p>
                             </div>
                         </div>
-                        <a href="{{ route('admin.achievements.validation.show', $achievement) }}" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg">
+                        <a href="{{ route('admin.achievements.validation.show', $achievement) }}" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg">
                             Review
                         </a>
                     </div>

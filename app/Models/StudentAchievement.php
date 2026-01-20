@@ -23,10 +23,6 @@ class StudentAchievement extends Model
         'certificate',
         'submitted_at',
         'validation_status',
-        'credibility_score',
-        'requires_extra_review',
-        'approval_level',
-        'current_approver_id',
         'validator_id',
         'submitted_by',
     ];
@@ -34,8 +30,6 @@ class StudentAchievement extends Model
     protected $casts = [
         'event_date' => 'date',
         'submitted_at' => 'datetime',
-        'requires_extra_review' => 'boolean',
-        'credibility_score' => 'decimal:2',
     ];
 
     const STATUS_PENDING = 'pending';
@@ -46,10 +40,6 @@ class StudentAchievement extends Model
     const LEVEL_UNIVERSITAS = 'Universitas';
     const LEVEL_NASIONAL = 'Nasional';
     const LEVEL_INTERNASIONAL = 'Internasional';
-
-    const APPROVAL_STANDARD = 'standard';
-    const APPROVAL_FACULTY = 'faculty';
-    const APPROVAL_UNIVERSITY = 'university';
 
     // Relationships
     public function student()
@@ -65,11 +55,6 @@ class StudentAchievement extends Model
     public function validator()
     {
         return $this->belongsTo(User::class, 'validator_id');
-    }
-
-    public function currentApprover()
-    {
-        return $this->belongsTo(User::class, 'current_approver_id');
     }
 
     public function validationLogs()
@@ -120,47 +105,7 @@ class StudentAchievement extends Model
         };
     }
 
-    public function getCredibilityBadgeAttribute(): string
-    {
-        if ($this->credibility_score >= 80) {
-            return 'success';
-        } elseif ($this->credibility_score >= 70) {
-            return 'warning';
-        }
-        return 'danger';
-    }
-
-    public function getCredibilityLabelAttribute(): string
-    {
-        if ($this->credibility_score >= 80) {
-            return 'Tinggi';
-        } elseif ($this->credibility_score >= 70) {
-            return 'Sedang';
-        }
-        return 'Rendah';
-    }
-
     // Methods
-    public function calculateCredibilityScore(): float
-    {
-        $score = 0;
-        $documentTypes = $this->documents->pluck('document_type')->unique();
-
-        foreach ($documentTypes as $type) {
-            $score += AchievementDocument::CREDIBILITY_SCORES[$type] ?? 0;
-        }
-
-        // Cap at 100
-        return min($score, 100);
-    }
-
-    public function updateCredibilityScore(): void
-    {
-        $this->credibility_score = $this->calculateCredibilityScore();
-        $this->requires_extra_review = $this->credibility_score < 70;
-        $this->save();
-    }
-
     public function getDocumentTypeCount(): int
     {
         return $this->documents->pluck('document_type')->unique()->count();
@@ -173,15 +118,6 @@ class StudentAchievement extends Model
             return $this->getDocumentTypeCount() >= 2;
         }
         return $this->documents->count() >= 1;
-    }
-
-    public function determineApprovalLevel(): string
-    {
-        return match($this->level) {
-            self::LEVEL_INTERNASIONAL => self::APPROVAL_UNIVERSITY,
-            self::LEVEL_NASIONAL => self::APPROVAL_FACULTY,
-            default => self::APPROVAL_STANDARD,
-        };
     }
 
     public function canBeAppealed(): bool
@@ -208,15 +144,5 @@ class StudentAchievement extends Model
     public function scopeNeedRevision($query)
     {
         return $query->where('validation_status', self::STATUS_NEED_REVISION);
-    }
-
-    public function scopeLowCredibility($query)
-    {
-        return $query->where('credibility_score', '<', 70);
-    }
-
-    public function scopeRequiresExtraReview($query)
-    {
-        return $query->where('requires_extra_review', true);
     }
 }
