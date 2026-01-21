@@ -8,7 +8,21 @@ class SubmitAppealRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        // Check if student is authenticated via session
+        if (session('auth_role') !== 'student' || !session('student_id')) {
+            return false;
+        }
+
+        // Get the achievement from route parameter
+        $achievement = $this->route('achievement');
+        
+        // Check if achievement exists
+        if (!$achievement) {
+            return false;
+        }
+
+        // Check if the logged-in student is the owner of the achievement
+        return $achievement->student_id === session('student_id');
     }
 
     public function rules(): array
@@ -19,8 +33,24 @@ class SubmitAppealRequest extends FormRequest
             'additional_documents' => 'nullable|array',
             'additional_documents.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
             'document_types' => 'nullable|array',
-            'document_types.*' => 'nullable|string|in:sertifikat,foto_dokumentasi,surat_keterangan,link_publikasi,dokumen_lainnya',
+            'document_types.*' => 'nullable|string|in:sertifikat,foto_dokumentasi,surat_keterangan,dokumen_lainnya',
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            // Jika tidak ada link publikasi dan tidak ada dokumen, berikan error
+            if (!$this->filled('publication_link') && !$this->hasFile('additional_documents')) {
+                $validator->errors()->add(
+                    'additional_documents',
+                    'Anda harus mengupload minimal 1 dokumen tambahan atau memasukkan link publikasi.'
+                );
+            }
+        });
     }
 
     public function messages(): array

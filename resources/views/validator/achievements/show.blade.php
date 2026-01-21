@@ -50,7 +50,7 @@
                     </div>
                     <div>
                         <dt class="text-sm text-gray-500 dark:text-gray-400">Kategori</dt>
-                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category ?? '-' }}</dd>
+                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category?->name ?? '-' }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm text-gray-500 dark:text-gray-400">Tingkat</dt>
@@ -367,7 +367,7 @@
                         </div>
                         <div>
                             <dt class="text-gray-500 dark:text-gray-400">Kategori</dt>
-                            <dd class="font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category }}</dd>
+                            <dd class="font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category?->name ?? '-' }}</dd>
                         </div>
                         <div>
                             <dt class="text-gray-500 dark:text-gray-400">Level</dt>

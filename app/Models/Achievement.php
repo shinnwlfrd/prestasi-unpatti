@@ -10,10 +10,15 @@ class Achievement extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category', // 'Akademik' / 'Non-Akademik'
+        'category_id',
     ];
 
     // Relasi
+    public function category()
+    {
+        return $this->belongsTo(AchievementCategory::class, 'category_id');
+    }
+
     public function studentAchievements()
     {
         return $this->hasMany(StudentAchievement::class);

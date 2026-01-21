@@ -35,7 +35,7 @@ class StudentController extends Controller
      */
     public function create()
     {
-        $types = Achievement::all();
+        $types = Achievement::with('category')->get();
         return view('student.submit', compact('types'));
     }
 

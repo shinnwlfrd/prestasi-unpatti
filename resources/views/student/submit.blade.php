@@ -36,7 +36,8 @@
                         <option value="">-- Pilih Kategori --</option>
                         @foreach($types as $type)
                             <option value="{{ $type->id }}" {{ old('achievement_id') == $type->id ? 'selected' : '' }}>
-                                {{ $type->category }}</option>
+                                {{ $type->category->name }}
+                            </option>
                         @endforeach
                     </select>
                     @error('achievement_id')

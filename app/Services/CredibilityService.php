@@ -55,9 +55,10 @@ class CredibilityService
     public function validateDocumentRequirements(StudentAchievement $achievement): array
     {
         $errors = [];
-        $category = $achievement->achievement?->category;
+        $categoryId = $achievement->achievement?->category_id;
 
-        if ($category === 'Non-Akademik') {
+        // Non-academic (category_id != 1) requires at least 2 different document types
+        if ($categoryId && $categoryId !== 1) {
             $documentTypes = $achievement->documents->pluck('document_type')->unique()->count();
             if ($documentTypes < 2) {
                 $errors[] = 'Prestasi non-akademik memerlukan minimal 2 jenis dokumen berbeda.';

@@ -24,7 +24,7 @@
                     </td>
                     <td class="px-4 py-3">
                         <div class="text-gray-800 dark:text-gray-200">{{ $a->event_name }}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ $a->achievement->category ?? '-' }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ $a->achievement->category->name ?? '-' }}</div>
                     </td>
                     <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $a->level }}</td>
                     <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ \Carbon\Carbon::parse($a->event_date)->format('d M Y') }}</td>

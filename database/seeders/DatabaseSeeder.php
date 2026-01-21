@@ -17,9 +17,13 @@ class DatabaseSeeder extends Seeder
     {
         User::factory(10)->create();
         $this->call([
+            AchievementCategorySeeder::class,
+            AchievementLevelSeeder::class,
+            AcademicPeriodSeeder::class,
             PrestasiMahasiswaSeeder::class,
             AchievementValidationSeeder::class,
-            ]);
+            LargeDataSeeder::class,
+        ]);
 
         // User::factory()->create([
         //     'name' => 'Test User',

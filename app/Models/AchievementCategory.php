@@ -9,6 +9,9 @@ class AchievementCategory extends Model
     protected $fillable = [
         'name',
         'description',
+        'icon',
+        'color',
+        'order',
         'is_active',
     ];
 
@@ -18,6 +21,16 @@ class AchievementCategory extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('is_active', true)->orderBy('order');
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order')->orderBy('name');
+    }
+
+    public function achievements()
+    {
+        return $this->hasMany(Achievement::class, 'category_id');
     }
 }

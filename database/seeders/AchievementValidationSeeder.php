@@ -41,9 +41,9 @@ class AchievementValidationSeeder extends Seeder
             ]
         );
 
-        // Create achievement categories
-        $akademik = Achievement::firstOrCreate(['category' => 'Akademik']);
-        $nonAkademik = Achievement::firstOrCreate(['category' => 'Non-Akademik']);
+        // Create achievement categories (using category_id from achievement_categories table)
+        $akademik = Achievement::firstOrCreate(['category_id' => 1]); // Akademik
+        $nonAkademik = Achievement::firstOrCreate(['category_id' => 2]); // Olahraga (or any non-academic)
 
         // Sample students
         $students = Student::take(5)->get();

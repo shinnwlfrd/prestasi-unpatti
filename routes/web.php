@@ -74,6 +74,12 @@ Route::middleware(['auth.any'])->group(function () {
         ->name('achievements.documents.submitSingle');
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])
         ->name('achievements.documents.destroy');
+    
+    // Admin/Validator actions
+    Route::post('/documents/{document}/revert', [DocumentUploadController::class, 'revertToPending'])
+        ->name('achievements.documents.revert');
+    Route::post('/documents/{document}/add-note', [DocumentUploadController::class, 'addNote'])
+        ->name('achievements.documents.addNote');
 });
 
 // Document preview & history - accessible by all authenticated users (student, admin, validator)
@@ -82,6 +88,10 @@ Route::middleware(['auth.any'])->group(function () {
         ->name('achievements.documents.preview');
     Route::get('/documents/{document}/history', [DocumentUploadController::class, 'history'])
         ->name('achievements.documents.history');
+    
+    // Preview SK from validation log (by file path)
+    Route::get('/validation-logs/{log}/sk-preview', [ValidatorController::class, 'previewSK'])
+        ->name('validation.sk.preview');
     
     // Note: Document upload routes are now also in auth.any group above
 });
@@ -121,6 +131,7 @@ Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/auth-logs', [AdminController::class, 'authLogs'])->name('auth-logs');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+    Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
     Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
     
     // Submit Achievement (Admin can submit on behalf of student)
@@ -132,6 +143,10 @@ Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->grou
     
     // Achievement Levels CRUD
     Route::resource('levels', \App\Http\Controllers\Admin\AchievementLevelController::class);
+    
+    // Academic Periods CRUD
+    Route::resource('periods', \App\Http\Controllers\Admin\AcademicPeriodController::class);
+    Route::patch('/periods/{period}/activate', [\App\Http\Controllers\Admin\AcademicPeriodController::class, 'activate'])->name('periods.activate');
     
     // Achievement Validation System
     Route::prefix('achievements')->name('achievements.')->group(function () {
@@ -147,13 +162,17 @@ Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/validation/{achievement}', [AchievementValidationController::class, 'validate'])->name('validation.process');
         Route::post('/validation/{achievement}/checklist', [AchievementValidationController::class, 'saveChecklist'])->name('validation.checklist');
         Route::get('/validation/{achievement}/history', [AchievementValidationController::class, 'history'])->name('validation.history');
+        Route::post('/{achievement}/revert', [AchievementValidationController::class, 'revertToPending'])->name('validation.revert');
         
         // Document Verification
         Route::post('/documents/{document}/verify', [DocumentUploadController::class, 'verify'])->name('documents.verify');
     });
     
-    // Appeals Management
-    Route::get('/appeals', [AchievementAppealController::class, 'index'])->name('appeals.index');
+    // Appeals Management - REDIRECT to Validation with appeal tab
+    Route::get('/appeals', function() {
+        return redirect()->route('admin.achievements.validation.index', ['tab' => 'appeal']);
+    })->name('appeals.index');
+    
     Route::get('/appeals/{appeal}', [AchievementAppealController::class, 'show'])->name('appeals.show');
     Route::post('/appeals/{appeal}/review', [AchievementAppealController::class, 'review'])->name('appeals.review');
 });

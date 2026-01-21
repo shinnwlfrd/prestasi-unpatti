@@ -27,7 +27,7 @@ class AdminAchievementController extends Controller
     public function create()
     {
         $students = Student::orderBy('name')->get();
-        $achievements = Achievement::all();
+        $achievements = Achievement::with('category')->get();
         $categories = AchievementCategory::active()->get();
         $levels = AchievementLevel::active()->get();
 
@@ -50,7 +50,11 @@ class AdminAchievementController extends Controller
             'description' => 'nullable|string',
             'certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'submit_action' => 'required|in:pending,approve,reject',
-            'sk_resmi' => 'required_if:submit_action,approve|nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'skip_sk' => 'nullable|boolean',
+            'sk_resmi' => 'required_if:submit_action,approve|required_unless:skip_sk,1|nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'sk_waiver_reason' => 'required_if:skip_sk,1|nullable|in:tingkat_universitas,sk_dalam_proses,dokumen_alternatif,lainnya',
+            'sk_waiver_notes' => 'required_if:sk_waiver_reason,lainnya|nullable|string|max:1000',
+            'alternative_document' => 'required_if:sk_waiver_reason,dokumen_alternatif|nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'rejection_reason' => 'required_if:submit_action,reject|nullable|string|max:1000',
         ]);
 
@@ -62,6 +66,9 @@ class AdminAchievementController extends Controller
             'reject' => 'Ditolak',
             default => 'Menunggu',
         };
+
+        // Determine SK required
+        $skRequired = !$request->boolean('skip_sk');
 
         $achievement = StudentAchievement::create([
             'student_id' => $validated['student_id'],
@@ -77,12 +84,16 @@ class AdminAchievementController extends Controller
             'validator_id' => $request->submit_action !== 'pending' ? auth()->id() : null,
             'submitted_by' => 'admin',
             'submitted_at' => now(),
+            'sk_required' => $skRequired,
+            'sk_waiver_reason' => $request->sk_waiver_reason,
+            'sk_waiver_notes' => $request->sk_waiver_notes,
         ]);
 
         // Handle different actions
         if ($request->submit_action === 'approve') {
-            // Upload SK Resmi
             $skDocumentPath = null;
+            
+            // Upload SK Resmi if provided
             if ($request->hasFile('sk_resmi')) {
                 $file = $request->file('sk_resmi');
                 $fileName = 'SK_Resmi_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
@@ -101,9 +112,35 @@ class AdminAchievementController extends Controller
 
                 $skDocumentPath = $filePath;
             }
+            
+            // Upload alternative document if provided
+            if ($request->hasFile('alternative_document')) {
+                $file = $request->file('alternative_document');
+                $fileName = 'Alt_Doc_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+
+                // Save path to achievement
+                $achievement->update(['alternative_document_path' => $filePath]);
+
+                // Also create document record
+                $achievement->documents()->create([
+                    'document_type' => 'dokumen_alternatif',
+                    'file_path' => $filePath,
+                    'file_name' => $fileName,
+                    'file_type' => $file->getMimeType(),
+                    'file_size' => $file->getSize(),
+                    'status' => AchievementDocument::STATUS_APPROVED,
+                    'verified_by' => auth()->id(),
+                    'verified_at' => now(),
+                ]);
+            }
 
             // Log approval
-            $this->approvalService->approve($achievement, auth()->user(), 'Disetujui langsung oleh admin saat submit', $skDocumentPath);
+            $notes = $skRequired 
+                ? 'Disetujui langsung oleh admin saat submit' 
+                : 'Disetujui tanpa SK: ' . ($request->sk_waiver_reason ? StudentAchievement::getSkWaiverReasons()[$request->sk_waiver_reason] : 'N/A');
+            
+            $this->approvalService->approve($achievement, auth()->user(), $notes, $skDocumentPath);
 
             return redirect()->route('admin.achievements.validation.index')
                 ->with('success', 'Prestasi berhasil diajukan dan langsung disetujui.');

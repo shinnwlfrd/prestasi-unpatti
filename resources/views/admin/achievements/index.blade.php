@@ -16,9 +16,16 @@
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
                     <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $t->id }}</td>
                     <td class="px-4 py-3">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-medium {{ $t->category == 'Akademik' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' }}">
-                            {{ $t->category }}
-                        </span>
+                        <div class="flex items-center gap-2">
+                            @if($t->category && $t->category->icon)
+                            <svg class="w-5 h-5" style="color: {{ $t->category->color ?? '#6b7280' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $t->category->icon }}"/>
+                            </svg>
+                            @endif
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium" style="background-color: {{ $t->category->color ?? '#e5e7eb' }}20; color: {{ $t->category->color ?? '#6b7280' }}">
+                                {{ $t->category->name ?? 'N/A' }}
+                            </span>
+                        </div>
                     </td>
                     <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $t->studentAchievements->count() }}</td>
                 </tr>

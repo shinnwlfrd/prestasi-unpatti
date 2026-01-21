@@ -21,7 +21,7 @@ class AdminController extends Controller
             'pending' => StudentAchievement::where('validation_status', 'Menunggu')->count(),
             'approved' => StudentAchievement::where('validation_status', 'Disetujui')->count(),
         ];
-        $recentAchievements = StudentAchievement::with(['student', 'achievement'])
+        $recentAchievements = StudentAchievement::with(['student', 'achievement.category'])
             ->latest()->take(5)->get();
         return view('admin.dashboard', compact('stats', 'recentAchievements'));
     }
@@ -36,14 +36,14 @@ class AdminController extends Controller
     // Achievements Types
     public function achievementTypes()
     {
-        $types = Achievement::all();
+        $types = Achievement::with('category')->get();
         return view('admin.achievements.index', compact('types'));
     }
 
     // Student Achievements
     public function studentAchievements()
     {
-        $achievements = StudentAchievement::with(['student', 'achievement', 'validator'])->latest()->paginate(15);
+        $achievements = StudentAchievement::with(['student', 'achievement.category', 'validator'])->latest()->paginate(15);
         return view('admin.student-achievements.index', compact('achievements'));
     }
 
@@ -93,19 +93,93 @@ class AdminController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
             'role' => 'required|in:Admin,Validator',
+            'faculty' => 'required_if:role,Validator|nullable|string|max:255',
+            'is_active' => 'nullable|boolean',
         ]);
+        
+        // Check if faculty is already assigned to another validator
+        if ($request->role === 'Validator' && $request->faculty && $request->faculty !== 'Semua Fakultas') {
+            $existingValidator = User::where('role', 'Validator')
+                ->where('faculty', $request->faculty)
+                ->where('is_active', true)
+                ->first();
+            
+            if ($existingValidator) {
+                return redirect()->route('admin.users')
+                    ->withErrors(['faculty' => 'Fakultas ' . $request->faculty . ' sudah memiliki validator aktif (' . $existingValidator->name . '). Satu fakultas hanya boleh memiliki satu validator.'])
+                    ->withInput()
+                    ->with('showModal', true);
+            }
+        }
+        
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'faculty' => $request->faculty === 'Semua Fakultas' ? null : $request->faculty,
+            'is_active' => true, // New users are always active
         ]);
-        return back()->with('success', 'User berhasil ditambahkan.');
+        
+        return redirect()->route('admin.users')->with('success', 'User berhasil ditambahkan.');
+    }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:6',
+            'role' => 'required|in:Admin,Validator',
+            'faculty' => 'required_if:role,Validator|nullable|string|max:255',
+            'is_active' => 'nullable|boolean',
+        ]);
+        
+        // Check if faculty is already assigned to another validator
+        if ($request->role === 'Validator' && $request->faculty && $request->faculty !== 'Semua Fakultas') {
+            $existingValidator = User::where('role', 'Validator')
+                ->where('faculty', $request->faculty)
+                ->where('is_active', true)
+                ->where('id', '!=', $user->id)
+                ->first();
+            
+            if ($existingValidator) {
+                return redirect()->route('admin.users')
+                    ->withErrors(['faculty' => 'Fakultas ' . $request->faculty . ' sudah memiliki validator aktif (' . $existingValidator->name . '). Satu fakultas hanya boleh memiliki satu validator.'])
+                    ->withInput()
+                    ->with('showModal', true)
+                    ->with('editUserId', $user->id);
+            }
+        }
+        
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role,
+            'faculty' => $request->faculty === 'Semua Fakultas' ? null : $request->faculty,
+            'is_active' => $request->input('is_active', 0) == 1,
+        ];
+        
+        // Only update password if provided
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+        
+        $user->update($data);
+        
+        return redirect()->route('admin.users')->with('success', 'User berhasil diperbarui.');
     }
 
     public function deleteUser(User $user)
     {
+        // Prevent deleting self
+        if ($user->id === auth()->id()) {
+            return redirect()->route('admin.users')->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        }
+        
+        $userName = $user->name;
         $user->delete();
-        return back()->with('success', 'User berhasil dihapus.');
+        
+        return redirect()->route('admin.users')->with('success', 'User ' . $userName . ' berhasil dihapus.');
     }
 }

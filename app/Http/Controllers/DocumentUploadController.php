@@ -28,6 +28,32 @@ class DocumentUploadController extends Controller
 
     public function index(StudentAchievement $achievement)
     {
+        // Check if achievement is already approved or rejected - prevent document upload
+        if (in_array($achievement->validation_status, [
+            StudentAchievement::STATUS_APPROVED,
+            StudentAchievement::STATUS_REJECTED
+        ])) {
+            // Redirect back with message
+            $message = $achievement->validation_status === StudentAchievement::STATUS_APPROVED
+                ? 'Prestasi ini sudah disetujui. Upload dokumen tidak diperbolehkan.'
+                : 'Prestasi ini sudah ditolak. Upload dokumen tidak diperbolehkan.';
+            
+            // Determine redirect based on user role
+            if (auth()->check()) {
+                $user = auth()->user();
+                if ($user->role === 'Admin') {
+                    return redirect()->route('admin.achievements.validation.show', $achievement)
+                        ->with('warning', $message);
+                } elseif ($user->role === 'Validator') {
+                    return redirect()->route('validator.achievements.show', $achievement)
+                        ->with('warning', $message);
+                }
+            }
+            
+            // Student or default
+            return redirect()->route('student.dashboard')->with('warning', $message);
+        }
+        
         $achievement->load(['documents.revisions', 'documents.verifier']);
         
         // Check if user is validator/admin - they can upload all document types including SK Resmi
@@ -49,7 +75,8 @@ class DocumentUploadController extends Controller
                 ->toArray();
         }
         
-        $isNonAkademik = $achievement->achievement?->category === 'Non-Akademik';
+        // Non-academic check (category_id != 1)
+        $isNonAkademik = $achievement->achievement && $achievement->achievement->category_id !== 1;
         $documentStats = $this->verificationService->getDocumentStatistics($achievement);
 
         return view('achievements.documents.index', compact(
@@ -63,6 +90,25 @@ class DocumentUploadController extends Controller
 
     public function store(UploadDocumentsRequest $request, StudentAchievement $achievement)
     {
+        // Prevent upload if achievement is already approved or rejected
+        if (in_array($achievement->validation_status, [
+            StudentAchievement::STATUS_APPROVED,
+            StudentAchievement::STATUS_REJECTED
+        ])) {
+            $message = $achievement->validation_status === StudentAchievement::STATUS_APPROVED
+                ? 'Prestasi ini sudah disetujui. Upload dokumen tidak diperbolehkan.'
+                : 'Prestasi ini sudah ditolak. Upload dokumen tidak diperbolehkan.';
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 403);
+            }
+            
+            return back()->with('error', $message);
+        }
+        
         $files = $request->file('documents', []);
         $types = $request->input('document_types', []);
         $asDraft = $request->boolean('as_draft', true);
@@ -97,7 +143,18 @@ class DocumentUploadController extends Controller
             $message .= ' Perhatian: ' . implode(' ', $validationErrors);
         }
 
-        return back()->with('success', $message);
+        // Determine redirect based on user role
+        if (auth()->check()) {
+            $user = auth()->user();
+            if ($user->role === 'Admin') {
+                return redirect()->route('admin.achievements.validation.index')->with('success', $message);
+            } elseif ($user->role === 'Validator') {
+                return redirect()->route('validator.dashboard')->with('success', $message);
+            }
+        }
+
+        // Student or default
+        return redirect()->route('student.dashboard')->with('success', $message);
     }
 
     public function upload(Request $request, StudentAchievement $achievement)
@@ -313,6 +370,64 @@ class DocumentUploadController extends Controller
             return response()->json(['success' => false, 'error' => 'Gagal memproses verifikasi.'], 422);
         }
         return back()->with('error', 'Gagal memproses verifikasi.');
+    }
+
+    public function revertToPending(Request $request, AchievementDocument $document)
+    {
+        // Only admin can revert
+        if (!auth()->check() || auth()->user()->role !== 'Admin') {
+            abort(403, 'Hanya admin yang dapat mengembalikan status dokumen.');
+        }
+
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        if ($document->revertToPending(auth()->user(), $request->reason)) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Status dokumen berhasil dikembalikan ke pending.',
+                    'document' => [
+                        'status' => $document->fresh()->status,
+                        'status_label' => $document->fresh()->status_label,
+                    ],
+                ]);
+            }
+            return back()->with('success', 'Status dokumen berhasil dikembalikan ke pending.');
+        }
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => false, 'error' => 'Gagal mengembalikan status dokumen.'], 422);
+        }
+        return back()->with('error', 'Gagal mengembalikan status dokumen.');
+    }
+
+    public function addNote(Request $request, AchievementDocument $document)
+    {
+        // Only admin/validator can add notes
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'Validator'])) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'note' => 'required|string|max:1000',
+        ]);
+
+        if ($document->addNote(auth()->user(), $request->note)) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Catatan berhasil ditambahkan.',
+                ]);
+            }
+            return back()->with('success', 'Catatan berhasil ditambahkan.');
+        }
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => false, 'error' => 'Gagal menambahkan catatan.'], 422);
+        }
+        return back()->with('error', 'Gagal menambahkan catatan.');
     }
 
     protected function authorizeDocumentAccess(StudentAchievement $achievement): void

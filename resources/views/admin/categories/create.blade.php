@@ -26,6 +26,29 @@
                         class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg">{{ old('description') }}</textarea>
                 </div>
 
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon (SVG Path)</label>
+                        <input type="text" name="icon" value="{{ old('icon') }}"
+                            placeholder="M12 6.253v13m0-13C10.832..."
+                            class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm">
+                        <p class="text-xs text-gray-500 mt-1">SVG path dari Heroicons</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Warna (Hex)</label>
+                        <input type="color" name="color" value="{{ old('color', '#6366f1') }}"
+                            class="w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Urutan Tampilan</label>
+                    <input type="number" name="order" value="{{ old('order', 0) }}" min="0"
+                        class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg">
+                    <p class="text-xs text-gray-500 mt-1">Semakin kecil angka, semakin atas posisinya</p>
+                </div>
+
                 <div class="flex items-center">
                     <input type="checkbox" name="is_active" value="1" checked id="is_active"
                         class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">

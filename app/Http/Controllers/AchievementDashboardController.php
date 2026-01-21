@@ -19,22 +19,49 @@ class AchievementDashboardController extends Controller
 
     public function index(Request $request)
     {
-        $statistics = $this->approvalService->getApprovalStatistics();
-        $monthlyTrend = $this->approvalService->getMonthlyTrend(6);
-        $levelDistribution = $this->approvalService->getLevelDistribution();
+        // Get period filter - use 'all' for "Semua Periode"
+        $periodId = $request->input('period');
+        
+        // Get all periods for dropdown
+        $periods = \App\Models\AcademicPeriod::ordered()->get();
+        
+        // Determine selected period
+        $selectedPeriod = null;
+        $periodComparison = null;
+        
+        if ($periodId === 'all' || $periodId === null || $periodId === '') {
+            // "Semua Periode" selected - show period comparison
+            $periodComparison = $this->approvalService->getPeriodComparison();
+            $periodId = null; // Set to null for statistics
+        } else {
+            // Specific period selected
+            $selectedPeriod = \App\Models\AcademicPeriod::find($periodId);
+        }
+        
+        // Get statistics with period filter
+        $statistics = $this->approvalService->getApprovalStatistics($periodId);
+        $monthlyTrend = $this->approvalService->getMonthlyTrend(6, $periodId);
+        $levelDistribution = $this->approvalService->getLevelDistribution($periodId);
 
         // Recent achievements requiring attention
-        $pendingReview = StudentAchievement::with(['student', 'achievement'])
+        $query = StudentAchievement::with(['student', 'achievement.category'])
             ->pending()
-            ->latest('submitted_at')
-            ->take(10)
-            ->get();
+            ->latest('submitted_at');
+        
+        if ($periodId) {
+            $query->where('academic_period_id', $periodId);
+        }
+        
+        $pendingReview = $query->take(10)->get();
 
         return view('admin.achievements.dashboard', compact(
             'statistics',
             'monthlyTrend',
             'levelDistribution',
-            'pendingReview'
+            'pendingReview',
+            'periods',
+            'selectedPeriod',
+            'periodComparison'
         ));
     }
 
@@ -42,7 +69,7 @@ class AchievementDashboardController extends Controller
     {
         $format = $request->input('format', 'excel');
 
-        $query = StudentAchievement::with(['student', 'achievement', 'validator']);
+        $query = StudentAchievement::with(['student', 'achievement.category', 'validator']);
 
         // Apply same filters as index
         if ($request->filled('status')) {

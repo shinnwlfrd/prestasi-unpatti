@@ -19,10 +19,37 @@ class AchievementValidationController extends Controller
 
     public function index(Request $request)
     {
-        $query = StudentAchievement::with(['student', 'achievement', 'documents', 'validator'])
+        $query = StudentAchievement::with(['student', 'achievement.category', 'documents', 'validator'])
             ->latest('submitted_at');
 
-        // Filters
+        // Tab filtering
+        $tab = $request->get('tab', 'pending');
+        
+        switch ($tab) {
+            case 'appeal':
+                $query->where('is_appeal', true)
+                      ->where('validation_status', StudentAchievement::STATUS_PENDING);
+                break;
+            case 'revision':
+                $query->where('validation_status', StudentAchievement::STATUS_NEED_REVISION);
+                break;
+            case 'approved':
+                $query->where('validation_status', StudentAchievement::STATUS_APPROVED);
+                break;
+            case 'rejected':
+                $query->where('validation_status', StudentAchievement::STATUS_REJECTED);
+                break;
+            case 'history':
+                $query->whereIn('validation_status', [StudentAchievement::STATUS_APPROVED, StudentAchievement::STATUS_REJECTED]);
+                break;
+            case 'pending':
+            default:
+                $query->where('validation_status', StudentAchievement::STATUS_PENDING)
+                      ->where('is_appeal', false);
+                break;
+        }
+
+        // Additional Filters
         if ($request->filled('status')) {
             $query->where('validation_status', $request->status);
         }
@@ -51,6 +78,11 @@ class AchievementValidationController extends Controller
 
         $achievements = $query->paginate(15)->withQueryString();
         $statistics = $this->approvalService->getApprovalStatistics();
+        
+        // Add appeals count to statistics
+        $statistics['appeals'] = StudentAchievement::where('is_appeal', true)
+            ->where('validation_status', StudentAchievement::STATUS_PENDING)
+            ->count();
 
         return view('admin.achievements.validation.index', compact('achievements', 'statistics'));
     }
@@ -59,7 +91,7 @@ class AchievementValidationController extends Controller
     {
         $achievement->load([
             'student',
-            'achievement',
+            'achievement.category',
             'documents',
             'validationLogs.validator',
             'checklist',
@@ -185,7 +217,7 @@ class AchievementValidationController extends Controller
     public function history(StudentAchievement $achievement)
     {
         $logs = $achievement->validationLogs()
-            ->with('validator')
+            ->with(['validator', 'studentAchievement.documents'])
             ->orderBy('validated_at', 'desc')
             ->get();
 
@@ -202,5 +234,48 @@ class AchievementValidationController extends Controller
         ]);
 
         return view('admin.achievements.validation.documents', compact('achievement'));
+    }
+
+    public function revertToPending(Request $request, StudentAchievement $achievement)
+    {
+        // Only admin can revert
+        if (!auth()->check() || auth()->user()->role !== 'Admin') {
+            abort(403, 'Hanya admin yang dapat mengembalikan status prestasi.');
+        }
+
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        // Check if achievement is approved or rejected
+        if (!in_array($achievement->validation_status, ['Disetujui', 'Ditolak'])) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'error' => 'Prestasi harus berstatus Disetujui atau Ditolak untuk dikembalikan.'], 422);
+            }
+            return back()->with('error', 'Prestasi harus berstatus Disetujui atau Ditolak untuk dikembalikan.');
+        }
+
+        $oldStatus = $achievement->validation_status;
+        $achievement->validation_status = 'Menunggu';
+        $achievement->validator_id = null;
+        $achievement->save();
+
+        // Log the revert action
+        $achievement->validationLogs()->create([
+            'validator_id' => auth()->id(),
+            'old_status' => $oldStatus,
+            'new_status' => 'Menunggu',
+            'notes' => 'Status dikembalikan ke Pending oleh Admin. ' . ($request->reason ?? ''),
+            'validated_at' => now(),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status prestasi berhasil dikembalikan ke Pending.',
+            ]);
+        }
+
+        return back()->with('success', 'Status prestasi berhasil dikembalikan ke Pending.');
     }
 }

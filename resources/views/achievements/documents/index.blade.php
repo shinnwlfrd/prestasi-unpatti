@@ -8,8 +8,18 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <div class="flex items-center gap-4 mb-4">
             @php
+                $isAdmin = auth()->check() && auth()->user()->role === 'Admin';
                 $isValidator = auth()->check() && auth()->user()->role === 'Validator';
-                $backRoute = $isValidator ? route('validator.dashboard') : route('student.dashboard');
+                $isStudent = session('auth_role') === 'student';
+                
+                // Determine back route based on role
+                if ($isAdmin) {
+                    $backRoute = route('admin.achievements.validation.index');
+                } elseif ($isValidator) {
+                    $backRoute = route('validator.dashboard');
+                } else {
+                    $backRoute = route('student.dashboard');
+                }
             @endphp
             <a href="{{ $backRoute }}" 
                 class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
@@ -186,8 +196,8 @@
 
         <!-- Submit Button -->
         <div class="mt-6 flex justify-end gap-3">
-            <a href="{{ $backRoute ?? (auth()->check() && auth()->user()->role === 'Validator' ? route('validator.dashboard') : route('student.dashboard')) }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                Batal
+            <a href="{{ $backRoute }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                Kembali
             </a>
             <button 
                 type="submit" 
@@ -334,8 +344,15 @@ function documentUploader() {
                 }
             })
             .then(response => {
-                if (response.ok || response.redirected) {
-                    window.location.reload();
+                if (response.ok) {
+                    // Success - redirect to appropriate page based on role
+                    @if($isAdmin)
+                        window.location.href = '{{ route("admin.achievements.validation.index") }}';
+                    @elseif($isValidator)
+                        window.location.href = '{{ route("validator.dashboard") }}';
+                    @else
+                        window.location.href = '{{ route("student.dashboard") }}';
+                    @endif
                 } else {
                     return response.json().then(data => {
                         throw new Error(data.message || 'Gagal upload dokumen');
@@ -364,6 +381,62 @@ function deleteDocument(id) {
             if (data.success) {
                 location.reload();
             }
+        });
+    }
+}
+
+function revertDocument(id) {
+    const reason = prompt('Alasan mengembalikan status dokumen (opsional):');
+    if (reason !== null) { // null means cancelled
+        fetch('/documents/' + id + '/revert', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error || 'Gagal mengembalikan status dokumen');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan');
+        });
+    }
+}
+
+function addNoteToDocument(id) {
+    const note = prompt('Masukkan catatan untuk dokumen ini:');
+    if (note && note.trim()) {
+        fetch('/documents/' + id + '/add-note', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ note: note })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error || 'Gagal menambahkan catatan');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan');
         });
     }
 }

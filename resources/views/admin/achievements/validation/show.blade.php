@@ -33,7 +33,61 @@
         <div class="space-y-6">
             <!-- Achievement Info -->
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Informasi Prestasi</h3>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Informasi Prestasi</h3>
+                    @if($achievement->is_appeal)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold bg-orange-500 text-white shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            PRESTASI BANDING
+                        </span>
+                    @endif
+                </div>
+                
+                @if($achievement->is_appeal)
+                <div class="mb-6 p-5 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-l-4 border-orange-500 rounded-r-lg shadow-sm">
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-orange-900 dark:text-orange-200 text-base mb-2">Informasi Banding</h4>
+                            <div class="space-y-2">
+                                <div>
+                                    <p class="text-xs font-semibold text-orange-800 dark:text-orange-300 uppercase tracking-wide mb-1">Alasan Banding:</p>
+                                    <p class="text-sm text-orange-900 dark:text-orange-100 leading-relaxed">{{ $achievement->appeal_reason }}</p>
+                                </div>
+                                @if($achievement->publication_link)
+                                    <div>
+                                        <p class="text-xs font-semibold text-orange-800 dark:text-orange-300 uppercase tracking-wide mb-1">Link Publikasi:</p>
+                                        <a href="{{ $achievement->publication_link }}" target="_blank" 
+                                            class="inline-flex items-center gap-1 text-sm text-orange-700 dark:text-orange-300 hover:text-orange-900 dark:hover:text-orange-100 font-medium underline">
+                                            {{ Str::limit($achievement->publication_link, 60) }}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                @endif
+                                <div class="pt-2 border-t border-orange-200 dark:border-orange-800">
+                                    <p class="text-xs text-orange-700 dark:text-orange-400">
+                                        <svg class="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Diajukan pada: <strong>{{ $achievement->appealed_at?->format('d M Y, H:i') }} WIT</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                
                 <dl class="grid grid-cols-2 gap-4">
                     <div>
                         <dt class="text-sm text-gray-500 dark:text-gray-400">Nama Lomba</dt>
@@ -41,7 +95,7 @@
                     </div>
                     <div>
                         <dt class="text-sm text-gray-500 dark:text-gray-400">Kategori</dt>
-                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category ?? '-' }}</dd>
+                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category?->name ?? '-' }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm text-gray-500 dark:text-gray-400">Tingkat</dt>
@@ -301,7 +355,7 @@
                         </div>
                         <div>
                             <dt class="text-gray-500 dark:text-gray-400">Kategori</dt>
-                            <dd class="font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category }}</dd>
+                            <dd class="font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category?->name ?? '-' }}</dd>
                         </div>
                         <div>
                             <dt class="text-gray-500 dark:text-gray-400">Level</dt>

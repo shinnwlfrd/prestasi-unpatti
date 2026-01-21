@@ -40,13 +40,13 @@ class AchievementAppealController extends Controller
             return back()->with('error', 'Prestasi ini tidak dapat diajukan banding.');
         }
 
-        // Create appeal
-        $appeal = AchievementAppeal::create([
-            'sa_id' => $achievement->sa_id,
-            'student_id' => $achievement->student_id,
+        // Update achievement dengan data banding
+        $achievement->update([
+            'is_appeal' => true,
             'appeal_reason' => $request->appeal_reason,
             'publication_link' => $request->publication_link,
-            'status' => AchievementAppeal::STATUS_PENDING,
+            'appealed_at' => now(),
+            'validation_status' => StudentAchievement::STATUS_PENDING, // Kembali ke pending untuk review
         ]);
 
         // Upload additional documents if provided
@@ -81,9 +81,6 @@ class AchievementAppealController extends Controller
                 false // Not draft, submit directly
             );
         }
-
-        // Update achievement status to pending for re-review
-        $achievement->update(['validation_status' => StudentAchievement::STATUS_PENDING]);
 
         return redirect()
             ->route('student.dashboard')

@@ -14,6 +14,7 @@ class StudentAchievement extends Model
     protected $fillable = [
         'student_id',
         'achievement_id',
+        'academic_period_id',
         'event_name',
         'level',
         'organizer',
@@ -25,11 +26,22 @@ class StudentAchievement extends Model
         'validation_status',
         'validator_id',
         'submitted_by',
+        'is_appeal',
+        'appeal_reason',
+        'publication_link',
+        'appealed_at',
+        'sk_required',
+        'sk_waiver_reason',
+        'sk_waiver_notes',
+        'alternative_document_path',
     ];
 
     protected $casts = [
         'event_date' => 'date',
         'submitted_at' => 'datetime',
+        'appealed_at' => 'datetime',
+        'is_appeal' => 'boolean',
+        'sk_required' => 'boolean',
     ];
 
     // Status constants - sesuai dengan ENUM di database
@@ -42,6 +54,22 @@ class StudentAchievement extends Model
     const LEVEL_NASIONAL = 'Nasional';
     const LEVEL_INTERNASIONAL = 'Internasional';
 
+    // SK Waiver reasons
+    const SK_WAIVER_TINGKAT_UNIVERSITAS = 'tingkat_universitas';
+    const SK_WAIVER_SK_DALAM_PROSES = 'sk_dalam_proses';
+    const SK_WAIVER_DOKUMEN_ALTERNATIF = 'dokumen_alternatif';
+    const SK_WAIVER_LAINNYA = 'lainnya';
+
+    public static function getSkWaiverReasons(): array
+    {
+        return [
+            self::SK_WAIVER_TINGKAT_UNIVERSITAS => 'Prestasi tingkat universitas tidak memerlukan SK',
+            self::SK_WAIVER_SK_DALAM_PROSES => 'SK sedang dalam proses',
+            self::SK_WAIVER_DOKUMEN_ALTERNATIF => 'Menggunakan dokumen alternatif',
+            self::SK_WAIVER_LAINNYA => 'Lainnya (jelaskan di catatan)',
+        ];
+    }
+
     // Relationships
     public function student()
     {
@@ -51,6 +79,11 @@ class StudentAchievement extends Model
     public function achievement()
     {
         return $this->belongsTo(Achievement::class);
+    }
+
+    public function academicPeriod()
+    {
+        return $this->belongsTo(AcademicPeriod::class);
     }
 
     public function validator()
@@ -115,7 +148,8 @@ class StudentAchievement extends Model
     public function hasMinimumDocuments(): bool
     {
         // Non-akademik requires at least 2 different document types
-        if ($this->achievement && $this->achievement->category === 'Non-Akademik') {
+        // Check if category is not "Akademik" (category_id != 1)
+        if ($this->achievement && $this->achievement->category_id !== 1) {
             return $this->getDocumentTypeCount() >= 2;
         }
         return $this->documents->count() >= 1;

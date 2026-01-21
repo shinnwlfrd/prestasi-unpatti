@@ -215,6 +215,34 @@ class AchievementDocument extends Model
         return true;
     }
 
+    public function revertToPending(User $admin, ?string $reason = null): bool
+    {
+        if (!in_array($this->status, [self::STATUS_APPROVED, self::STATUS_REJECTED])) {
+            return false;
+        }
+
+        $oldStatus = $this->status;
+        $this->status = self::STATUS_PENDING;
+        $this->verified_by = null;
+        $this->verified_at = null;
+        $this->revision_notes = $reason;
+        $this->save();
+
+        $this->logRevision(
+            'reverted_to_pending', 
+            "Status dikembalikan dari {$oldStatus} ke pending. " . ($reason ?? ''), 
+            $admin->id
+        );
+
+        return true;
+    }
+
+    public function addNote(User $admin, string $note): bool
+    {
+        $this->logRevision('note_added', $note, $admin->id);
+        return true;
+    }
+
     public function logRevision(string $action, ?string $notes = null, ?int $performedBy = null): DocumentRevision
     {
         return $this->revisions()->create([

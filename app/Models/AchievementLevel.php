@@ -10,6 +10,9 @@ class AchievementLevel extends Model
         'name',
         'description',
         'points',
+        'icon',
+        'color',
+        'order',
         'is_active',
     ];
 
@@ -20,6 +23,11 @@ class AchievementLevel extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('is_active', true)->orderBy('order');
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order')->orderBy('points', 'desc');
     }
 }

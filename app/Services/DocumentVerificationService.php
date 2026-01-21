@@ -98,8 +98,8 @@ class DocumentVerificationService
             $errors[] = 'Ada ' . $rejectedDocs->count() . ' dokumen yang ditolak.';
         }
 
-        // Check minimum documents for non-academic
-        if ($achievement->achievement?->category === 'Non-Akademik') {
+        // Check minimum documents for non-academic (category_id != 1 means non-academic)
+        if ($achievement->achievement && $achievement->achievement->category_id !== 1) {
             $approvedTypes = $documents
                 ->where('status', AchievementDocument::STATUS_APPROVED)
                 ->pluck('document_type')

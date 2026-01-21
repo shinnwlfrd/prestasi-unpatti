@@ -27,6 +27,8 @@ class DocumentRevision extends Model
     const ACTION_APPROVED = 'approved';
     const ACTION_REJECTED = 'rejected';
     const ACTION_SUBMITTED = 'submitted';
+    const ACTION_REVERTED_TO_PENDING = 'reverted_to_pending';
+    const ACTION_NOTE_ADDED = 'note_added';
 
     const ACTION_LABELS = [
         self::ACTION_UPLOADED => 'Dokumen Diupload',
@@ -35,6 +37,8 @@ class DocumentRevision extends Model
         self::ACTION_APPROVED => 'Dokumen Disetujui',
         self::ACTION_REJECTED => 'Dokumen Ditolak',
         self::ACTION_SUBMITTED => 'Dokumen Disubmit',
+        self::ACTION_REVERTED_TO_PENDING => 'Dikembalikan ke Pending',
+        self::ACTION_NOTE_ADDED => 'Catatan Ditambahkan',
     ];
 
     public function document()
@@ -60,6 +64,8 @@ class DocumentRevision extends Model
             self::ACTION_REVISION_REQUESTED => 'warning',
             self::ACTION_APPROVED => 'success',
             self::ACTION_REJECTED => 'danger',
+            self::ACTION_REVERTED_TO_PENDING => 'warning',
+            self::ACTION_NOTE_ADDED => 'info',
             default => 'secondary',
         };
     }

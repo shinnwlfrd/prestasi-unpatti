@@ -55,7 +55,7 @@
                     <option value="">Pilih Kategori</option>
                     @foreach($achievements as $achievement)
                         <option value="{{ $achievement->id }}" {{ old('achievement_id') == $achievement->id ? 'selected' : '' }}>
-                            {{ $achievement->category }}
+                            {{ $achievement->category->name ?? 'N/A' }}
                         </option>
                     @endforeach
                 </select>
@@ -92,7 +92,6 @@
                                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300 peer-checked:text-purple-600 dark:peer-checked:text-purple-400">
                                         {{ $level->name }}
                                     </span>
-                                    <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $level->points }} poin</span>
                                 </div>
                             </label>
                         @endif
@@ -149,20 +148,86 @@
             </div>
 
             <!-- Certificate Upload -->
-            <div>
+            <div x-data="{ 
+                fileName: '', 
+                fileSize: '', 
+                fileUrl: '',
+                fileType: '',
+                showPreview: false
+            }">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Sertifikat <span class="text-red-500">*</span>
                 </label>
-                <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                    <input type="file" name="certificate" accept=".pdf,.jpg,.jpeg,.png" required class="hidden" id="certificate">
-                    <label for="certificate" class="cursor-pointer">
-                        <svg class="w-10 h-10 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                        </svg>
-                        <p class="mt-2 text-gray-600 dark:text-gray-400">Klik untuk upload sertifikat</p>
-                        <p class="text-sm text-gray-500">PDF, JPG, PNG (Maks. 5MB)</p>
+                <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                    <input type="file" name="certificate" accept=".pdf,.jpg,.jpeg,.png" required class="hidden" id="certificate"
+                        @change="
+                            const file = $event.target.files[0];
+                            if (file) {
+                                fileName = file.name;
+                                fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                                fileUrl = URL.createObjectURL(file);
+                                fileType = file.type;
+                            }
+                        ">
+                    <label for="certificate" class="cursor-pointer block">
+                        <div x-show="!fileName">
+                            <svg class="w-10 h-10 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <p class="mt-2 text-gray-600 dark:text-gray-400">Klik untuk upload sertifikat</p>
+                            <p class="text-sm text-gray-500">PDF, JPG, PNG (Maks. 5MB)</p>
+                        </div>
+                        <div x-show="fileName" class="flex items-center justify-center gap-3">
+                            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div class="text-left">
+                                <p class="text-gray-800 dark:text-white font-medium" x-text="fileName"></p>
+                                <p class="text-sm text-gray-500" x-text="fileSize"></p>
+                            </div>
+                        </div>
                     </label>
                 </div>
+                
+                <!-- Preview Button -->
+                <div x-show="fileName" class="mt-3 flex justify-center">
+                    <button type="button" @click="showPreview = true"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Lihat Preview
+                    </button>
+                </div>
+
+                <!-- Preview Modal -->
+                <div x-show="showPreview" x-cloak
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+                    @click.self="showPreview = false">
+                    <div class="relative bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+                        <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Preview Sertifikat</h3>
+                            <button type="button" @click="showPreview = false"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-6">
+                            <!-- Image Preview -->
+                            <div x-show="fileType.startsWith('image/')">
+                                <img :src="fileUrl" :alt="fileName" class="max-w-full h-auto mx-auto rounded-lg">
+                            </div>
+                            <!-- PDF Preview -->
+                            <div x-show="fileType === 'application/pdf'" class="w-full" style="height: 70vh;">
+                                <iframe :src="fileUrl" class="w-full h-full rounded-lg border border-gray-300 dark:border-gray-600"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 @error('certificate')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -173,7 +238,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Tindakan Setelah Submit <span class="text-red-500">*</span>
                 </label>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                     <label class="relative">
                         <input type="radio" name="submit_action" value="pending" x-model="action" checked class="peer sr-only">
                         <div class="px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-center cursor-pointer transition-all peer-checked:border-yellow-500 peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-900/30">
@@ -192,37 +257,156 @@
                             <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">Langsung setujui</span>
                         </div>
                     </label>
-                    <label class="relative">
-                        <input type="radio" name="submit_action" value="reject" x-model="action" class="peer sr-only">
-                        <div class="px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-center cursor-pointer transition-all peer-checked:border-red-500 peer-checked:bg-red-50 dark:peer-checked:bg-red-900/30">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 peer-checked:text-red-600 dark:peer-checked:text-red-400">
-                                Reject
-                            </span>
-                            <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">Langsung tolak</span>
-                        </div>
-                    </label>
                 </div>
             </div>
 
             <!-- Conditional Fields -->
-            <div x-show="action === 'approve'" x-cloak class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                <label class="block text-sm font-medium text-green-700 dark:text-green-400 mb-2">
-                    Upload SK Resmi <span class="text-red-500">*</span>
-                </label>
-                <input type="file" name="sk_resmi" accept=".pdf,.jpg,.jpeg,.png"
-                    :required="action === 'approve'"
-                    class="w-full border-green-300 dark:border-green-600 dark:bg-gray-700 dark:text-white rounded-lg">
-                <p class="text-sm text-green-600 dark:text-green-400 mt-2">SK Resmi wajib diupload untuk approve prestasi</p>
-            </div>
+            <div x-show="action === 'approve'" x-cloak class="space-y-4"
+                x-data="{ 
+                    skFileName: '', 
+                    skFileSize: '',
+                    skFileUrl: '',
+                    skFileType: '',
+                    showSkPreview: false,
+                    skipSk: false,
+                    waiverReason: '',
+                    altDocFileName: '',
+                    altDocFileSize: '',
+                    altDocFileUrl: '',
+                    showAltDocPreview: false
+                }">
+                
+                <!-- Checkbox: Approve tanpa SK -->
+                <div class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" name="skip_sk" value="1" x-model="skipSk"
+                            class="mt-1 rounded border-gray-300 text-amber-600 focus:ring-amber-500">
+                        <div>
+                            <span class="font-medium text-amber-800 dark:text-amber-300">Approve tanpa SK Resmi</span>
+                            <p class="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                                Centang jika prestasi ini tidak memerlukan SK Resmi atau SK belum tersedia
+                            </p>
+                        </div>
+                    </label>
+                </div>
 
-            <div x-show="action === 'reject'" x-cloak class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <label class="block text-sm font-medium text-red-700 dark:text-red-400 mb-2">
-                    Alasan Penolakan <span class="text-red-500">*</span>
-                </label>
-                <textarea name="rejection_reason" rows="3"
-                    :required="action === 'reject'"
-                    class="w-full border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                    placeholder="Jelaskan alasan penolakan..."></textarea>
+                <!-- SK Resmi Upload (jika tidak skip) -->
+                <div x-show="!skipSk" class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <label class="block text-sm font-medium text-green-700 dark:text-green-400 mb-2">
+                        Upload SK Resmi <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="file" name="sk_resmi" accept=".pdf,.jpg,.jpeg,.png"
+                            :required="action === 'approve' && !skipSk"
+                            class="w-full border-green-300 dark:border-green-600 dark:bg-gray-700 dark:text-white rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200 dark:file:bg-green-800 dark:file:text-green-200"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    skFileName = file.name;
+                                    skFileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                                    skFileUrl = URL.createObjectURL(file);
+                                    skFileType = file.type;
+                                }
+                            ">
+                        <div x-show="skFileName" class="mt-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span x-text="skFileName + ' (' + skFileSize + ')'"></span>
+                            </div>
+                            <button type="button" @click="showSkPreview = true"
+                                class="inline-flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                Preview
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- SK Preview Modal -->
+                    <div x-show="showSkPreview" x-cloak
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+                        @click.self="showSkPreview = false">
+                        <div class="relative bg-white dark:bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+                            <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Preview SK Resmi</h3>
+                                <button type="button" @click="showSkPreview = false"
+                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <div x-show="skFileType.startsWith('image/')">
+                                    <img :src="skFileUrl" :alt="skFileName" class="max-w-full h-auto mx-auto rounded-lg">
+                                </div>
+                                <div x-show="skFileType === 'application/pdf'" class="w-full" style="height: 70vh;">
+                                    <iframe :src="skFileUrl" class="w-full h-full rounded-lg border border-gray-300 dark:border-gray-600"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-sm text-green-600 dark:text-green-400 mt-2">SK Resmi wajib diupload untuk approve prestasi</p>
+                </div>
+
+                <!-- Waiver Options (jika skip SK) -->
+                <div x-show="skipSk" class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">
+                            Alasan <span class="text-red-500">*</span>
+                        </label>
+                        <select name="sk_waiver_reason" x-model="waiverReason" :required="skipSk"
+                            class="w-full border-amber-300 dark:border-amber-600 dark:bg-gray-700 dark:text-white rounded-lg">
+                            <option value="">Pilih alasan</option>
+                            <option value="tingkat_universitas">Prestasi tingkat universitas tidak memerlukan SK</option>
+                            <option value="sk_dalam_proses">SK sedang dalam proses</option>
+                            <option value="dokumen_alternatif">Menggunakan dokumen alternatif</option>
+                            <option value="lainnya">Lainnya</option>
+                        </select>
+                    </div>
+
+                    <!-- Catatan tambahan -->
+                    <div x-show="waiverReason === 'lainnya' || waiverReason">
+                        <label class="block text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">
+                            Catatan <span x-show="waiverReason === 'lainnya'" class="text-red-500">*</span>
+                        </label>
+                        <textarea name="sk_waiver_notes" rows="3" :required="waiverReason === 'lainnya'"
+                            class="w-full border-amber-300 dark:border-amber-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                            placeholder="Jelaskan alasan lebih detail..."></textarea>
+                    </div>
+
+                    <!-- Upload dokumen alternatif -->
+                    <div x-show="waiverReason === 'dokumen_alternatif'">
+                        <label class="block text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">
+                            Upload Dokumen Alternatif <span class="text-red-500">*</span>
+                        </label>
+                        <input type="file" name="alternative_document" accept=".pdf,.jpg,.jpeg,.png"
+                            :required="waiverReason === 'dokumen_alternatif'"
+                            class="w-full border-amber-300 dark:border-amber-600 dark:bg-gray-700 dark:text-white rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amber-100 file:text-amber-700 hover:file:bg-amber-200"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    altDocFileName = file.name;
+                                    altDocFileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                                    altDocFileUrl = URL.createObjectURL(file);
+                                }
+                            ">
+                        <p class="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                            Contoh: Surat Keterangan Fakultas, Surat Tugas, Berita Acara, Email Konfirmasi
+                        </p>
+                        <div x-show="altDocFileName" class="mt-2 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span x-text="altDocFileName + ' (' + altDocFileSize + ')'"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Info Box -->
@@ -235,8 +419,7 @@
                         <p class="font-medium text-blue-800 dark:text-blue-200 text-sm">Informasi</p>
                         <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
                             <strong>Pending:</strong> Prestasi akan disimpan dengan status "Menunggu" dan Anda akan diarahkan ke halaman upload dokumen tambahan.<br>
-                            <strong>Approve:</strong> Prestasi langsung disetujui (wajib upload SK Resmi).<br>
-                            <strong>Reject:</strong> Prestasi langsung ditolak (wajib isi alasan).
+                            <strong>Approve:</strong> Prestasi langsung disetujui (wajib upload SK Resmi).
                         </p>
                     </div>
                 </div>

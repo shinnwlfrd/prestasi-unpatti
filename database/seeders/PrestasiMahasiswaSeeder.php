@@ -39,18 +39,29 @@ class PrestasiMahasiswaSeeder extends Seeder
             ]
         );
 
-        ValidatorProfile::create([
-            'user_id' => $validator->id,
-            'name' => 'Validator Prestasi',
-            'email' => 'validator@univ.ac.id',
-            'phone' => '081234567890',
-            'department' => 'Bidang Kemahasiswaan',
-        ]);
+        ValidatorProfile::firstOrCreate(
+            ['user_id' => $validator->id],
+            [
+                'name' => 'Validator Prestasi',
+                'email' => 'validator@univ.ac.id',
+                'phone' => '081234567890',
+                'department' => 'Bidang Kemahasiswaan',
+            ]
+        );
 
 
-        // 3. Buat 2 Kategori Prestasi
-        $akademik = Achievement::create(['category' => 'Akademik']);
-        $nonAkademik = Achievement::create(['category' => 'Non-Akademik']);
+        // 3. Buat Achievement untuk semua kategori
+        $achievements = [];
+        $categories = \App\Models\AchievementCategory::orderBy('order')->get();
+        
+        foreach ($categories as $category) {
+            $achievement = Achievement::firstOrCreate(['category_id' => $category->id]);
+            $achievements[] = $achievement;
+        }
+        
+        // For backward compatibility, keep references to first two
+        $akademik = $achievements[0] ?? null; // Akademik
+        $nonAkademik = $achievements[1] ?? null; // Olahraga
 
         // 4. Buat Mahasiswa Test
         $testStudent = Student::create([

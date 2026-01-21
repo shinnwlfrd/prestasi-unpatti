@@ -86,6 +86,13 @@
             <strong>Catatan Revisi:</strong> {{ Str::limit($document->revision_notes, 50) }}
         </div>
         @endif
+        
+        <!-- Rejection Notes -->
+        @if($document->status === 'rejected' && $document->revision_notes)
+        <div class="mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded text-xs text-red-700 dark:text-red-400">
+            <strong>Alasan Ditolak:</strong> {{ Str::limit($document->revision_notes, 50) }}
+        </div>
+        @endif
 
         <!-- Action Buttons for User -->
         @if($deletable && $document->canBeEdited())
@@ -101,6 +108,17 @@
             </label>
         </div>
         @endif
+        
+        <!-- Upload Replacement for Rejected Documents (Student) -->
+        @if($deletable && $document->status === 'rejected' && !auth()->check())
+        <div class="mt-2">
+            <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Dokumen ditolak. Upload dokumen baru:</p>
+            <a href="{{ route('achievements.documents.index', $document->studentAchievement) }}" 
+                class="block text-center text-xs px-2 py-1 bg-purple-500 hover:bg-purple-600 text-white rounded">
+                Upload Dokumen Baru
+            </a>
+        </div>
+        @endif
 
         <!-- Verification Buttons for Admin -->
         @if($verifiable && $document->status === 'pending')
@@ -113,6 +131,20 @@
             </button>
             <button type="button" onclick="verifyDocument({{ $document->id }}, 'reject')" class="flex-1 text-xs px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded">
                 Tolak
+            </button>
+        </div>
+        @endif
+        
+        <!-- Admin Actions for Approved/Rejected Documents -->
+        @if(auth()->check() && auth()->user()->role === 'Admin' && in_array($document->status, ['approved', 'rejected']))
+        <div class="mt-2 space-y-1">
+            <button type="button" onclick="revertDocument({{ $document->id }})" 
+                class="w-full text-xs px-2 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded">
+                Kembalikan ke Pending
+            </button>
+            <button type="button" onclick="addNoteToDocument({{ $document->id }})" 
+                class="w-full text-xs px-2 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded">
+                Tambah Catatan
             </button>
         </div>
         @endif
