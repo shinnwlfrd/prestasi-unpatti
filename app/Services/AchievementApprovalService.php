@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class AchievementApprovalService
 {
-    public function approve(StudentAchievement $achievement, User $validator, ?string $notes = null): bool
+    public function approve(StudentAchievement $achievement, User $validator, ?string $notes = null, ?string $skDocumentPath = null): bool
     {
-        return DB::transaction(function () use ($achievement, $validator, $notes) {
+        return DB::transaction(function () use ($achievement, $validator, $notes, $skDocumentPath) {
             $oldStatus = $achievement->validation_status;
 
             $achievement->update([
@@ -21,7 +21,7 @@ class AchievementApprovalService
                 'validator_id' => $validator->id,
             ]);
 
-            $this->createValidationLog($achievement, $validator, $oldStatus, StudentAchievement::STATUS_APPROVED, $notes);
+            $this->createValidationLog($achievement, $validator, $oldStatus, StudentAchievement::STATUS_APPROVED, $notes, null, $skDocumentPath);
             $this->notifyStudent($achievement, 'approved');
 
             return true;
@@ -87,7 +87,8 @@ class AchievementApprovalService
         string $oldStatus,
         string $newStatus,
         ?string $notes = null,
-        ?array $metadata = null
+        ?array $metadata = null,
+        ?string $skDocumentPath = null
     ): ValidationLog {
         return ValidationLog::create([
             'sa_id' => $achievement->sa_id,
@@ -95,6 +96,7 @@ class AchievementApprovalService
             'old_status' => $oldStatus,
             'new_status' => $newStatus,
             'notes' => $notes,
+            'sk_document' => $skDocumentPath,
             'metadata' => $metadata,
             'validated_at' => now(),
         ]);

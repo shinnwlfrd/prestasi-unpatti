@@ -82,6 +82,7 @@ class AdminAchievementController extends Controller
         // Handle different actions
         if ($request->submit_action === 'approve') {
             // Upload SK Resmi
+            $skDocumentPath = null;
             if ($request->hasFile('sk_resmi')) {
                 $file = $request->file('sk_resmi');
                 $fileName = 'SK_Resmi_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
@@ -97,10 +98,12 @@ class AdminAchievementController extends Controller
                     'verified_by' => auth()->id(),
                     'verified_at' => now(),
                 ]);
+
+                $skDocumentPath = $filePath;
             }
 
             // Log approval
-            $this->approvalService->approve($achievement, auth()->user(), 'Disetujui langsung oleh admin saat submit');
+            $this->approvalService->approve($achievement, auth()->user(), 'Disetujui langsung oleh admin saat submit', $skDocumentPath);
 
             return redirect()->route('admin.achievements.validation.index')
                 ->with('success', 'Prestasi berhasil diajukan dan langsung disetujui.');

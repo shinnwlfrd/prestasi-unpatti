@@ -48,7 +48,7 @@
                 <div>
                     <p class="font-medium text-emerald-800 dark:text-emerald-200">Mode Validator/Admin</p>
                     <p class="text-sm text-emerald-700 dark:text-emerald-300 mt-1">
-                        Anda dapat mengupload <strong>semua jenis dokumen</strong> termasuk <strong>SK Resmi</strong>, 
+                        Anda dapat mengupload <strong>semua jenis dokumen</strong> termasuk, 
                         <strong>Sertifikat</strong>, dan <strong>Dokumen Pendukung</strong> lainnya.
                     </p>
                 </div>

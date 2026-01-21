@@ -116,13 +116,14 @@ class ValidatorController extends Controller
         }
 
         // Handle SK Resmi upload (WAJIB untuk approve)
+        $skDocumentPath = null;
         if ($request->action === 'approve' && $request->hasFile('sk_resmi')) {
-            $this->uploadSkResmi($request, $achievement, $validator);
+            $skDocumentPath = $this->uploadSkResmi($request, $achievement, $validator);
         }
 
         // Process action
         $success = match($request->action) {
-            'approve' => $this->approvalService->approve($achievement, $validator, $request->notes),
+            'approve' => $this->approvalService->approve($achievement, $validator, $request->notes, $skDocumentPath),
             'reject' => $this->approvalService->reject($achievement, $validator, $request->rejection_reason),
             'request_revision' => $this->approvalService->requestRevision($achievement, $validator, $request->revision_reason, []),
             default => false,
@@ -163,6 +164,9 @@ class ValidatorController extends Controller
             'verified_by' => $validator->id,
             'verified_at' => now(),
         ]);
+
+        // Return file path untuk disimpan di validation log
+        return $filePath;
     }
 
     /**
