@@ -62,7 +62,10 @@
     @endif
 
     <!-- Appeal Form -->
-    <form action="{{ route('achievements.appeal.store', $achievement) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <form action="{{ route('achievements.appeal.store', $achievement) }}" method="POST" enctype="multipart/form-data" 
+          class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
+          x-data="{ submitting: false }" 
+          @submit="submitting = true">
         @csrf
         
         <div class="space-y-6">
@@ -162,8 +165,15 @@
             <a href="{{ url()->previous() }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                 Batal
             </a>
-            <button type="submit" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium">
-                Ajukan Banding
+            <button type="submit" 
+                    :disabled="submitting"
+                    :class="submitting ? 'opacity-50 cursor-not-allowed' : ''"
+                    class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2">
+                <svg x-show="submitting" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span x-text="submitting ? 'Memproses...' : 'Ajukan Banding'"></span>
             </button>
         </div>
     </form>
@@ -185,6 +195,7 @@
 function documentUploader() {
     return {
         files: [],
+        fileObjects: [], // Store actual File objects
         
         addFiles(event) {
             const newFiles = Array.from(event.target.files);
@@ -204,43 +215,53 @@ function documentUploader() {
                     return;
                 }
                 
-                this.files.push(file);
+                // Add to display list
+                this.files.push({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+                
+                // Store actual file object
+                this.fileObjects.push(file);
             });
             
             // Reset input
             event.target.value = '';
             
-            // Update form with DataTransfer
+            // Update hidden inputs
             this.updateFormFiles();
         },
         
         removeFile(index) {
             this.files.splice(index, 1);
+            this.fileObjects.splice(index, 1);
             this.updateFormFiles();
         },
         
         updateFormFiles() {
-            const input = document.getElementById('additional-docs');
-            const dt = new DataTransfer();
+            // Remove existing hidden file inputs
+            const existingInputs = document.querySelectorAll('input[name="additional_documents[]"][type="file"]:not(#additional-docs)');
+            existingInputs.forEach(input => input.remove());
             
-            this.files.forEach(file => {
-                dt.items.add(file);
-            });
-            
-            // Create hidden input for files
-            const existingHidden = document.querySelector('input[name="additional_documents[]"]');
-            if (existingHidden && existingHidden.type === 'file' && existingHidden.id !== 'additional-docs') {
-                existingHidden.remove();
-            }
-            
-            if (this.files.length > 0) {
+            // Create new hidden inputs for each file
+            if (this.fileObjects.length > 0) {
+                const form = document.querySelector('form');
+                const dt = new DataTransfer();
+                
+                this.fileObjects.forEach(file => {
+                    dt.items.add(file);
+                });
+                
+                // Create single hidden input with all files
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'file';
                 hiddenInput.name = 'additional_documents[]';
                 hiddenInput.multiple = true;
                 hiddenInput.style.display = 'none';
                 hiddenInput.files = dt.files;
-                input.parentElement.appendChild(hiddenInput);
+                
+                form.appendChild(hiddenInput);
             }
         },
         
