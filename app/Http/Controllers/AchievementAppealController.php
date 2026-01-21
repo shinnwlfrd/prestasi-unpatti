@@ -53,7 +53,23 @@ class AchievementAppealController extends Controller
         if ($request->hasFile('additional_documents')) {
             $files = $request->file('additional_documents');
             $types = $request->input('document_types', []);
-            $this->uploadService->uploadMultipleDocuments($achievement, $files, $types);
+            
+            // Ensure we have types for each file
+            foreach ($files as $index => $file) {
+                $documentType = $types[$index] ?? 'dokumen_lainnya';
+                
+                try {
+                    $this->uploadService->uploadDocument(
+                        $achievement,
+                        $file,
+                        $documentType,
+                        false // Not draft, submit directly
+                    );
+                } catch (\Exception $e) {
+                    // Log error but continue with other files
+                    \Log::warning('Failed to upload document in appeal: ' . $e->getMessage());
+                }
+            }
         }
 
         // Add publication link as document if provided

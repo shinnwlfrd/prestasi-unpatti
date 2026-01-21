@@ -101,37 +101,56 @@
             </div>
 
             <!-- Additional Documents -->
-            <div>
+            <div x-data="documentUploader()">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Dokumen Tambahan (Opsional)
                 </label>
+                
+                <!-- Upload Area -->
                 <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                    <input type="file" name="additional_documents[]" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden" id="additional-docs">
+                    <input type="file" @change="addFiles($event)" multiple accept=".pdf,.jpg,.jpeg,.png" class="hidden" id="additional-docs">
                     <label for="additional-docs" class="cursor-pointer">
                         <svg class="w-10 h-10 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                         </svg>
                         <p class="mt-2 text-gray-600 dark:text-gray-400">Klik untuk upload dokumen tambahan</p>
-                        <p class="text-sm text-gray-500">PDF, JPG, PNG (Maks. 10MB)</p>
+                        <p class="text-sm text-gray-500">PDF, JPG, PNG (Maks. 10MB per file)</p>
                     </label>
                 </div>
-            </div>
 
-            <!-- Document Types -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Jenis Dokumen Tambahan
-                </label>
-                <div class="flex flex-wrap gap-3">
-                    @foreach(\App\Models\AchievementDocument::DOCUMENT_TYPES as $type => $label)
-                        @if($type !== 'sk_resmi')
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="document_types[]" value="{{ $type }}" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ $label }}</span>
-                        </label>
-                        @endif
-                    @endforeach
+                <!-- File List -->
+                <div x-show="files.length > 0" class="mt-4 space-y-3">
+                    <template x-for="(file, index) in files" :key="index">
+                        <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 dark:text-white truncate" x-text="file.name"></p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400" x-text="formatFileSize(file.size)"></p>
+                                
+                                <!-- Document Type Selector -->
+                                <select :name="'document_types[' + index + ']'" required
+                                    class="mt-2 w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg">
+                                    <option value="">Pilih Jenis Dokumen</option>
+                                    @foreach(\App\Models\AchievementDocument::DOCUMENT_TYPES as $type => $label)
+                                        @if($type !== 'sk_resmi')
+                                        <option value="{{ $type }}">{{ $label }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="button" @click="removeFile(index)" class="flex-shrink-0 p-1 text-red-600 hover:text-red-700 dark:text-red-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
                 </div>
+
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     <strong>Catatan:</strong> SK Resmi hanya dapat diupload oleh Validator/Admin saat proses approval.
                 </p>
@@ -161,4 +180,76 @@
     </div>
     @endif
 </div>
+
+<script>
+function documentUploader() {
+    return {
+        files: [],
+        
+        addFiles(event) {
+            const newFiles = Array.from(event.target.files);
+            
+            // Validate each file
+            newFiles.forEach(file => {
+                // Check file size (10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`File ${file.name} terlalu besar. Maksimal 10MB.`);
+                    return;
+                }
+                
+                // Check file type
+                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`File ${file.name} format tidak didukung. Gunakan PDF, JPG, atau PNG.`);
+                    return;
+                }
+                
+                this.files.push(file);
+            });
+            
+            // Reset input
+            event.target.value = '';
+            
+            // Update form with DataTransfer
+            this.updateFormFiles();
+        },
+        
+        removeFile(index) {
+            this.files.splice(index, 1);
+            this.updateFormFiles();
+        },
+        
+        updateFormFiles() {
+            const input = document.getElementById('additional-docs');
+            const dt = new DataTransfer();
+            
+            this.files.forEach(file => {
+                dt.items.add(file);
+            });
+            
+            // Create hidden input for files
+            const existingHidden = document.querySelector('input[name="additional_documents[]"]');
+            if (existingHidden && existingHidden.type === 'file' && existingHidden.id !== 'additional-docs') {
+                existingHidden.remove();
+            }
+            
+            if (this.files.length > 0) {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'file';
+                hiddenInput.name = 'additional_documents[]';
+                hiddenInput.multiple = true;
+                hiddenInput.style.display = 'none';
+                hiddenInput.files = dt.files;
+                input.parentElement.appendChild(hiddenInput);
+            }
+        },
+        
+        formatFileSize(bytes) {
+            if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
+            if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return bytes + ' bytes';
+        }
+    }
+}
+</script>
 @endsection
