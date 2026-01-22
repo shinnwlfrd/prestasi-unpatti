@@ -54,35 +54,19 @@ class AchievementDashboardController extends Controller
         // 3. Validator Performance
         $validatorPerformance = $this->getValidatorPerformance($periodId);
         
-        // 4. Alert System - Pending submissions > 7 days
-        $oldPendingAlerts = $this->getOldPendingAlerts($periodId);
-        
-        // 5. Category Distribution
+        // 4. Category Distribution
         $categoryDistribution = $this->getCategoryDistribution($periodId);
-
-        // Recent achievements requiring attention
-        $query = StudentAchievement::with(['student', 'achievement.category'])
-            ->pending()
-            ->latest('submitted_at');
-        
-        if ($periodId) {
-            $query->where('academic_period_id', $periodId);
-        }
-        
-        $pendingReview = $query->take(10)->get();
 
         return view('admin.achievements.dashboard', compact(
             'statistics',
             'monthlyTrend',
             'levelDistribution',
-            'pendingReview',
             'periods',
             'selectedPeriod',
             'periodComparison',
             'topPerformers',
             'facultyComparison',
             'validatorPerformance',
-            'oldPendingAlerts',
             'categoryDistribution'
         ));
     }
@@ -168,23 +152,6 @@ class AchievementDashboardController extends Controller
                 'avg_response_days' => round($avgDays, 1)
             ];
         });
-    }
-    
-    /**
-     * Get old pending submissions (> 7 days)
-     */
-    protected function getOldPendingAlerts($periodId = null)
-    {
-        $query = StudentAchievement::with(['student', 'achievement.category'])
-            ->where('validation_status', 'Menunggu')
-            ->where('submitted_at', '<', now()->subDays(7))
-            ->orderBy('submitted_at', 'asc');
-        
-        if ($periodId) {
-            $query->where('academic_period_id', $periodId);
-        }
-        
-        return $query->limit(5)->get();
     }
     
     /**
