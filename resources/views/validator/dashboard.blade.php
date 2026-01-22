@@ -102,17 +102,114 @@
 
     <!-- Table -->
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <!-- Header -->
+        <!-- Header with Filters -->
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mb-4">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Menunggu Validasi</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Prestasi yang perlu divalidasi</p>
                 </div>
                 <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Total: <strong class="text-gray-900 dark:text-white">{{ $pendingAchievements->count() }}</strong> prestasi
+                    Total: <strong class="text-gray-900 dark:text-white">{{ $pendingAchievements->total() }}</strong> prestasi
                 </span>
             </div>
+            
+            <!-- Filter Form -->
+            <form method="GET" action="{{ route('validator.dashboard') }}" class="space-y-4" x-data="{ showFilters: {{ request()->hasAny(['level', 'category', 'date_from', 'date_to', 'submitted_by']) ? 'true' : 'false' }} }">
+                <!-- Search Bar -->
+                <div class="flex gap-3">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <input type="text" name="search" value="{{ request('search') }}" 
+                                placeholder="Cari nama mahasiswa, event, atau penyelenggara..."
+                                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                            <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <button type="button" @click="showFilters = !showFilters"
+                        class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                        Filter
+                        @if(request()->hasAny(['level', 'category', 'date_from', 'date_to', 'submitted_by']))
+                            <span class="px-1.5 py-0.5 text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full">
+                                {{ collect(['level', 'category', 'date_from', 'date_to', 'submitted_by'])->filter(fn($f) => request()->filled($f))->count() }}
+                            </span>
+                        @endif
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors">
+                        Cari
+                    </button>
+                    @if(request()->hasAny(['search', 'level', 'category', 'date_from', 'date_to', 'submitted_by']))
+                        <a href="{{ route('validator.dashboard') }}"
+                            class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            Reset
+                        </a>
+                    @endif
+                </div>
+                
+                <!-- Advanced Filters -->
+                <div x-show="showFilters" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 -translate-y-2"
+                     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 pt-2"
+                     style="display: none;">
+                    <!-- Level Filter -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Tingkat</label>
+                        <select name="level" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                            <option value="">Semua Tingkat</option>
+                            @foreach($levels as $level)
+                                <option value="{{ $level }}" {{ request('level') == $level ? 'selected' : '' }}>{{ $level }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <!-- Category Filter -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Kategori</label>
+                        <select name="category" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <!-- Date From -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Dari</label>
+                        <input type="date" name="date_from" value="{{ request('date_from') }}"
+                            class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    
+                    <!-- Date To -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal Sampai</label>
+                        <input type="date" name="date_to" value="{{ request('date_to') }}"
+                            class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    
+                    <!-- Submitted By -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Diajukan Oleh</label>
+                        <select name="submitted_by" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                            <option value="">Semua</option>
+                            <option value="student" {{ request('submitted_by') == 'student' ? 'selected' : '' }}>Mahasiswa</option>
+                            <option value="validator" {{ request('submitted_by') == 'validator' ? 'selected' : '' }}>Validator</option>
+                            <option value="admin" {{ request('submitted_by') == 'admin' ? 'selected' : '' }}>Admin</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
         </div>
         
         <div class="overflow-x-auto">
@@ -199,6 +296,73 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination -->
+        @if($pendingAchievements->hasPages())
+        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Menampilkan <span class="font-medium text-gray-900 dark:text-white">{{ $pendingAchievements->firstItem() }}</span>
+                    sampai <span class="font-medium text-gray-900 dark:text-white">{{ $pendingAchievements->lastItem() }}</span>
+                    dari <span class="font-medium text-gray-900 dark:text-white">{{ $pendingAchievements->total() }}</span> prestasi
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    {{-- Previous Page Link --}}
+                    @if ($pendingAchievements->onFirstPage())
+                        <span class="px-3 py-2 text-sm text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 rounded-lg cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </span>
+                    @else
+                        <a href="{{ $pendingAchievements->previousPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </a>
+                    @endif
+
+                    {{-- Pagination Elements --}}
+                    <div class="flex items-center gap-1">
+                        @foreach ($pendingAchievements->getUrlRange(1, $pendingAchievements->lastPage()) as $page => $url)
+                            @if ($page == $pendingAchievements->currentPage())
+                                <span class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg">
+                                    {{ $page }}
+                                </span>
+                            @else
+                                <a href="{{ $url }}" class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                                    {{ $page }}
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    {{-- Next Page Link --}}
+                    @if ($pendingAchievements->hasMorePages())
+                        <a href="{{ $pendingAchievements->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    @else
+                        <span class="px-3 py-2 text-sm text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 rounded-lg cursor-not-allowed">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </span>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 @endsection
+
+
+@push('styles')
+<style>
+    [x-cloak] { display: none !important; }
+</style>
+@endpush

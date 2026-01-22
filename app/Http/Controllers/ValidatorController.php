@@ -30,7 +30,7 @@ class ValidatorController extends Controller
     /**
      * Display pending achievements for validation.
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $user = auth()->user();
         
@@ -45,9 +45,51 @@ class ValidatorController extends Controller
             });
         }
         
-        $pendingAchievements = $query->get();
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('event_name', 'like', "%{$search}%")
+                  ->orWhere('student_id', 'like', "%{$search}%")
+                  ->orWhere('organizer', 'like', "%{$search}%")
+                  ->orWhereHas('student', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Level filter
+        if ($request->filled('level')) {
+            $query->where('level', $request->level);
+        }
+        
+        // Category filter
+        if ($request->filled('category')) {
+            $query->whereHas('achievement', function($q) use ($request) {
+                $q->where('category_id', $request->category);
+            });
+        }
+        
+        // Date range filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('event_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('event_date', '<=', $request->date_to);
+        }
+        
+        // Submitted by filter
+        if ($request->filled('submitted_by')) {
+            $query->where('submitted_by', $request->submitted_by);
+        }
+        
+        $pendingAchievements = $query->paginate(15)->withQueryString();
+        
+        // Get filter options
+        $categories = \App\Models\AchievementCategory::orderBy('name')->get();
+        $levels = ['Universitas', 'Nasional', 'Internasional'];
 
-        return view('validator.dashboard', compact('pendingAchievements'));
+        return view('validator.dashboard', compact('pendingAchievements', 'categories', 'levels'));
     }
 
     /**

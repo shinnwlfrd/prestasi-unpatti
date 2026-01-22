@@ -43,6 +43,23 @@ class AchievementDashboardController extends Controller
         $monthlyTrend = $this->approvalService->getMonthlyTrend(6, $periodId);
         $levelDistribution = $this->approvalService->getLevelDistribution($periodId);
 
+        // HIGH PRIORITY FEATURES
+        
+        // 1. Top Performers
+        $topPerformers = $this->getTopPerformers($periodId);
+        
+        // 2. Faculty Comparison
+        $facultyComparison = $this->getFacultyComparison($periodId);
+        
+        // 3. Validator Performance
+        $validatorPerformance = $this->getValidatorPerformance($periodId);
+        
+        // 4. Alert System - Pending submissions > 7 days
+        $oldPendingAlerts = $this->getOldPendingAlerts($periodId);
+        
+        // 5. Category Distribution
+        $categoryDistribution = $this->getCategoryDistribution($periodId);
+
         // Recent achievements requiring attention
         $query = StudentAchievement::with(['student', 'achievement.category'])
             ->pending()
@@ -61,8 +78,135 @@ class AchievementDashboardController extends Controller
             'pendingReview',
             'periods',
             'selectedPeriod',
-            'periodComparison'
+            'periodComparison',
+            'topPerformers',
+            'facultyComparison',
+            'validatorPerformance',
+            'oldPendingAlerts',
+            'categoryDistribution'
         ));
+    }
+    
+    /**
+     * Get top performing students
+     */
+    protected function getTopPerformers($periodId = null, $limit = 10)
+    {
+        $query = \App\Models\Student::withCount([
+            'achievements' => function($q) use ($periodId) {
+                $q->where('validation_status', 'Disetujui');
+                if ($periodId) {
+                    $q->where('academic_period_id', $periodId);
+                }
+            }
+        ])
+        ->having('achievements_count', '>', 0)
+        ->orderByDesc('achievements_count')
+        ->limit($limit);
+        
+        return $query->get();
+    }
+    
+    /**
+     * Get faculty comparison data
+     */
+    protected function getFacultyComparison($periodId = null)
+    {
+        $query = \DB::table('student_achievements')
+            ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+            ->selectRaw('
+                COALESCE(students.faculty, "N/A") as faculty,
+                COUNT(*) as total,
+                SUM(CASE WHEN student_achievements.validation_status = "Disetujui" THEN 1 ELSE 0 END) as approved,
+                SUM(CASE WHEN student_achievements.validation_status = "Menunggu" THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN student_achievements.validation_status = "Ditolak" THEN 1 ELSE 0 END) as rejected
+            ')
+            ->groupBy('students.faculty')
+            ->orderByDesc('total');
+        
+        if ($periodId) {
+            $query->where('student_achievements.academic_period_id', $periodId);
+        }
+        
+        return collect($query->get());
+    }
+    
+    /**
+     * Get validator performance metrics
+     */
+    protected function getValidatorPerformance($periodId = null)
+    {
+        $query = \App\Models\User::where('role', 'Validator')
+            ->withCount([
+                'validatedAchievements' => function($q) use ($periodId) {
+                    if ($periodId) {
+                        $q->where('academic_period_id', $periodId);
+                    }
+                }
+            ])
+            ->with([
+                'validatedAchievements' => function($q) use ($periodId) {
+                    $q->select('validator_id', 
+                        \DB::raw('AVG(DATEDIFF(updated_at, submitted_at)) as avg_days'))
+                        ->whereNotNull('validator_id')
+                        ->whereIn('validation_status', ['Disetujui', 'Ditolak']);
+                    if ($periodId) {
+                        $q->where('academic_period_id', $periodId);
+                    }
+                    $q->groupBy('validator_id');
+                }
+            ])
+            ->orderByDesc('validated_achievements_count')
+            ->limit(10);
+        
+        return $query->get()->map(function($validator) {
+            $avgDays = $validator->validatedAchievements->first()?->avg_days ?? 0;
+            return [
+                'name' => $validator->name,
+                'faculty' => $validator->faculty ?? 'All',
+                'total_validated' => $validator->validated_achievements_count,
+                'avg_response_days' => round($avgDays, 1)
+            ];
+        });
+    }
+    
+    /**
+     * Get old pending submissions (> 7 days)
+     */
+    protected function getOldPendingAlerts($periodId = null)
+    {
+        $query = StudentAchievement::with(['student', 'achievement.category'])
+            ->where('validation_status', 'Menunggu')
+            ->where('submitted_at', '<', now()->subDays(7))
+            ->orderBy('submitted_at', 'asc');
+        
+        if ($periodId) {
+            $query->where('academic_period_id', $periodId);
+        }
+        
+        return $query->limit(5)->get();
+    }
+    
+    /**
+     * Get category distribution
+     */
+    protected function getCategoryDistribution($periodId = null)
+    {
+        $query = StudentAchievement::join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
+            ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
+            ->selectRaw('
+                achievement_categories.name as category,
+                COUNT(*) as total,
+                SUM(CASE WHEN validation_status = "Disetujui" THEN 1 ELSE 0 END) as approved
+            ')
+            ->groupBy('achievement_categories.id', 'achievement_categories.name')
+            ->orderByDesc('total');
+        
+        if ($periodId) {
+            $query->where('student_achievements.academic_period_id', $periodId);
+        }
+        
+        return $query->get();
     }
 
     public function export(Request $request)

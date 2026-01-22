@@ -193,6 +193,176 @@
         </div>
     </div>
 
+    <!-- HIGH PRIORITY FEATURES -->
+    
+    <!-- Alert System - Old Pending Submissions -->
+    @if($oldPendingAlerts->isNotEmpty())
+    <div class="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl p-6 shadow-sm">
+        <div class="flex items-start gap-4">
+            <div class="p-3 bg-red-100 dark:bg-red-900/40 rounded-lg flex-shrink-0">
+                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold text-red-900 dark:text-red-100 flex items-center gap-2">
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                    </span>
+                    Perhatian: {{ $oldPendingAlerts->count() }} Prestasi Menunggu > 7 Hari
+                </h3>
+                <p class="text-sm text-red-700 dark:text-red-300 mt-1">Prestasi berikut sudah menunggu validasi lebih dari 7 hari dan perlu segera ditindaklanjuti</p>
+                <div class="mt-4 space-y-2">
+                    @foreach($oldPendingAlerts as $alert)
+                    <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-800">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $alert->event_name }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $alert->student?->name }} • Menunggu {{ $alert->submitted_at->diffInDays() }} hari</p>
+                        </div>
+                        <a href="{{ route('admin.achievements.validation.show', $alert) }}" 
+                            class="ml-3 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg font-medium transition-colors">
+                            Review Sekarang
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Top Performers & Faculty Comparison -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Top Performers -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        Top 10 Mahasiswa Berprestasi
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Mahasiswa dengan prestasi terbanyak</p>
+                </div>
+            </div>
+            @if($topPerformers->isEmpty())
+                <div class="text-center py-8">
+                    <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Belum ada data</p>
+                </div>
+            @else
+                <div class="space-y-3 max-h-96 overflow-y-auto">
+                    @foreach($topPerformers as $index => $student)
+                    <div class="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex-shrink-0">
+                            @if($index < 3)
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center {{ $index === 0 ? 'bg-yellow-100 dark:bg-yellow-900/30' : ($index === 1 ? 'bg-gray-100 dark:bg-gray-700' : 'bg-orange-100 dark:bg-orange-900/30') }}">
+                                    <span class="text-lg font-bold {{ $index === 0 ? 'text-yellow-600 dark:text-yellow-400' : ($index === 1 ? 'text-gray-600 dark:text-gray-400' : 'text-orange-600 dark:text-orange-400') }}">
+                                        {{ $index + 1 }}
+                                    </span>
+                                </div>
+                            @else
+                                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                    <span class="text-sm font-semibold text-purple-600 dark:text-purple-400">{{ $index + 1 }}</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $student->name }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $student->student_id }} • {{ $student->faculty ?? 'N/A' }}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-sm font-bold rounded-full">
+                                {{ $student->achievements_count }} prestasi
+                            </span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <!-- Faculty Comparison Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Perbandingan Per Fakultas</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Distribusi prestasi berdasarkan fakultas</p>
+            </div>
+            <div class="h-80">
+                <canvas id="facultyComparisonChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validator Performance & Category Distribution -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Validator Performance -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                        </svg>
+                        Performa Validator
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Statistik validasi per validator</p>
+                </div>
+            </div>
+            @if($validatorPerformance->isEmpty())
+                <div class="text-center py-8">
+                    <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Belum ada data validator</p>
+                </div>
+            @else
+                <div class="space-y-3 max-h-96 overflow-y-auto">
+                    @foreach($validatorPerformance as $validator)
+                    <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ substr($validator['name'], 0, 1) }}</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $validator['name'] }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $validator['faculty'] }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mt-3">
+                            <div class="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Total Validasi</p>
+                                <p class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ $validator['total_validated'] }}</p>
+                            </div>
+                            <div class="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Avg Response</p>
+                                <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ $validator['avg_response_days'] }} hari</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        <!-- Category Distribution -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Kategori</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Prestasi berdasarkan kategori</p>
+            </div>
+            <div class="h-80">
+                <canvas id="categoryDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Actions & Recent Submissions -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Pending Review List -->
@@ -555,6 +725,154 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             },
             cutout: '65%'
+        }
+    });
+
+    // Faculty Comparison Chart
+    const facultyData = @json($facultyComparison);
+    new Chart(document.getElementById('facultyComparisonChart'), {
+        type: 'bar',
+        data: {
+            labels: facultyData.map(d => d.faculty),
+            datasets: [
+                {
+                    label: 'Total',
+                    data: facultyData.map(d => d.total),
+                    backgroundColor: '#8b5cf6',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Disetujui',
+                    data: facultyData.map(d => d.approved),
+                    backgroundColor: '#10b981',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Menunggu',
+                    data: facultyData.map(d => d.pending),
+                    backgroundColor: '#f59e0b',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Ditolak',
+                    data: facultyData.map(d => d.rejected),
+                    backgroundColor: '#ef4444',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: textColor,
+                        padding: 10,
+                        font: { size: 11 },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1f2937' : '#fff',
+                    titleColor: isDark ? '#fff' : '#111827',
+                    bodyColor: isDark ? '#d1d5db' : '#6b7280',
+                    borderColor: isDark ? '#374151' : '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 12
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: textColor,
+                        font: { size: 10 }
+                    },
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: textColor,
+                        font: { size: 10 }
+                    },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // Category Distribution Chart
+    const categoryData = @json($categoryDistribution);
+    new Chart(document.getElementById('categoryDistributionChart'), {
+        type: 'doughnut',
+        data: {
+            labels: categoryData.map(d => d.category),
+            datasets: [{
+                data: categoryData.map(d => d.total),
+                backgroundColor: [
+                    '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', 
+                    '#ef4444', '#ec4899', '#06b6d4', '#84cc16'
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: textColor,
+                        padding: 12,
+                        font: { size: 11 },
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return {
+                                        text: `${label}: ${value} (${percentage}%)`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1f2937' : '#fff',
+                    titleColor: isDark ? '#fff' : '#111827',
+                    bodyColor: isDark ? '#d1d5db' : '#6b7280',
+                    borderColor: isDark ? '#374151' : '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
         }
     });
 });
