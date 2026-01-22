@@ -15,15 +15,55 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
+        // Basic Statistics
         $stats = [
             'students' => Student::count(),
             'achievements' => StudentAchievement::count(),
             'pending' => StudentAchievement::where('validation_status', 'Menunggu')->count(),
             'approved' => StudentAchievement::where('validation_status', 'Disetujui')->count(),
+            'validators' => User::where('role', 'Validator')->where('is_active', true)->count(),
+            'users' => User::count(),
         ];
+        
+        // Recent Achievements (last 10)
         $recentAchievements = StudentAchievement::with(['student', 'achievement.category'])
-            ->latest()->take(5)->get();
-        return view('admin.dashboard', compact('stats', 'recentAchievements'));
+            ->latest()
+            ->take(10)
+            ->get();
+        
+        // Pending Review (urgent - older than 7 days)
+        $urgentPending = StudentAchievement::with(['student', 'achievement.category'])
+            ->where('validation_status', 'Menunggu')
+            ->where('submitted_at', '<', now()->subDays(7))
+            ->orderBy('submitted_at', 'asc')
+            ->take(5)
+            ->get();
+        
+        // Recent Validations (last 5)
+        $recentValidations = ValidationLog::with(['studentAchievement.student', 'validator'])
+            ->latest('validated_at')
+            ->take(5)
+            ->get();
+        
+        // Quick Stats by Status
+        $statusStats = [
+            'menunggu' => StudentAchievement::where('validation_status', 'Menunggu')->count(),
+            'disetujui' => StudentAchievement::where('validation_status', 'Disetujui')->count(),
+            'ditolak' => StudentAchievement::where('validation_status', 'Ditolak')->count(),
+            'revisi' => StudentAchievement::where('validation_status', 'Revisi')->count(),
+        ];
+        
+        // Active Period
+        $activePeriod = \App\Models\AcademicPeriod::where('is_active', true)->first();
+        
+        return view('admin.dashboard', compact(
+            'stats',
+            'recentAchievements',
+            'urgentPending',
+            'recentValidations',
+            'statusStats',
+            'activePeriod'
+        ));
     }
 
     // Students
