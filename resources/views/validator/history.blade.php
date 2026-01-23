@@ -45,7 +45,7 @@
                 <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Disetujui</p>
                     <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-                        {{ \App\Models\ValidationLog::where('new_status', 'Disetujui')->count() }}
+                        {{ $stats['approved'] ?? 0 }}
                     </p>
                 </div>
                 <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -62,7 +62,7 @@
                 <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Ditolak</p>
                     <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
-                        {{ \App\Models\ValidationLog::where('new_status', 'Ditolak')->count() }}
+                        {{ $stats['rejected'] ?? 0 }}
                     </p>
                 </div>
                 <div class="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
@@ -79,7 +79,7 @@
                 <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Revisi</p>
                     <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1">
-                        {{ \App\Models\ValidationLog::where('new_status', 'Revisi')->count() }}
+                        {{ $stats['revision'] ?? 0 }}
                     </p>
                 </div>
                 <div class="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">

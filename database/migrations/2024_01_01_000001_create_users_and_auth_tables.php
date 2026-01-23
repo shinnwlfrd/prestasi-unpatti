@@ -17,12 +17,25 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->enum('role', ['Admin', 'Validator'])->default('Validator');
             $table->string('faculty')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->string('photo')->nullable();
             
-            // SSO fields
+            // OAuth/SSO Provider fields
+            $table->string('provider')->nullable(); // google, microsoft, etc
+            $table->string('provider_id')->nullable();
+            $table->text('provider_token')->nullable();
+            $table->text('provider_refresh_token')->nullable();
+            $table->timestamp('provider_token_expires_at')->nullable();
+            $table->json('provider_data')->nullable();
+            $table->timestamp('linked_at')->nullable();
+            $table->string('primary_auth')->nullable(); // local, sso
+            $table->timestamp('last_login_at')->nullable();
+            $table->string('last_login_method')->nullable();
+            
+            // Legacy SSO fields (for backward compatibility)
             $table->string('sso_id')->nullable()->unique();
             $table->string('sso_provider')->nullable();
             $table->text('sso_token')->nullable();
@@ -34,6 +47,7 @@ return new class extends Migration
             $table->index(['role', 'is_active']);
             $table->index('faculty');
             $table->index('sso_id');
+            $table->index(['provider', 'provider_id']);
         });
 
         // Password reset tokens
@@ -57,15 +71,18 @@ return new class extends Migration
         Schema::create('auth_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
-            $table->string('email');
-            $table->enum('role', ['Admin', 'Validator', 'Student']);
-            $table->enum('action', ['login', 'logout', 'failed_login']);
+            $table->string('email')->nullable();
+            $table->enum('role', ['Admin', 'Validator', 'Student'])->nullable();
+            $table->string('action'); // login, logout, failed_login, sso_link, register, password_reset
+            $table->string('method')->nullable(); // local, google, microsoft, etc
             $table->string('ip_address')->nullable();
             $table->text('user_agent')->nullable();
+            $table->json('metadata')->nullable();
             $table->timestamp('created_at');
             
             $table->index(['user_id', 'created_at']);
             $table->index(['email', 'action']);
+            $table->index('action');
         });
 
         // Validator profiles

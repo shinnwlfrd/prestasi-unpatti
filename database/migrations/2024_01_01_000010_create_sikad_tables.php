@@ -9,12 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sikad_credentials', function (Blueprint $table) {
-            $table->id();
-            $table->string('student_id')->unique();
+            $table->string('student_id')->primary();
             $table->string('username')->nullable();
             $table->string('password_hash');
             $table->timestamp('last_sync')->nullable();
-            $table->timestamp('last_login')->nullable(); // For seeder compatibility
+            $table->timestamp('last_login')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             

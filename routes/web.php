@@ -50,15 +50,20 @@ Route::get('/generate-sample-pdf', function () {
 
 // Route Mahasiswa (dilindungi oleh middleware khusus)
 Route::middleware(['auth.student'])->group(function () {
-    Route::get('/dashboard', [StudentController::class, 'index'])->name('student.dashboard');
+    // Dashboard - using new controller
+    Route::get('/dashboard', [\App\Http\Controllers\Student\DashboardController::class, 'index'])->name('student.dashboard');
+    
+    // Profile (keep old controller for now)
     Route::get('/student/profile', [StudentController::class, 'profile'])->name('student.profile');
-    Route::get('/submit', [StudentAchievementController::class, 'create'])->name('student.achievement.create');
-    Route::post('/submit', [StudentAchievementController::class, 'store'])->name('student.achievement.store');
+    
+    // Submit Achievement - using new controller
+    Route::get('/submit', [\App\Http\Controllers\Student\AchievementController::class, 'create'])->name('student.achievement.create');
+    Route::post('/submit', [\App\Http\Controllers\Student\AchievementController::class, 'store'])->name('student.achievement.store');
 
-    // Appeals (student only)
-    Route::get('/achievements/{achievement}/appeal', [AchievementAppealController::class, 'create'])
+    // Appeals - using new controller
+    Route::get('/achievements/{achievement}/appeal', [\App\Http\Controllers\Student\AppealController::class, 'create'])
         ->name('achievements.appeal.create');
-    Route::post('/achievements/{achievement}/appeal', [AchievementAppealController::class, 'store'])
+    Route::post('/achievements/{achievement}/appeal', [\App\Http\Controllers\Student\AppealController::class, 'store'])
         ->name('achievements.appeal.store');
 });
 
@@ -108,33 +113,47 @@ Route::middleware(['auth'])->group(function () {
 
 // Validator routes (hanya untuk role Validator)
 Route::middleware(['auth', 'auth.validator'])->prefix('validator')->name('validator.')->group(function () {
-    Route::get('/', [ValidatorController::class, 'dashboard'])->name('dashboard');
-    Route::get('/history', [ValidatorController::class, 'history'])->name('history');
-    Route::get('/submit', [ValidatorController::class, 'submitForm'])->name('submit.form');
-    Route::post('/submit', [ValidatorController::class, 'submitStore'])->name('submit.store');
+    // Dashboard - using new controller
+    Route::get('/', [\App\Http\Controllers\Validator\DashboardController::class, 'index'])->name('dashboard');
+    
+    // History - using new controller
+    Route::get('/history', [\App\Http\Controllers\Validator\HistoryController::class, 'index'])->name('history');
+    
+    // Submit - using new controller
+    Route::get('/submit', [\App\Http\Controllers\Validator\SubmitController::class, 'create'])->name('submit.form');
+    Route::post('/submit', [\App\Http\Controllers\Validator\SubmitController::class, 'store'])->name('submit.store');
 
-    // Achievement validation (validator-specific)
-    Route::get('/achievements/{achievement}', [ValidatorController::class, 'show'])->name('achievements.show');
-    Route::get('/achievements/{achievement}/documents', [ValidatorController::class, 'documents'])->name('achievements.documents');
-    Route::post('/achievements/{achievement}/validate', [ValidatorController::class, 'validateAchievement'])->name('achievements.validate');
+    // Achievement validation - using new controller
+    Route::get('/achievements/{achievement}', [\App\Http\Controllers\Validator\ValidationController::class, 'show'])->name('achievements.show');
+    Route::get('/achievements/{achievement}/documents', [\App\Http\Controllers\Validator\ValidationController::class, 'documents'])->name('achievements.documents');
+    Route::post('/achievements/{achievement}/validate', [\App\Http\Controllers\Validator\ValidationController::class, 'validate'])->name('achievements.validate');
     Route::post('/documents/{document}/verify', [ValidatorController::class, 'verifyDocument'])->name('documents.verify');
 
-    // Legacy routes
+    // Legacy routes (keep for backward compatibility)
     Route::patch('/achievements/{sa_id}/approve', [ValidatorController::class, 'approve']);
     Route::patch('/achievements/{sa_id}/reject', [ValidatorController::class, 'reject']);
 });
 
 // Admin routes
 Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/students', [AdminController::class, 'students'])->name('students');
+    // Dashboard - using new controller
+    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Students - using new controller
+    Route::get('/students', [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('students');
+    
+    // Achievements - using new controller
     Route::get('/achievements', [AdminController::class, 'achievementTypes'])->name('achievements');
-    Route::get('/student-achievements', [AdminController::class, 'studentAchievements'])->name('student-achievements');
-    Route::get('/validation-logs', [AdminController::class, 'validationLogs'])->name('validation-logs');
-    Route::get('/users', [AdminController::class, 'users'])->name('users');
-    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
-    Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
-    Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
+    Route::get('/student-achievements', [\App\Http\Controllers\Admin\AchievementController::class, 'index'])->name('student-achievements');
+    
+    // Validation Logs - using new controller
+    Route::get('/validation-logs', [\App\Http\Controllers\Admin\ValidationLogController::class, 'index'])->name('validation-logs');
+    
+    // Users - using new controller
+    Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users');
+    Route::post('/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+    Route::put('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.delete');
 
     // Submit Achievement (Admin can submit on behalf of student)
     Route::get('/submit-achievement', [\App\Http\Controllers\Admin\AdminAchievementController::class, 'create'])->name('submit.create');

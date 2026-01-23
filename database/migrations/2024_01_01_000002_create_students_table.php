@@ -20,11 +20,20 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
             $table->string('photo')->nullable();
+            
+            // Public profile fields
+            $table->boolean('is_public_profile')->default(false);
+            $table->string('profile_slug')->nullable()->unique();
+            $table->text('bio')->nullable();
+            $table->json('social_links')->nullable();
+            $table->string('motto')->nullable();
+            
             $table->timestamps();
             
             $table->index('faculty');
             $table->index('program');
             $table->index(['faculty', 'semester']);
+            $table->index('profile_slug');
         });
     }
 

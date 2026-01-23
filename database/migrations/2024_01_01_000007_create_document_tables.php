@@ -34,6 +34,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('document_id')->constrained('achievement_documents')->onDelete('cascade');
             $table->string('action'); // uploaded, replaced, approved, rejected, etc
+            $table->string('file_path')->nullable();
+            $table->string('file_name')->nullable();
+            $table->string('file_type')->nullable();
+            $table->integer('file_size')->nullable();
+            $table->string('external_link')->nullable();
             $table->string('old_status')->nullable();
             $table->string('new_status')->nullable();
             $table->text('notes')->nullable();

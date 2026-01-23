@@ -17,12 +17,15 @@ return new class extends Migration
             $table->string('new_status');
             $table->text('notes')->nullable();
             $table->string('sk_document')->nullable();
+            $table->string('validation_type')->nullable(); // manual, auto, appeal, etc
+            $table->json('metadata')->nullable();
             $table->timestamp('validated_at');
             $table->timestamps();
             
             $table->index(['sa_id', 'validated_at']);
             $table->index(['validator_id', 'validated_at']);
             $table->index('new_status');
+            $table->index('validation_type');
         });
 
         // Validation Checklists

@@ -5,11 +5,11 @@
 
 @php
     $userName = $student->name ?? 'Mahasiswa';
-    $totalAchievements = $studentAchievements->count();
-    $approved = $studentAchievements->where('validation_status', 'Disetujui')->count();
-    $pending = $studentAchievements->where('validation_status', 'Menunggu')->count();
-    $rejected = $studentAchievements->where('validation_status', 'Ditolak')->count();
-    $needRevision = $studentAchievements->where('validation_status', 'Revisi')->count();
+    $totalAchievements = $achievements->count();
+    $approved = $achievements->where('validation_status', 'Disetujui')->count();
+    $pending = $achievements->where('validation_status', 'Menunggu')->count();
+    $rejected = $achievements->where('validation_status', 'Ditolak')->count();
+    $needRevision = $achievements->where('validation_status', 'Revisi')->count();
 @endphp
 
 @section('content')
@@ -98,7 +98,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                        @forelse($studentAchievements as $item)
+                        @forelse($achievements as $item)
                             @php
                                 $statusConfig = [
                                     'Disetujui' => ['label' => 'Disetujui', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],

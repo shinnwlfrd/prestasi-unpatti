@@ -14,6 +14,17 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
+        // Root route redirects to login or dashboard based on auth status
+        $response->assertStatus(302);
+    }
+
+    /**
+     * Test login page is accessible.
+     */
+    public function test_login_page_is_accessible(): void
+    {
+        $response = $this->get('/login');
+
         $response->assertStatus(200);
     }
 }

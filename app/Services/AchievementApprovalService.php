@@ -131,8 +131,8 @@ class AchievementApprovalService
         // Average time to approve (in days)
         $dbDriver = config('database.default');
 
-        $avgQuery = ValidationLog::where('new_status', StudentAchievement::STATUS_APPROVED)
-            ->whereNotNull('validated_at')
+        $avgQuery = ValidationLog::where('validation_logs.new_status', StudentAchievement::STATUS_APPROVED)
+            ->whereNotNull('validation_logs.validated_at')
             ->join('student_achievements', 'validation_logs.sa_id', '=', 'student_achievements.sa_id');
 
         if ($periodId) {
