@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\SikadCredential;
-use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,10 +29,11 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         // Check rate limiting
-        $key = 'login_attempts:' . $request->ip();
-        
+        $key = 'login_attempts:'.$request->ip();
+
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
+
             return back()
                 ->withErrors(['username' => "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik."])
                 ->withInput();
@@ -47,7 +46,7 @@ class LoginController extends Controller
         ]);
 
         // Check if local login is enabled
-        if (!config('sso.gates.local.enabled') && $request->login_as !== 'student') {
+        if (! config('sso.gates.local.enabled') && $request->login_as !== 'student') {
             return back()
                 ->withErrors(['username' => 'Login lokal tidak tersedia. Silakan gunakan SSO.'])
                 ->withInput();
@@ -56,56 +55,60 @@ class LoginController extends Controller
         // Login sebagai Mahasiswa
         if ($request->login_as === 'student') {
             $student = $this->authService->authenticateStudent($request->username, $request->password);
-            
+
             if ($student) {
                 RateLimiter::clear($key);
                 session(['auth_role' => 'student', 'student_id' => $student->student_id]);
+
                 return redirect()->intended(route('student.dashboard'));
             }
-            
+
             RateLimiter::hit($key, 900);
+
             return back()->withErrors(['username' => 'NIM atau password salah.'])->withInput();
         }
 
         // Login sebagai Admin
         if ($request->login_as === 'admin') {
             $user = $this->authService->authenticateLocal($request->username, $request->password);
-            
+
             if ($user && $user->role === 'Admin') {
                 RateLimiter::clear($key);
                 Auth::login($user);
+
                 return redirect('/admin');
             }
-            
+
             RateLimiter::hit($key, 900);
-            
+
             // Check if account is SSO only
             $conflict = $this->authService->checkAccountConflict($request->username);
             if ($conflict && $conflict['type'] === 'sso_only') {
                 return back()->withErrors(['username' => $conflict['message']])->withInput();
             }
-            
+
             return back()->withErrors(['username' => 'Email atau password salah, atau Anda bukan Admin.'])->withInput();
         }
 
         // Login sebagai Validator
         if ($request->login_as === 'validator') {
             $user = $this->authService->authenticateLocal($request->username, $request->password);
-            
+
             if ($user && $user->role === 'Validator') {
                 RateLimiter::clear($key);
                 Auth::login($user);
+
                 return redirect()->intended(route('validator.dashboard'));
             }
-            
+
             RateLimiter::hit($key, 900);
-            
+
             // Check if account is SSO only
             $conflict = $this->authService->checkAccountConflict($request->username);
             if ($conflict && $conflict['type'] === 'sso_only') {
                 return back()->withErrors(['username' => $conflict['message']])->withInput();
             }
-            
+
             return back()->withErrors(['username' => 'Email atau password salah, atau Anda bukan Validator.'])->withInput();
         }
 
@@ -125,10 +128,10 @@ class LoginController extends Controller
             }
             Auth::logout();
         }
-        
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect('/');
     }
 }

@@ -22,6 +22,6 @@ class UpdateAchievementsSeeder extends Seeder
         }
 
         $this->command->info('Achievement records created for all active categories!');
-        $this->command->info('Total achievements: ' . Achievement::count());
+        $this->command->info('Total achievements: '.Achievement::count());
     }
 }

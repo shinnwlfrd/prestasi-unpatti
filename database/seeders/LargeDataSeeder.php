@@ -2,15 +2,15 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Student;
-use App\Models\StudentAchievement;
 use App\Models\Achievement;
 use App\Models\AchievementLevel;
-use App\Models\ValidationLog;
+use App\Models\Student;
+use App\Models\StudentAchievement;
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
+use App\Models\ValidationLog;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class LargeDataSeeder extends Seeder
 {
@@ -126,9 +126,10 @@ class LargeDataSeeder extends Seeder
         // Get all achievements and levels
         $achievements = Achievement::with('category')->get();
         $achievementLevels = AchievementLevel::all();
-        
+
         if ($achievements->isEmpty()) {
             $this->command->error('❌ No achievements found. Please run AchievementCategorySeeder first.');
+
             return;
         }
 
@@ -136,12 +137,12 @@ class LargeDataSeeder extends Seeder
         $this->command->info('👥 Creating 150 students...');
         $students = [];
         $studentIds = [];
-        
+
         for ($i = 1; $i <= 150; $i++) {
             $faculty = $this->faculties[array_rand($this->faculties)];
             $studyProgram = $this->studyPrograms[$faculty][array_rand($this->studyPrograms[$faculty])];
             $year = rand(2020, 2024);
-            
+
             $student = Student::create([
                 'student_id' => sprintf('%d%04d', $year, $i),
                 'name' => $this->generateName(),
@@ -151,21 +152,21 @@ class LargeDataSeeder extends Seeder
                 'semester' => rand(1, 8),
                 'gpa' => round(rand(250, 400) / 100, 2),
             ]);
-            
+
             $students[] = $student;
             $studentIds[] = $student->student_id;
         }
 
-        $this->command->info('✅ Created ' . count($students) . ' students');
+        $this->command->info('✅ Created '.count($students).' students');
 
         // Create validators for each faculty
         $this->command->info('👨‍💼 Creating validators for each faculty...');
         $validators = [];
-        
+
         foreach ($this->faculties as $faculty) {
             $validator = User::create([
-                'name' => 'Validator ' . $faculty,
-                'email' => strtolower(str_replace(' ', '.', $faculty)) . '@unpatti.ac.id',
+                'name' => 'Validator '.$faculty,
+                'email' => strtolower(str_replace(' ', '.', $faculty)).'@unpatti.ac.id',
                 'password' => bcrypt('password'),
                 'role' => 'Validator',
                 'faculty' => $faculty,
@@ -174,13 +175,13 @@ class LargeDataSeeder extends Seeder
             $validators[$faculty] = $validator;
         }
 
-        $this->command->info('✅ Created ' . count($validators) . ' validators');
+        $this->command->info('✅ Created '.count($validators).' validators');
 
         // Create 150 achievements
         $this->command->info('🏆 Creating 150 student achievements...');
         $statuses = ['Menunggu', 'Disetujui', 'Ditolak', 'Revisi'];
         $statusWeights = [30, 50, 10, 10]; // 30% pending, 50% approved, 10% rejected, 10% revision
-        
+
         $createdCount = 0;
         $bar = $this->command->getOutput()->createProgressBar(150);
         $bar->start();
@@ -189,50 +190,50 @@ class LargeDataSeeder extends Seeder
             $student = $students[array_rand($students)];
             $achievement = $achievements->random();
             $categoryName = $achievement->category->name;
-            
+
             // Get event names for this category
             $eventList = $this->eventNames[$categoryName] ?? ['Kompetisi Umum'];
             $eventName = $eventList[array_rand($eventList)];
-            
+
             $level = $this->levels[array_rand($this->levels)];
             $organizer = $this->organizers[array_rand($this->organizers)];
-            
+
             // Weighted random status
             $status = $this->weightedRandom($statuses, $statusWeights);
-            
+
             // Create certificate file
             $certificatePath = $this->createDummyDocument($student, $eventName, 'certificate');
-            
+
             // Determine validator and validation data
             $validator = $validators[$student->faculty] ?? null;
             $validatorId = null;
             $skRequired = true;
             $skWaiverReason = null;
-            
+
             if ($status !== 'Menunggu') {
                 $validatorId = $validator?->id;
-                
+
                 // 20% chance of SK waiver for approved achievements
                 if ($status === 'Disetujui' && rand(1, 100) <= 20) {
                     $skRequired = false;
                     $skWaiverReason = ['tingkat_universitas', 'sk_dalam_proses', 'dokumen_alternatif'][array_rand(['tingkat_universitas', 'sk_dalam_proses', 'dokumen_alternatif'])];
                 }
             }
-            
+
             // Assign to academic period and generate date within period range
             $periods = \App\Models\AcademicPeriod::all();
             $assignedPeriod = $periods->random();
-            
+
             // Generate submitted_at within the period's date range
             $periodStart = $assignedPeriod->start_date->copy();
             $periodEnd = $assignedPeriod->end_date->copy();
             $daysDiff = $periodStart->diffInDays($periodEnd);
             $randomDays = rand(0, $daysDiff);
             $submittedAt = $periodStart->copy()->addDays($randomDays);
-            
+
             // Event date should be before or around submitted date
             $eventDate = $submittedAt->copy()->subDays(rand(7, 90));
-            
+
             $studentAchievement = StudentAchievement::create([
                 'student_id' => $student->student_id,
                 'achievement_id' => $achievement->id,
@@ -262,7 +263,7 @@ class LargeDataSeeder extends Seeder
 
         $bar->finish();
         $this->command->newLine();
-        $this->command->info('✅ Created ' . $createdCount . ' student achievements');
+        $this->command->info('✅ Created '.$createdCount.' student achievements');
 
         // Summary
         $this->command->newLine();
@@ -292,21 +293,21 @@ class LargeDataSeeder extends Seeder
             'Rina', 'Sari', 'Tono', 'Umar', 'Vina', 'Wati', 'Yudi', 'Zahra',
             'Agus', 'Bayu', 'Dian', 'Eka', 'Fajar', 'Gilang', 'Hendra', 'Irfan',
         ];
-        
+
         $lastNames = [
             'Pratama', 'Wijaya', 'Kusuma', 'Santoso', 'Permana', 'Saputra', 'Lestari',
             'Wibowo', 'Setiawan', 'Hidayat', 'Nugroho', 'Rahayu', 'Suharto', 'Purnomo',
             'Utomo', 'Susanto', 'Kurniawan', 'Firmansyah', 'Hakim', 'Ramadhan',
         ];
 
-        return $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)];
+        return $firstNames[array_rand($firstNames)].' '.$lastNames[array_rand($lastNames)];
     }
 
     private function weightedRandom(array $values, array $weights): mixed
     {
         $totalWeight = array_sum($weights);
         $random = rand(1, $totalWeight);
-        
+
         $currentWeight = 0;
         foreach ($values as $index => $value) {
             $currentWeight += $weights[$index];
@@ -314,38 +315,38 @@ class LargeDataSeeder extends Seeder
                 return $value;
             }
         }
-        
+
         return $values[0];
     }
 
     private function createDummyDocument(Student $student, string $eventName, string $type): string
     {
-        $fileName = "{$type}_{$student->student_id}_" . time() . "_" . rand(1000, 9999) . ".pdf";
+        $fileName = "{$type}_{$student->student_id}_".time().'_'.rand(1000, 9999).'.pdf';
         $filePath = "certificates/{$fileName}";
-        
+
         // Create simple PDF
         $pdf = Pdf::loadView('pdf.dummy-certificate', [
             'student' => $student,
             'eventName' => $eventName,
             'type' => $type,
         ]);
-        
+
         Storage::disk('public')->put($filePath, $pdf->output());
-        
+
         return $filePath;
     }
 
     private function createValidationLog(StudentAchievement $achievement, User $validator, string $status): void
     {
         $oldStatus = 'pending';
-        $newStatus = match($status) {
+        $newStatus = match ($status) {
             'Disetujui' => 'approved',
             'Ditolak' => 'rejected',
             'Revisi' => 'revision_requested',
             default => 'pending',
         };
 
-        $notes = match($status) {
+        $notes = match ($status) {
             'Disetujui' => 'Prestasi telah diverifikasi dan disetujui.',
             'Ditolak' => 'Dokumen tidak memenuhi persyaratan.',
             'Revisi' => 'Mohon perbaiki dokumen sesuai catatan.',

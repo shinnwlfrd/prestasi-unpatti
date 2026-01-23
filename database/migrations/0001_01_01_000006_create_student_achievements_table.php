@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Schema;
  * - 2026_01_06_111717_add_certificate_to_student_achievements_table.php
  * - 2026_01_06_112500_add_submitted_by_to_student_achievements_table.php
  */
-return new class extends Migration {
+return new class() extends Migration
+{
     public function up(): void
     {
         Schema::create('student_achievements', function (Blueprint $table) {
@@ -25,7 +26,7 @@ return new class extends Migration {
             $table->text('description')->nullable();
             $table->string('certificate')->nullable();
             $table->timestamp('submitted_at')->nullable();
-            $table->enum('validation_status', ['Menunggu', 'Disetujui', 'Ditolak','Revisi'])->default('Menunggu');
+            $table->enum('validation_status', ['Menunggu', 'Disetujui', 'Ditolak', 'Revisi'])->default('Menunggu');
             $table->foreignId('validator_id')->nullable();
             $table->enum('submitted_by', ['student', 'validator'])->default('student');
             $table->timestamps();

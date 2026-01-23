@@ -76,7 +76,14 @@ class AchievementDashboardController extends Controller
      */
     protected function getTopPerformers($periodId = null, $limit = 10)
     {
-        $query = \App\Models\Student::withCount([
+        // Use whereHas approach for all databases (works on MySQL and PostgreSQL)
+        $query = \App\Models\Student::whereHas('achievements', function($q) use ($periodId) {
+            $q->where('validation_status', 'Disetujui');
+            if ($periodId) {
+                $q->where('academic_period_id', $periodId);
+            }
+        })
+        ->withCount([
             'achievements' => function($q) use ($periodId) {
                 $q->where('validation_status', 'Disetujui');
                 if ($periodId) {
@@ -84,7 +91,6 @@ class AchievementDashboardController extends Controller
                 }
             }
         ])
-        ->having('achievements_count', '>', 0)
         ->orderByDesc('achievements_count')
         ->limit($limit);
         
@@ -98,13 +104,13 @@ class AchievementDashboardController extends Controller
     {
         $query = \DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-            ->selectRaw('
-                COALESCE(students.faculty, "N/A") as faculty,
+            ->selectRaw("
+                COALESCE(students.faculty, 'N/A') as faculty,
                 COUNT(*) as total,
-                SUM(CASE WHEN student_achievements.validation_status = "Disetujui" THEN 1 ELSE 0 END) as approved,
-                SUM(CASE WHEN student_achievements.validation_status = "Menunggu" THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN student_achievements.validation_status = "Ditolak" THEN 1 ELSE 0 END) as rejected
-            ')
+                SUM(CASE WHEN student_achievements.validation_status = 'Disetujui' THEN 1 ELSE 0 END) as approved,
+                SUM(CASE WHEN student_achievements.validation_status = 'Menunggu' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN student_achievements.validation_status = 'Ditolak' THEN 1 ELSE 0 END) as rejected
+            ")
             ->groupBy('students.faculty')
             ->orderByDesc('total');
         
@@ -112,7 +118,29 @@ class AchievementDashboardController extends Controller
             $query->where('student_achievements.academic_period_id', $periodId);
         }
         
-        return collect($query->get());
+        $results = $query->get();
+        
+        // Mapping nama fakultas - konversi nama panjang ke singkatan untuk chart
+        $facultyMapping = [
+            'Fakultas Teknik' => 'FT',
+            'Fakultas Hukum' => 'FH',
+            'Fakultas Ekonomi dan Bisnis' => 'FEB',
+            'Fakultas Kedokteran' => 'FK',
+            'Fakultas Ilmu Sosial dan Ilmu Politik' => 'FISIP',
+            'Fakultas Perikanan dan Ilmu Kelautan' => 'FPIK',
+            'Fakultas MIPA' => 'FMIPA',
+            'Fakultas Keguruan dan Ilmu Pendidikan' => 'FKIP',
+            'Fakultas Pertanian' => 'FP',
+        ];
+        
+        // Apply mapping
+        foreach ($results as $item) {
+            if (isset($facultyMapping[$item->faculty])) {
+                $item->faculty = $facultyMapping[$item->faculty];
+            }
+        }
+        
+        return collect($results);
     }
     
     /**
@@ -120,7 +148,10 @@ class AchievementDashboardController extends Controller
      */
     protected function getValidatorPerformance($periodId = null)
     {
-        $query = \App\Models\User::where('role', 'Validator')
+        $driver = \DB::connection()->getDriverName();
+        
+        // Get validators with count
+        $validators = \App\Models\User::where('role', 'Validator')
             ->withCount([
                 'validatedAchievements' => function($q) use ($periodId) {
                     if ($periodId) {
@@ -128,23 +159,31 @@ class AchievementDashboardController extends Controller
                     }
                 }
             ])
-            ->with([
-                'validatedAchievements' => function($q) use ($periodId) {
-                    $q->select('validator_id', 
-                        \DB::raw('AVG(DATEDIFF(updated_at, submitted_at)) as avg_days'))
-                        ->whereNotNull('validator_id')
-                        ->whereIn('validation_status', ['Disetujui', 'Ditolak']);
-                    if ($periodId) {
-                        $q->where('academic_period_id', $periodId);
-                    }
-                    $q->groupBy('validator_id');
-                }
-            ])
             ->orderByDesc('validated_achievements_count')
-            ->limit(10);
+            ->limit(10)
+            ->get();
         
-        return $query->get()->map(function($validator) {
-            $avgDays = $validator->validatedAchievements->first()?->avg_days ?? 0;
+        // Calculate average response time for each validator
+        return $validators->map(function($validator) use ($driver, $periodId) {
+            $baseQuery = \DB::table('student_achievements')
+                ->where('validator_id', $validator->id)
+                ->whereNotNull('validator_id')
+                ->whereIn('validation_status', ['Disetujui', 'Ditolak']);
+            
+            if ($periodId) {
+                $baseQuery->where('academic_period_id', $periodId);
+            }
+            
+            if ($driver === 'pgsql') {
+                $avgDays = (clone $baseQuery)
+                    ->selectRaw('AVG(EXTRACT(EPOCH FROM (updated_at - submitted_at))/86400) as avg_days')
+                    ->value('avg_days') ?? 0;
+            } else {
+                $avgDays = (clone $baseQuery)
+                    ->selectRaw('AVG(DATEDIFF(updated_at, submitted_at)) as avg_days')
+                    ->value('avg_days') ?? 0;
+            }
+            
             return [
                 'name' => $validator->name,
                 'faculty' => $validator->faculty ?? 'All',
@@ -155,25 +194,41 @@ class AchievementDashboardController extends Controller
     }
     
     /**
-     * Get category distribution
+     * Get category distribution - includes all categories even with 0 achievements
      */
     protected function getCategoryDistribution($periodId = null)
     {
-        $query = StudentAchievement::join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
+        // Get all active categories
+        $allCategories = \App\Models\AchievementCategory::where('is_active', true)
+            ->orderBy('order')
+            ->get();
+        
+        // Get achievement counts per category
+        $achievementCounts = StudentAchievement::join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
             ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
-            ->selectRaw('
+            ->selectRaw("
+                achievement_categories.id as category_id,
                 achievement_categories.name as category,
                 COUNT(*) as total,
-                SUM(CASE WHEN validation_status = "Disetujui" THEN 1 ELSE 0 END) as approved
-            ')
+                SUM(CASE WHEN validation_status = 'Disetujui' THEN 1 ELSE 0 END) as approved
+            ")
+            ->when($periodId, function($query) use ($periodId) {
+                $query->where('student_achievements.academic_period_id', $periodId);
+            })
             ->groupBy('achievement_categories.id', 'achievement_categories.name')
-            ->orderByDesc('total');
+            ->get()
+            ->keyBy('category_id');
         
-        if ($periodId) {
-            $query->where('student_achievements.academic_period_id', $periodId);
-        }
-        
-        return $query->get();
+        // Merge all categories with their counts (0 if no achievements)
+        return $allCategories->map(function($category) use ($achievementCounts) {
+            $counts = $achievementCounts->get($category->id);
+            return (object)[
+                'category' => $category->name,
+                'total' => $counts->total ?? 0,
+                'approved' => $counts->approved ?? 0,
+                'color' => $category->color ?? '#8b5cf6'
+            ];
+        });
     }
 
     public function export(Request $request)
@@ -231,7 +286,7 @@ class AchievementDashboardController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
         $callback = function () use ($data) {

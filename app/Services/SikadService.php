@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Student;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use App\Models\Student;
 
 /**
  * Service untuk integrasi dengan SIKAD (Sistem Informasi Akademik)
@@ -13,7 +13,9 @@ use App\Models\Student;
 class SikadService
 {
     protected string $baseUrl;
+
     protected string $apiKey;
+
     protected int $timeout;
 
     public function __construct()
@@ -25,8 +27,8 @@ class SikadService
 
     /**
      * Fetch data mahasiswa dari SIKAD berdasarkan NIM
-     * 
-     * @param string $nim Nomor Induk Mahasiswa
+     *
+     * @param  string  $nim  Nomor Induk Mahasiswa
      * @return array|null Data mahasiswa atau null jika tidak ditemukan
      */
     public function fetchStudentData(string $nim): ?array
@@ -42,22 +44,23 @@ class SikadService
 
             Log::warning("SIKAD: Failed to fetch student {$nim}", [
                 'status' => $response->status(),
-                'body' => $response->body()
+                'body' => $response->body(),
             ]);
 
             return null;
         } catch (\Exception $e) {
             Log::error("SIKAD: Error fetching student {$nim}", [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Fetch data akademik mahasiswa (IPK, SKS, mata kuliah)
-     * 
-     * @param string $nim Nomor Induk Mahasiswa
+     *
+     * @param  string  $nim  Nomor Induk Mahasiswa
      * @return array|null Data akademik atau null jika tidak ditemukan
      */
     public function fetchAcademicData(string $nim): ?array
@@ -74,23 +77,24 @@ class SikadService
             return null;
         } catch (\Exception $e) {
             Log::error("SIKAD: Error fetching academic data for {$nim}", [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Sync data mahasiswa dari SIKAD ke database lokal
-     * 
-     * @param string $nim Nomor Induk Mahasiswa
+     *
+     * @param  string  $nim  Nomor Induk Mahasiswa
      * @return Student|null Student model yang di-update atau null jika gagal
      */
     public function syncStudentData(string $nim): ?Student
     {
         $sikadData = $this->fetchStudentData($nim);
 
-        if (!$sikadData) {
+        if (! $sikadData) {
             return null;
         }
 
@@ -109,20 +113,22 @@ class SikadService
             );
 
             Log::info("SIKAD: Synced student {$nim} successfully");
+
             return $student;
         } catch (\Exception $e) {
             Log::error("SIKAD: Error syncing student {$nim}", [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
 
     /**
      * Verifikasi kredensial mahasiswa dengan SIKAD
-     * 
-     * @param string $nim Nomor Induk Mahasiswa
-     * @param string $password Password SIKAD
+     *
+     * @param  string  $nim  Nomor Induk Mahasiswa
+     * @param  string  $password  Password SIKAD
      * @return bool True jika kredensial valid
      */
     public function verifyCredentials(string $nim, string $password): bool
@@ -138,16 +144,17 @@ class SikadService
             return $response->successful() && $response->json('valid', false);
         } catch (\Exception $e) {
             Log::error("SIKAD: Error verifying credentials for {$nim}", [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
 
     /**
      * Batch sync multiple students
-     * 
-     * @param array $nims Array of NIM
+     *
+     * @param  array  $nims  Array of NIM
      * @return array Array of results with nim => success status
      */
     public function batchSync(array $nims): array

@@ -11,6 +11,7 @@ class AchievementLevelController extends Controller
     public function index()
     {
         $levels = AchievementLevel::latest()->paginate(15);
+
         return view('admin.levels.index', compact('levels'));
     }
 
@@ -42,7 +43,7 @@ class AchievementLevelController extends Controller
     public function update(Request $request, AchievementLevel $level)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:achievement_levels,name,' . $level->id,
+            'name' => 'required|string|max:255|unique:achievement_levels,name,'.$level->id,
             'description' => 'nullable|string',
             'points' => 'required|integer|min:0',
             'is_active' => 'boolean',

@@ -10,7 +10,9 @@ class SikadCredential extends Model
     use HasFactory;
 
     protected $primaryKey = 'student_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

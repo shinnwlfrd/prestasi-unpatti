@@ -20,7 +20,7 @@ class ValidateAchievementRequest extends FormRequest
             'revision_reason' => 'required_if:action,request_revision|string|max:1000',
             'required_documents' => 'nullable|array',
             'required_documents.*' => 'string|in:sk_resmi,sertifikat,foto_dokumentasi,surat_keterangan,link_publikasi',
-            
+
             // Checklist items
             'checklist.nama_peserta_valid' => 'boolean',
             'checklist.nama_peserta_notes' => 'nullable|string|max:500',

@@ -18,7 +18,7 @@ class UploadDocumentsRequest extends FormRequest
             'documents' => 'required|array|min:1',
             'documents.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
             'document_types' => 'required|array|min:1',
-            'document_types.*' => 'required|in:' . implode(',', array_keys(AchievementDocument::DOCUMENT_TYPES)),
+            'document_types.*' => 'required|in:'.implode(',', array_keys(AchievementDocument::DOCUMENT_TYPES)),
             'external_links' => 'nullable|array',
             'external_links.*.url' => 'nullable|url',
             'external_links.*.title' => 'nullable|string|max:255',

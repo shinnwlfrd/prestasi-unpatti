@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class() extends Migration
 {
     public function up(): void
     {
@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index(['user_id', 'action']);
             $table->index('created_at');
         });

@@ -11,6 +11,7 @@ class AcademicPeriodController extends Controller
     public function index()
     {
         $periods = AcademicPeriod::ordered()->paginate(15);
+
         return view('admin.periods.index', compact('periods'));
     }
 
@@ -51,7 +52,7 @@ class AcademicPeriodController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:academic_periods,code,' . $period->id,
+            'code' => 'required|string|max:50|unique:academic_periods,code,'.$period->id,
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'description' => 'nullable|string',

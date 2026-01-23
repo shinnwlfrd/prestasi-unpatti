@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\AcademicPeriod;
 use App\Models\StudentAchievement;
+use Illuminate\Database\Seeder;
 
 class AcademicPeriodSeeder extends Seeder
 {
@@ -57,10 +57,10 @@ class AcademicPeriodSeeder extends Seeder
 
         // Distribute existing achievements across periods
         $this->command->info('📊 Distributing achievements across periods...');
-        
+
         $achievements = StudentAchievement::whereNull('academic_period_id')->get();
         $totalAchievements = $achievements->count();
-        
+
         if ($totalAchievements > 0) {
             // Distribute: 30% period 1, 35% period 2, 35% period 3
             $distribution = [
@@ -73,11 +73,11 @@ class AcademicPeriodSeeder extends Seeder
             foreach ($distribution as $periodId => $percentage) {
                 $count = (int) ($totalAchievements * $percentage);
                 $periodAchievements = $achievements->slice($currentIndex, $count);
-                
+
                 foreach ($periodAchievements as $achievement) {
                     $achievement->update(['academic_period_id' => $periodId]);
                 }
-                
+
                 $currentIndex += $count;
                 $period = AcademicPeriod::find($periodId);
                 $this->command->info("  → {$count} achievements assigned to {$period->name}");
@@ -88,7 +88,7 @@ class AcademicPeriodSeeder extends Seeder
             foreach ($remaining as $achievement) {
                 $achievement->update(['academic_period_id' => $createdPeriods[2]->id]);
             }
-            
+
             if ($remaining->count() > 0) {
                 $this->command->info("  → {$remaining->count()} remaining achievements assigned to {$createdPeriods[2]->name}");
             }
@@ -98,10 +98,10 @@ class AcademicPeriodSeeder extends Seeder
         $this->command->info('📊 Summary:');
         $this->command->table(
             ['Period', 'Achievements'],
-            AcademicPeriod::withCount('achievements')->get()->map(function($period) {
+            AcademicPeriod::withCount('achievements')->get()->map(function ($period) {
                 return [
-                    $period->name . ($period->is_active ? ' (Active)' : ''),
-                    $period->achievements_count
+                    $period->name.($period->is_active ? ' (Active)' : ''),
+                    $period->achievements_count,
                 ];
             })
         );

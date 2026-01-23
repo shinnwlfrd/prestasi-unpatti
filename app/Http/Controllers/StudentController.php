@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Student;
 use App\Models\Achievement;
+use App\Models\Student;
 use App\Models\StudentAchievement;
 
 class StudentController extends Controller
@@ -36,6 +35,7 @@ class StudentController extends Controller
     public function create()
     {
         $types = Achievement::with('category')->get();
+
         return view('student.submit', compact('types'));
     }
 

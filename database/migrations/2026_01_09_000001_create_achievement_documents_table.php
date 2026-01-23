@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class() extends Migration
 {
     public function up(): void
     {
@@ -16,7 +16,7 @@ return new class extends Migration
                 'sertifikat',
                 'foto_dokumentasi',
                 'surat_keterangan',
-                'link_publikasi'
+                'link_publikasi',
             ]);
             $table->string('file_path')->nullable();
             $table->string('file_name');

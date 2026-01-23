@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class RecalculateCredibility extends Command
 {
     protected $signature = 'achievements:recalculate-credibility';
+
     protected $description = 'Recalculate credibility scores for all achievements';
 
     public function handle()
@@ -22,7 +23,7 @@ class RecalculateCredibility extends Command
 
         $bar->finish();
         $this->newLine();
-        $this->info('Credibility scores recalculated for ' . $achievements->count() . ' achievements.');
+        $this->info('Credibility scores recalculated for '.$achievements->count().' achievements.');
 
         return 0;
     }

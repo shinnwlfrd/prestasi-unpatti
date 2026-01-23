@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Schema;
  * - 2026_01_06_101223_add_sk_document_to_validation_logs_table.php
  * - 2026_01_06_111658_add_metadata_to_validation_logs_table.php
  */
-return new class extends Migration {
+return new class() extends Migration
+{
     public function up(): void
     {
         Schema::create('validation_logs', function (Blueprint $table) {

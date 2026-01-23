@@ -61,14 +61,14 @@ class AdminAchievementController extends Controller
         $certificatePath = $request->file('certificate')->store('certificates', 'public');
 
         // Determine initial status based on action
-        $initialStatus = match($request->submit_action) {
+        $initialStatus = match ($request->submit_action) {
             'approve' => 'Disetujui',
             'reject' => 'Ditolak',
             default => 'Menunggu',
         };
 
         // Determine SK required
-        $skRequired = !$request->boolean('skip_sk');
+        $skRequired = ! $request->boolean('skip_sk');
 
         $achievement = StudentAchievement::create([
             'student_id' => $validated['student_id'],
@@ -92,12 +92,12 @@ class AdminAchievementController extends Controller
         // Handle different actions
         if ($request->submit_action === 'approve') {
             $skDocumentPath = null;
-            
+
             // Upload SK Resmi if provided
             if ($request->hasFile('sk_resmi')) {
                 $file = $request->file('sk_resmi');
-                $fileName = 'SK_Resmi_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+                $fileName = 'SK_Resmi_'.$achievement->sa_id.'_'.time().'.'.$file->getClientOriginalExtension();
+                $filePath = $file->storeAs('achievements/'.$achievement->sa_id, $fileName, 'public');
 
                 $achievement->documents()->create([
                     'document_type' => AchievementDocument::TYPE_SK_RESMI,
@@ -112,12 +112,12 @@ class AdminAchievementController extends Controller
 
                 $skDocumentPath = $filePath;
             }
-            
+
             // Upload alternative document if provided
             if ($request->hasFile('alternative_document')) {
                 $file = $request->file('alternative_document');
-                $fileName = 'Alt_Doc_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+                $fileName = 'Alt_Doc_'.$achievement->sa_id.'_'.time().'.'.$file->getClientOriginalExtension();
+                $filePath = $file->storeAs('achievements/'.$achievement->sa_id, $fileName, 'public');
 
                 // Save path to achievement
                 $achievement->update(['alternative_document_path' => $filePath]);
@@ -136,10 +136,10 @@ class AdminAchievementController extends Controller
             }
 
             // Log approval
-            $notes = $skRequired 
-                ? 'Disetujui langsung oleh admin saat submit' 
-                : 'Disetujui tanpa SK: ' . ($request->sk_waiver_reason ? StudentAchievement::getSkWaiverReasons()[$request->sk_waiver_reason] : 'N/A');
-            
+            $notes = $skRequired
+                ? 'Disetujui langsung oleh admin saat submit'
+                : 'Disetujui tanpa SK: '.($request->sk_waiver_reason ? StudentAchievement::getSkWaiverReasons()[$request->sk_waiver_reason] : 'N/A');
+
             $this->approvalService->approve($achievement, auth()->user(), $notes, $skDocumentPath);
 
             return redirect()->route('admin.achievements.validation.index')

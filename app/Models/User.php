@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -56,12 +56,12 @@ class User extends Authenticatable
     // Auth type checks
     public function isLocalOnly(): bool
     {
-        return $this->password && !$this->provider;
+        return $this->password && ! $this->provider;
     }
 
     public function isSSOOnly(): bool
     {
-        return !$this->password && $this->provider;
+        return ! $this->password && $this->provider;
     }
 
     public function isLinked(): bool
@@ -102,6 +102,6 @@ class User extends Authenticatable
 
     public function getPhotoUrlAttribute()
     {
-        return $this->photo ? asset('storage/' . $this->photo) : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=10b981&color=fff';
+        return $this->photo ? asset('storage/'.$this->photo) : 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=10b981&color=fff';
     }
 }

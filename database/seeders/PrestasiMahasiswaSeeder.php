@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use App\Models\Student;
-use App\Models\SikadCredential;
 use App\Models\Achievement;
+use App\Models\SikadCredential;
+use App\Models\Student;
 use App\Models\StudentAchievement;
 use App\Models\User;
-use App\Models\ValidatorProfile;
 use App\Models\ValidationLog;
+use App\Models\ValidatorProfile;
 use Faker\Factory as Faker;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class PrestasiMahasiswaSeeder extends Seeder
 {
@@ -49,16 +49,15 @@ class PrestasiMahasiswaSeeder extends Seeder
             ]
         );
 
-
         // 3. Buat Achievement untuk semua kategori
         $achievements = [];
         $categories = \App\Models\AchievementCategory::orderBy('order')->get();
-        
+
         foreach ($categories as $category) {
             $achievement = Achievement::firstOrCreate(['category_id' => $category->id]);
             $achievements[] = $achievement;
         }
-        
+
         // For backward compatibility, keep references to first two
         $akademik = $achievements[0] ?? null; // Akademik
         $nonAkademik = $achievements[1] ?? null; // Olahraga
@@ -85,9 +84,9 @@ class PrestasiMahasiswaSeeder extends Seeder
 
         // 5. Buat 4 mahasiswa tambahan
         for ($i = 1; $i <= 4; $i++) {
-            $nim = '2021001' . str_pad($i + 1, 3, '0', STR_PAD_LEFT);
+            $nim = '2021001'.str_pad($i + 1, 3, '0', STR_PAD_LEFT);
             $name = $faker->name();
-            $email = strtolower(str_replace(' ', '.', $name)) . '@student.univ.ac.id';
+            $email = strtolower(str_replace(' ', '.', $name)).'@student.univ.ac.id';
 
             $student = Student::create([
                 'student_id' => $nim,

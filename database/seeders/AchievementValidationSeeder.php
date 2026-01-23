@@ -9,8 +9,8 @@ use App\Models\StudentAchievement;
 use App\Models\User;
 use App\Models\ValidationLog;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class AchievementValidationSeeder extends Seeder
@@ -47,15 +47,16 @@ class AchievementValidationSeeder extends Seeder
 
         // Sample students
         $students = Student::take(5)->get();
-        
+
         if ($students->isEmpty()) {
             $this->command->info('No students found. Please run StudentSeeder first.');
+
             return;
         }
 
         // Ensure sample documents directory exists
         $sampleDir = storage_path('app/public/sample-documents');
-        if (!File::exists($sampleDir)) {
+        if (! File::exists($sampleDir)) {
             File::makeDirectory($sampleDir, 0755, true);
         }
 
@@ -73,7 +74,7 @@ class AchievementValidationSeeder extends Seeder
             ['name' => 'Festival Seni Budaya', 'level' => 'Universitas', 'organizer' => 'Unpatti', 'category' => $nonAkademik->id],
         ];
 
-        $statuses = ['Menunggu', 'Disetujui', 'Ditolak','Revisi'];
+        $statuses = ['Menunggu', 'Disetujui', 'Ditolak', 'Revisi'];
         $docStatuses = ['draft', 'pending', 'approved', 'rejected', 'revision'];
 
         foreach ($students as $student) {
@@ -91,7 +92,7 @@ class AchievementValidationSeeder extends Seeder
                     'level' => $competition['level'],
                     'organizer' => $competition['organizer'],
                     'event_date' => now()->subDays(rand(30, 365)),
-                    'description' => 'Partisipasi dalam ' . $competition['name'] . ' yang diselenggarakan oleh ' . $competition['organizer'],
+                    'description' => 'Partisipasi dalam '.$competition['name'].' yang diselenggarakan oleh '.$competition['organizer'],
                     'validation_status' => $status,
                     'submitted_at' => now()->subDays(rand(1, 30)),
                     'validator_id' => $status !== 'pending' ? $validator->id : null,
@@ -99,18 +100,18 @@ class AchievementValidationSeeder extends Seeder
 
                 // Add sample documents with proper status
                 $documentTypes = [
-                    ['type' => 'sk_resmi', 'name' => 'SK_Resmi_' . $achievement->sa_id . '.pdf'],
-                    ['type' => 'sertifikat', 'name' => 'Sertifikat_' . $achievement->sa_id . '.pdf'],
-                    ['type' => 'foto_dokumentasi', 'name' => 'Foto_Dokumentasi_' . $achievement->sa_id . '.jpg'],
+                    ['type' => 'sk_resmi', 'name' => 'SK_Resmi_'.$achievement->sa_id.'.pdf'],
+                    ['type' => 'sertifikat', 'name' => 'Sertifikat_'.$achievement->sa_id.'.pdf'],
+                    ['type' => 'foto_dokumentasi', 'name' => 'Foto_Dokumentasi_'.$achievement->sa_id.'.jpg'],
                 ];
-                
+
                 $numDocs = rand(1, 3);
-                
+
                 for ($i = 0; $i < $numDocs; $i++) {
                     $docType = $documentTypes[$i % count($documentTypes)];
-                    
+
                     // Determine document status based on achievement status
-                    $docStatus = match($status) {
+                    $docStatus = match ($status) {
                         'approved' => 'approved',
                         'rejected' => rand(0, 1) ? 'rejected' : 'approved',
                         'need_revision' => 'revision',
@@ -118,12 +119,12 @@ class AchievementValidationSeeder extends Seeder
                     };
 
                     // Copy sample file to achievement folder
-                    $achievementDir = 'achievements/' . $achievement->sa_id;
+                    $achievementDir = 'achievements/'.$achievement->sa_id;
                     Storage::disk('public')->makeDirectory($achievementDir);
-                    
+
                     $sampleFile = 'sample-documents/sample.pdf';
-                    $targetFile = $achievementDir . '/' . $docType['name'];
-                    
+                    $targetFile = $achievementDir.'/'.$docType['name'];
+
                     // Create the document record
                     $document = AchievementDocument::create([
                         'sa_id' => $achievement->sa_id,
@@ -151,10 +152,10 @@ class AchievementValidationSeeder extends Seeder
                         'validator_id' => $validator->id,
                         'old_status' => 'pending',
                         'new_status' => $status,
-                        'notes' => $status === 'approved' 
-                            ? 'Dokumen lengkap dan valid.' 
-                            : ($status === 'rejected' 
-                                ? 'Dokumen tidak memenuhi kriteria.' 
+                        'notes' => $status === 'approved'
+                            ? 'Dokumen lengkap dan valid.'
+                            : ($status === 'rejected'
+                                ? 'Dokumen tidak memenuhi kriteria.'
                                 : 'Diperlukan dokumen tambahan.'),
                         'validated_at' => now()->subDays(rand(1, 10)),
                     ]);
@@ -172,13 +173,13 @@ class AchievementValidationSeeder extends Seeder
     protected function createSamplePdfIfNotExists(): void
     {
         $samplePath = storage_path('app/public/sample-documents/sample.pdf');
-        
+
         if (File::exists($samplePath)) {
             return;
         }
 
         // Create a simple PDF content
-        $pdfContent = "%PDF-1.4
+        $pdfContent = '%PDF-1.4
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
 endobj
@@ -220,7 +221,7 @@ trailer
 << /Size 6 /Root 1 0 R >>
 startxref
 595
-%%EOF";
+%%EOF';
 
         File::put($samplePath, $pdfContent);
     }

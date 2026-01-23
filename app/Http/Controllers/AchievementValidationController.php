@@ -24,11 +24,11 @@ class AchievementValidationController extends Controller
 
         // Tab filtering
         $tab = $request->get('tab', 'pending');
-        
+
         switch ($tab) {
             case 'appeal':
                 $query->where('is_appeal', true)
-                      ->where('validation_status', StudentAchievement::STATUS_PENDING);
+                    ->where('validation_status', StudentAchievement::STATUS_PENDING);
                 break;
             case 'revision':
                 $query->where('validation_status', StudentAchievement::STATUS_NEED_REVISION);
@@ -45,7 +45,7 @@ class AchievementValidationController extends Controller
             case 'pending':
             default:
                 $query->where('validation_status', StudentAchievement::STATUS_PENDING)
-                      ->where('is_appeal', false);
+                    ->where('is_appeal', false);
                 break;
         }
 
@@ -78,7 +78,7 @@ class AchievementValidationController extends Controller
 
         $achievements = $query->paginate(15)->withQueryString();
         $statistics = $this->approvalService->getApprovalStatistics();
-        
+
         // Add appeals count to statistics
         $statistics['appeals'] = StudentAchievement::where('is_appeal', true)
             ->where('validation_status', StudentAchievement::STATUS_PENDING)
@@ -111,7 +111,7 @@ class AchievementValidationController extends Controller
         $validator = auth()->user();
 
         // Validasi SK Resmi WAJIB untuk approve
-        if ($request->action === 'approve' && !$request->hasFile('sk_resmi')) {
+        if ($request->action === 'approve' && ! $request->hasFile('sk_resmi')) {
             return back()->withErrors(['sk_resmi' => 'SK Resmi wajib diupload untuk approve prestasi.'])->withInput();
         }
 
@@ -130,7 +130,7 @@ class AchievementValidationController extends Controller
         }
 
         // Process action
-        $success = match($request->action) {
+        $success = match ($request->action) {
             'approve' => $this->approvalService->approve($achievement, $validator, $request->notes, $skDocumentPath),
             'reject' => $this->approvalService->reject($achievement, $validator, $request->rejection_reason),
             'request_revision' => $this->approvalService->requestRevision(
@@ -143,7 +143,7 @@ class AchievementValidationController extends Controller
         };
 
         if ($success) {
-            $message = match($request->action) {
+            $message = match ($request->action) {
                 'approve' => 'Prestasi berhasil disetujui dan SK Resmi telah diupload.',
                 'reject' => 'Prestasi berhasil ditolak.',
                 'request_revision' => 'Permintaan revisi berhasil dikirim.',
@@ -165,8 +165,8 @@ class AchievementValidationController extends Controller
         ]);
 
         $file = $request->file('sk_resmi');
-        $fileName = 'SK_Resmi_' . $achievement->sa_id . '_' . time() . '.pdf';
-        $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+        $fileName = 'SK_Resmi_'.$achievement->sa_id.'_'.time().'.pdf';
+        $filePath = $file->storeAs('achievements/'.$achievement->sa_id, $fileName, 'public');
 
         // Create document record
         $achievement->documents()->create([
@@ -239,7 +239,7 @@ class AchievementValidationController extends Controller
     public function revertToPending(Request $request, StudentAchievement $achievement)
     {
         // Only admin can revert
-        if (!auth()->check() || auth()->user()->role !== 'Admin') {
+        if (! auth()->check() || auth()->user()->role !== 'Admin') {
             abort(403, 'Hanya admin yang dapat mengembalikan status prestasi.');
         }
 
@@ -248,10 +248,11 @@ class AchievementValidationController extends Controller
         ]);
 
         // Check if achievement is approved or rejected
-        if (!in_array($achievement->validation_status, ['Disetujui', 'Ditolak'])) {
+        if (! in_array($achievement->validation_status, ['Disetujui', 'Ditolak'])) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'error' => 'Prestasi harus berstatus Disetujui atau Ditolak untuk dikembalikan.'], 422);
             }
+
             return back()->with('error', 'Prestasi harus berstatus Disetujui atau Ditolak untuk dikembalikan.');
         }
 
@@ -265,7 +266,7 @@ class AchievementValidationController extends Controller
             'validator_id' => auth()->id(),
             'old_status' => $oldStatus,
             'new_status' => 'Menunggu',
-            'notes' => 'Status dikembalikan ke Pending oleh Admin. ' . ($request->reason ?? ''),
+            'notes' => 'Status dikembalikan ke Pending oleh Admin. '.($request->reason ?? ''),
             'validated_at' => now(),
         ]);
 

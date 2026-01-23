@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\StudentAchievement;
 use App\Models\AchievementDocument;
+use App\Models\StudentAchievement;
 
 class CredibilityService
 {
@@ -24,7 +24,7 @@ class CredibilityService
         }
 
         // Level bonus
-        $score += match($achievement->level) {
+        $score += match ($achievement->level) {
             StudentAchievement::LEVEL_INTERNASIONAL => 10,
             StudentAchievement::LEVEL_NASIONAL => 5,
             default => 0,
@@ -40,15 +40,25 @@ class CredibilityService
 
     public function getScoreCategory(float $score): string
     {
-        if ($score >= 80) return 'high';
-        if ($score >= 70) return 'medium';
+        if ($score >= 80) {
+            return 'high';
+        }
+        if ($score >= 70) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
     public function getScoreColor(float $score): string
     {
-        if ($score >= 80) return 'success';
-        if ($score >= 70) return 'warning';
+        if ($score >= 80) {
+            return 'success';
+        }
+        if ($score >= 70) {
+            return 'warning';
+        }
+
         return 'danger';
     }
 

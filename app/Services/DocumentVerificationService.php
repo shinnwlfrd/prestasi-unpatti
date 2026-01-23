@@ -78,6 +78,7 @@ class DocumentVerificationService
         // Check if there are any documents
         if ($documents->isEmpty()) {
             $errors[] = 'Tidak ada dokumen yang diupload.';
+
             return ['can_approve' => false, 'errors' => $errors];
         }
 
@@ -85,17 +86,17 @@ class DocumentVerificationService
         $pendingDocs = $documents->whereIn('status', [
             AchievementDocument::STATUS_DRAFT,
             AchievementDocument::STATUS_PENDING,
-            AchievementDocument::STATUS_REVISION
+            AchievementDocument::STATUS_REVISION,
         ]);
 
         if ($pendingDocs->isNotEmpty()) {
-            $errors[] = 'Masih ada ' . $pendingDocs->count() . ' dokumen yang belum diverifikasi.';
+            $errors[] = 'Masih ada '.$pendingDocs->count().' dokumen yang belum diverifikasi.';
         }
 
         // Check if any document is rejected
         $rejectedDocs = $documents->where('status', AchievementDocument::STATUS_REJECTED);
         if ($rejectedDocs->isNotEmpty()) {
-            $errors[] = 'Ada ' . $rejectedDocs->count() . ' dokumen yang ditolak.';
+            $errors[] = 'Ada '.$rejectedDocs->count().' dokumen yang ditolak.';
         }
 
         // Check minimum documents for non-academic (category_id != 1 means non-academic)

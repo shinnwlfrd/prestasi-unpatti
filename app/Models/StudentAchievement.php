@@ -10,7 +10,7 @@ class StudentAchievement extends Model
     use HasFactory;
 
     protected $primaryKey = 'sa_id';
-    
+
     protected $fillable = [
         'student_id',
         'achievement_id',
@@ -46,18 +46,26 @@ class StudentAchievement extends Model
 
     // Status constants - sesuai dengan ENUM di database
     const STATUS_PENDING = 'Menunggu';
+
     const STATUS_APPROVED = 'Disetujui';
+
     const STATUS_REJECTED = 'Ditolak';
+
     const STATUS_NEED_REVISION = 'Revisi';
 
     const LEVEL_UNIVERSITAS = 'Universitas';
+
     const LEVEL_NASIONAL = 'Nasional';
+
     const LEVEL_INTERNASIONAL = 'Internasional';
 
     // SK Waiver reasons
     const SK_WAIVER_TINGKAT_UNIVERSITAS = 'tingkat_universitas';
+
     const SK_WAIVER_SK_DALAM_PROSES = 'sk_dalam_proses';
+
     const SK_WAIVER_DOKUMEN_ALTERNATIF = 'dokumen_alternatif';
+
     const SK_WAIVER_LAINNYA = 'lainnya';
 
     public static function getSkWaiverReasons(): array
@@ -119,7 +127,7 @@ class StudentAchievement extends Model
     // Accessors
     public function getStatusBadgeAttribute(): string
     {
-        return match($this->validation_status) {
+        return match ($this->validation_status) {
             self::STATUS_PENDING => 'warning',
             self::STATUS_APPROVED => 'success',
             self::STATUS_REJECTED => 'danger',
@@ -130,7 +138,7 @@ class StudentAchievement extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match($this->validation_status) {
+        return match ($this->validation_status) {
             self::STATUS_PENDING => 'Menunggu Validasi',
             self::STATUS_APPROVED => 'Disetujui',
             self::STATUS_REJECTED => 'Ditolak',
@@ -152,13 +160,14 @@ class StudentAchievement extends Model
         if ($this->achievement && $this->achievement->category_id !== 1) {
             return $this->getDocumentTypeCount() >= 2;
         }
+
         return $this->documents->count() >= 1;
     }
 
     public function canBeAppealed(): bool
     {
-        return $this->validation_status === self::STATUS_NEED_REVISION 
-            && !$this->appeals()->where('status', 'pending')->exists();
+        return $this->validation_status === self::STATUS_NEED_REVISION
+            && ! $this->appeals()->where('status', 'pending')->exists();
     }
 
     public function scopePending($query)

@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Schema;
  * - 2026_01_06_113532_update_achievements_table_structure.php
  * - 2026_01_06_114452_simplify_achievements_table.php
  */
-return new class extends Migration {
+return new class() extends Migration
+{
     public function up(): void
     {
         Schema::create('achievements', function (Blueprint $table) {

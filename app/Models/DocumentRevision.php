@@ -22,12 +22,19 @@ class DocumentRevision extends Model
     ];
 
     const ACTION_UPLOADED = 'uploaded';
+
     const ACTION_REPLACED = 'replaced';
+
     const ACTION_REVISION_REQUESTED = 'revision_requested';
+
     const ACTION_APPROVED = 'approved';
+
     const ACTION_REJECTED = 'rejected';
+
     const ACTION_SUBMITTED = 'submitted';
+
     const ACTION_REVERTED_TO_PENDING = 'reverted_to_pending';
+
     const ACTION_NOTE_ADDED = 'note_added';
 
     const ACTION_LABELS = [
@@ -58,7 +65,7 @@ class DocumentRevision extends Model
 
     public function getActionBadgeAttribute(): string
     {
-        return match($this->action) {
+        return match ($this->action) {
             self::ACTION_UPLOADED, self::ACTION_REPLACED => 'info',
             self::ACTION_SUBMITTED => 'warning',
             self::ACTION_REVISION_REQUESTED => 'warning',

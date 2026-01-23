@@ -10,6 +10,7 @@ class ValidationLog extends Model
     use HasFactory;
 
     protected $primaryKey = 'log_id';
+
     protected $fillable = [
         'sa_id',
         'validator_id',

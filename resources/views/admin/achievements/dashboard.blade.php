@@ -126,74 +126,78 @@
         </div>
     </div>
 
-    <!-- Charts Row -->
-    @if($periodComparison)
-    <!-- Period Comparison Chart (when "Semua Periode" selected) -->
-    <div class="grid grid-cols-1 gap-6">
+    <!-- Charts Row - 3 Column Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Column 1: Period Comparison / Monthly Trend -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Perbandingan Prestasi Per Periode</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Distribusi dan status prestasi di setiap periode akademik</p>
-            </div>
-            <div class="h-96">
-                <canvas id="periodComparisonChart"></canvas>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        @if(!$periodComparison)
-        <!-- Monthly Trend Chart (only show when specific period selected) -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Trend Submission 
-                        @if($selectedPeriod)
-                            <span class="text-purple-600 dark:text-purple-400">{{ $selectedPeriod->semester }} {{ $selectedPeriod->year }}</span>
-                        @else
-                            Bulanan
-                        @endif
-                    </h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        @if($selectedPeriod)
-                            {{ $selectedPeriod->start_date->format('M Y') }} - {{ $selectedPeriod->end_date->format('M Y') }}
-                        @else
-                            Perbandingan pengajuan dan persetujuan
-                        @endif
-                    </p>
+            @if($periodComparison)
+                <!-- Period Comparison Chart (when "Semua Periode" selected) -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Perbandingan Prestasi Per Periode</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Distribusi dan status prestasi di setiap periode akademik</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                        <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
-                        Submitted
-                    </span>
-                    <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                        <span class="w-3 h-3 bg-green-500 rounded-full"></span>
-                        Approved
-                    </span>
+                <div class="h-80">
+                    <canvas id="periodComparisonChart"></canvas>
                 </div>
-            </div>
-            <div class="h-72">
-                <canvas id="monthlyTrendChart"></canvas>
-            </div>
+            @else
+                <!-- Monthly Trend Chart (only show when specific period selected) -->
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Trend Submission 
+                            @if($selectedPeriod)
+                                <span class="text-purple-600 dark:text-purple-400">{{ $selectedPeriod->semester }} {{ $selectedPeriod->year }}</span>
+                            @else
+                                Bulanan
+                            @endif
+                        </h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            @if($selectedPeriod)
+                                {{ $selectedPeriod->start_date->format('M Y') }} - {{ $selectedPeriod->end_date->format('M Y') }}
+                            @else
+                                Perbandingan pengajuan dan persetujuan
+                            @endif
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                            <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
+                            Submitted
+                        </span>
+                        <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                            <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                            Approved
+                        </span>
+                    </div>
+                </div>
+                <div class="h-80">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            @endif
         </div>
-        @endif
 
-        <!-- Level Distribution Chart -->
+        <!-- Column 2: Level Distribution Chart -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
             <div class="mb-6">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Tingkat Lomba</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Berdasarkan tingkat kompetisi</p>
             </div>
-            <div class="h-72 flex items-center justify-center">
+            <div class="h-80 flex items-center justify-center">
                 <canvas id="levelDistributionChart"></canvas>
             </div>
         </div>
-    </div>
 
-    <!-- HIGH PRIORITY FEATURES -->
+        <!-- Column 3: Category Distribution -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Kategori</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Prestasi berdasarkan kategori</p>
+            </div>
+            <div class="h-80">
+                <canvas id="categoryDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
 
     <!-- Top Performers & Faculty Comparison -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -206,8 +210,17 @@
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                         </svg>
                         Top 10 Mahasiswa Berprestasi
+                        @if($selectedPeriod)
+                            <span class="text-purple-600 dark:text-purple-400 text-sm font-normal">({{ $selectedPeriod->name }})</span>
+                        @endif
                     </h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Mahasiswa dengan prestasi terbanyak</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        @if($selectedPeriod)
+                            Mahasiswa dengan prestasi disetujui terbanyak di periode ini
+                        @else
+                            Mahasiswa dengan prestasi disetujui terbanyak (semua periode)
+                        @endif
+                    </p>
                 </div>
             </div>
             @if($topPerformers->isEmpty())
@@ -260,71 +273,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Validator Performance & Category Distribution -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Validator Performance -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-                        </svg>
-                        Performa Validator
-                    </h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Statistik validasi per validator</p>
-                </div>
-            </div>
-            @if($validatorPerformance->isEmpty())
-                <div class="text-center py-8">
-                    <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Belum ada data validator</p>
-                </div>
-            @else
-                <div class="space-y-3 max-h-96 overflow-y-auto">
-                    @foreach($validatorPerformance as $validator)
-                    <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ substr($validator['name'], 0, 1) }}</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $validator['name'] }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $validator['faculty'] }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 mt-3">
-                            <div class="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Total Validasi</p>
-                                <p class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ $validator['total_validated'] }}</p>
-                            </div>
-                            <div class="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Avg Response</p>
-                                <p class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ $validator['avg_response_days'] }} hari</p>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-
-        <!-- Category Distribution -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Kategori</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Prestasi berdasarkan kategori</p>
-            </div>
-            <div class="h-80">
-                <canvas id="categoryDistributionChart"></canvas>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -347,29 +295,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     label: 'Total',
                     data: periodData.map(d => d.total),
                     backgroundColor: '#8b5cf6',
-                    borderRadius: 6,
-                    barThickness: 40
+                    borderRadius: 4,
+                    barThickness: 20
                 },
                 {
                     label: 'Disetujui',
                     data: periodData.map(d => d.approved),
                     backgroundColor: '#10b981',
-                    borderRadius: 6,
-                    barThickness: 40
+                    borderRadius: 4,
+                    barThickness: 20
                 },
                 {
                     label: 'Menunggu',
                     data: periodData.map(d => d.pending),
                     backgroundColor: '#f59e0b',
-                    borderRadius: 6,
-                    barThickness: 40
+                    borderRadius: 4,
+                    barThickness: 20
                 },
                 {
                     label: 'Ditolak',
                     data: periodData.map(d => d.rejected),
                     backgroundColor: '#ef4444',
-                    borderRadius: 6,
-                    barThickness: 40
+                    borderRadius: 4,
+                    barThickness: 20
                 }
             ]
         },
@@ -378,12 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'top',
+                    position: 'bottom',
                     labels: {
                         color: textColor,
-                        padding: 15,
+                        padding: 10,
                         font: {
-                            size: 12
+                            size: 10
                         },
                         usePointStyle: true,
                         pointStyle: 'circle'
@@ -406,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ticks: {
                         color: textColor,
                         font: {
-                            size: 11
+                            size: 9
                         }
                     },
                     grid: {
@@ -418,8 +366,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     ticks: {
                         color: textColor,
                         font: {
-                            size: 11
-                        }
+                            size: 9
+                        },
+                        maxRotation: 45
                     },
                     grid: {
                         display: false
@@ -535,9 +484,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: 'bottom',
                     labels: {
                         color: textColor,
-                        padding: 15,
+                        padding: 12,
                         font: {
-                            size: 12
+                            size: 10
                         },
                         usePointStyle: true,
                         pointStyle: 'circle'
@@ -557,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const label = context.label || '';
                             const value = context.parsed || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
                             return `${label}: ${value} (${percentage}%)`;
                         }
                     }
@@ -654,10 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
             labels: categoryData.map(d => d.category),
             datasets: [{
                 data: categoryData.map(d => d.total),
-                backgroundColor: [
-                    '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', 
-                    '#ef4444', '#ec4899', '#06b6d4', '#84cc16'
-                ],
+                backgroundColor: categoryData.map(d => d.color || '#8b5cf6'),
                 borderWidth: 0,
                 hoverOffset: 10
             }]
@@ -667,11 +613,11 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'right',
+                    position: 'bottom',
                     labels: {
                         color: textColor,
                         padding: 12,
-                        font: { size: 11 },
+                        font: { size: 10 },
                         usePointStyle: true,
                         pointStyle: 'circle',
                         generateLabels: function(chart) {
@@ -680,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return data.labels.map((label, i) => {
                                     const value = data.datasets[0].data[i];
                                     const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
                                     return {
                                         text: `${label}: ${value} (${percentage}%)`,
                                         fillStyle: data.datasets[0].backgroundColor[i],
@@ -705,7 +651,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             const label = context.label || '';
                             const value = context.parsed || 0;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
                             return `${label}: ${value} (${percentage}%)`;
                         }
                     }

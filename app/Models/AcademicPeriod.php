@@ -43,6 +43,7 @@ class AcademicPeriod extends Model
     public function isDateInPeriod($date)
     {
         $checkDate = is_string($date) ? \Carbon\Carbon::parse($date) : $date;
+
         return $checkDate->between($this->start_date, $this->end_date);
     }
 
@@ -51,7 +52,7 @@ class AcademicPeriod extends Model
     {
         // Deactivate all other periods
         self::where('id', '!=', $this->id)->update(['is_active' => false]);
-        
+
         // Activate this period
         $this->is_active = true;
         $this->save();

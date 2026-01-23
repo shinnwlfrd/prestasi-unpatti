@@ -12,7 +12,9 @@ use Illuminate\Support\Str;
 class DocumentUploadService
 {
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
     const ALLOWED_MIMES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+
     const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'];
 
     public function uploadDocument(
@@ -25,7 +27,7 @@ class DocumentUploadService
 
         $fileName = $this->generateFileName($file);
         $path = $file->storeAs(
-            'achievements/' . $achievement->sa_id,
+            'achievements/'.$achievement->sa_id,
             $fileName,
             'public'
         );
@@ -50,7 +52,7 @@ class DocumentUploadService
         AchievementDocument $document,
         UploadedFile $file
     ): AchievementDocument {
-        if (!$document->canBeEdited()) {
+        if (! $document->canBeEdited()) {
             throw new \InvalidArgumentException('Dokumen tidak dapat diubah karena sudah diverifikasi.');
         }
 
@@ -64,7 +66,7 @@ class DocumentUploadService
         // Upload new file
         $fileName = $this->generateFileName($file);
         $path = $file->storeAs(
-            'achievements/' . $document->sa_id,
+            'achievements/'.$document->sa_id,
             $fileName,
             'public'
         );
@@ -75,8 +77,8 @@ class DocumentUploadService
             'file_name' => $file->getClientOriginalName(),
             'file_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
-            'status' => $document->status === AchievementDocument::STATUS_REVISION 
-                ? AchievementDocument::STATUS_PENDING 
+            'status' => $document->status === AchievementDocument::STATUS_REVISION
+                ? AchievementDocument::STATUS_PENDING
                 : $document->status,
             'revision_notes' => null,
         ]);
@@ -135,7 +137,7 @@ class DocumentUploadService
 
     public function deleteDocument(AchievementDocument $document): bool
     {
-        if (!$document->canBeDeleted()) {
+        if (! $document->canBeDeleted()) {
             throw new \InvalidArgumentException('Dokumen tidak dapat dihapus karena sudah diverifikasi.');
         }
 
@@ -169,20 +171,20 @@ class DocumentUploadService
     {
         if ($file->getSize() > self::MAX_FILE_SIZE) {
             throw new \InvalidArgumentException(
-                'Ukuran file melebihi batas maksimal ' . (self::MAX_FILE_SIZE / 1024 / 1024) . 'MB'
+                'Ukuran file melebihi batas maksimal '.(self::MAX_FILE_SIZE / 1024 / 1024).'MB'
             );
         }
 
-        if (!in_array($file->getMimeType(), self::ALLOWED_MIMES)) {
+        if (! in_array($file->getMimeType(), self::ALLOWED_MIMES)) {
             throw new \InvalidArgumentException(
-                'Format file tidak didukung. Gunakan: ' . implode(', ', self::ALLOWED_EXTENSIONS)
+                'Format file tidak didukung. Gunakan: '.implode(', ', self::ALLOWED_EXTENSIONS)
             );
         }
 
         $extension = strtolower($file->getClientOriginalExtension());
-        if (!in_array($extension, self::ALLOWED_EXTENSIONS)) {
+        if (! in_array($extension, self::ALLOWED_EXTENSIONS)) {
             throw new \InvalidArgumentException(
-                'Ekstensi file tidak didukung. Gunakan: ' . implode(', ', self::ALLOWED_EXTENSIONS)
+                'Ekstensi file tidak didukung. Gunakan: '.implode(', ', self::ALLOWED_EXTENSIONS)
             );
         }
     }
@@ -190,6 +192,7 @@ class DocumentUploadService
     protected function generateFileName(UploadedFile $file): string
     {
         $extension = $file->getClientOriginalExtension();
-        return Str::uuid() . '.' . $extension;
+
+        return Str::uuid().'.'.$extension;
     }
 }

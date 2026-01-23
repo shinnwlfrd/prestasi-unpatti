@@ -1,15 +1,15 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\StudentAchievementController;
-use App\Http\Controllers\ValidatorController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AchievementValidationController;
-use App\Http\Controllers\AchievementDashboardController;
 use App\Http\Controllers\AchievementAppealController;
+use App\Http\Controllers\AchievementDashboardController;
+use App\Http\Controllers\AchievementValidationController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DocumentUploadController;
+use App\Http\Controllers\StudentAchievementController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\ValidatorController;
+use Illuminate\Support\Facades\Route;
 
 // Halaman utama: arahkan ke dashboard sesuai role, atau ke login jika belum login
 Route::get('/', function () {
@@ -23,6 +23,7 @@ Route::get('/', function () {
             return redirect()->route('validator.dashboard');
         }
     }
+
     return redirect()->route('login');
 });
 
@@ -41,8 +42,11 @@ Route::prefix('auth/sso')->name('sso.')->group(function () {
 // Generate sample PDF (for development/testing)
 Route::get('/generate-sample-pdf', function () {
     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.seeder-documents');
+
     return $pdf->download('prestasi_mahasiswa_dokumen_sample.pdf');
 })->name('generate.sample.pdf');
+
+
 
 // Route Mahasiswa (dilindungi oleh middleware khusus)
 Route::middleware(['auth.student'])->group(function () {
@@ -50,7 +54,7 @@ Route::middleware(['auth.student'])->group(function () {
     Route::get('/student/profile', [StudentController::class, 'profile'])->name('student.profile');
     Route::get('/submit', [StudentAchievementController::class, 'create'])->name('student.achievement.create');
     Route::post('/submit', [StudentAchievementController::class, 'store'])->name('student.achievement.store');
-    
+
     // Appeals (student only)
     Route::get('/achievements/{achievement}/appeal', [AchievementAppealController::class, 'create'])
         ->name('achievements.appeal.create');
@@ -74,7 +78,7 @@ Route::middleware(['auth.any'])->group(function () {
         ->name('achievements.documents.submitSingle');
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])
         ->name('achievements.documents.destroy');
-    
+
     // Admin/Validator actions
     Route::post('/documents/{document}/revert', [DocumentUploadController::class, 'revertToPending'])
         ->name('achievements.documents.revert');
@@ -88,11 +92,11 @@ Route::middleware(['auth.any'])->group(function () {
         ->name('achievements.documents.preview');
     Route::get('/documents/{document}/history', [DocumentUploadController::class, 'history'])
         ->name('achievements.documents.history');
-    
+
     // Preview SK from validation log (by file path)
     Route::get('/validation-logs/{log}/sk-preview', [ValidatorController::class, 'previewSK'])
         ->name('validation.sk.preview');
-    
+
     // Note: Document upload routes are now also in auth.any group above
 });
 
@@ -108,18 +112,17 @@ Route::middleware(['auth', 'auth.validator'])->prefix('validator')->name('valida
     Route::get('/history', [ValidatorController::class, 'history'])->name('history');
     Route::get('/submit', [ValidatorController::class, 'submitForm'])->name('submit.form');
     Route::post('/submit', [ValidatorController::class, 'submitStore'])->name('submit.store');
-    
+
     // Achievement validation (validator-specific)
     Route::get('/achievements/{achievement}', [ValidatorController::class, 'show'])->name('achievements.show');
     Route::get('/achievements/{achievement}/documents', [ValidatorController::class, 'documents'])->name('achievements.documents');
     Route::post('/achievements/{achievement}/validate', [ValidatorController::class, 'validateAchievement'])->name('achievements.validate');
     Route::post('/documents/{document}/verify', [ValidatorController::class, 'verifyDocument'])->name('documents.verify');
-    
+
     // Legacy routes
     Route::patch('/achievements/{sa_id}/approve', [ValidatorController::class, 'approve']);
     Route::patch('/achievements/{sa_id}/reject', [ValidatorController::class, 'reject']);
 });
-
 
 // Admin routes
 Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -128,33 +131,32 @@ Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/achievements', [AdminController::class, 'achievementTypes'])->name('achievements');
     Route::get('/student-achievements', [AdminController::class, 'studentAchievements'])->name('student-achievements');
     Route::get('/validation-logs', [AdminController::class, 'validationLogs'])->name('validation-logs');
-    Route::get('/auth-logs', [AdminController::class, 'authLogs'])->name('auth-logs');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
     Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
     Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
-    
+
     // Submit Achievement (Admin can submit on behalf of student)
     Route::get('/submit-achievement', [\App\Http\Controllers\Admin\AdminAchievementController::class, 'create'])->name('submit.create');
     Route::post('/submit-achievement', [\App\Http\Controllers\Admin\AdminAchievementController::class, 'store'])->name('submit.store');
-    
+
     // Achievement Categories CRUD
     Route::resource('categories', \App\Http\Controllers\Admin\AchievementCategoryController::class);
-    
+
     // Achievement Levels CRUD
     Route::resource('levels', \App\Http\Controllers\Admin\AchievementLevelController::class);
-    
+
     // Academic Periods CRUD
     Route::resource('periods', \App\Http\Controllers\Admin\AcademicPeriodController::class);
     Route::patch('/periods/{period}/activate', [\App\Http\Controllers\Admin\AcademicPeriodController::class, 'activate'])->name('periods.activate');
-    
+
     // Achievement Validation System
     Route::prefix('achievements')->name('achievements.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [AchievementDashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/export', [AchievementDashboardController::class, 'export'])->name('dashboard.export');
         Route::get('/dashboard/chart-data', [AchievementDashboardController::class, 'chartData'])->name('dashboard.chart');
-        
+
         // Validation
         Route::get('/validation', [AchievementValidationController::class, 'index'])->name('validation.index');
         Route::get('/validation/{achievement}', [AchievementValidationController::class, 'show'])->name('validation.show');
@@ -163,16 +165,16 @@ Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/validation/{achievement}/checklist', [AchievementValidationController::class, 'saveChecklist'])->name('validation.checklist');
         Route::get('/validation/{achievement}/history', [AchievementValidationController::class, 'history'])->name('validation.history');
         Route::post('/{achievement}/revert', [AchievementValidationController::class, 'revertToPending'])->name('validation.revert');
-        
+
         // Document Verification
         Route::post('/documents/{document}/verify', [DocumentUploadController::class, 'verify'])->name('documents.verify');
     });
-    
+
     // Appeals Management - REDIRECT to Validation with appeal tab
-    Route::get('/appeals', function() {
+    Route::get('/appeals', function () {
         return redirect()->route('admin.achievements.validation.index', ['tab' => 'appeal']);
     })->name('appeals.index');
-    
+
     Route::get('/appeals/{appeal}', [AchievementAppealController::class, 'show'])->name('appeals.show');
     Route::post('/appeals/{appeal}/review', [AchievementAppealController::class, 'review'])->name('appeals.review');
 });

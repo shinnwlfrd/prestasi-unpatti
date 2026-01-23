@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 class AchievementAppealController extends Controller
 {
     protected AchievementApprovalService $approvalService;
+
     protected DocumentUploadService $uploadService;
 
     public function __construct(
@@ -25,7 +26,7 @@ class AchievementAppealController extends Controller
     public function create(StudentAchievement $achievement)
     {
         // Check if can appeal
-        if (!$achievement->canBeAppealed()) {
+        if (! $achievement->canBeAppealed()) {
             return back()->with('error', 'Prestasi ini tidak dapat diajukan banding.');
         }
 
@@ -36,7 +37,7 @@ class AchievementAppealController extends Controller
 
     public function store(SubmitAppealRequest $request, StudentAchievement $achievement)
     {
-        if (!$achievement->canBeAppealed()) {
+        if (! $achievement->canBeAppealed()) {
             return back()->with('error', 'Prestasi ini tidak dapat diajukan banding.');
         }
 
@@ -53,11 +54,11 @@ class AchievementAppealController extends Controller
         if ($request->hasFile('additional_documents')) {
             $files = $request->file('additional_documents');
             $types = $request->input('document_types', []);
-            
+
             // Ensure we have types for each file
             foreach ($files as $index => $file) {
                 $documentType = $types[$index] ?? 'dokumen_lainnya';
-                
+
                 try {
                     $this->uploadService->uploadDocument(
                         $achievement,
@@ -67,7 +68,7 @@ class AchievementAppealController extends Controller
                     );
                 } catch (\Exception $e) {
                     // Log error but continue with other files
-                    \Log::warning('Failed to upload document in appeal: ' . $e->getMessage());
+                    \Log::warning('Failed to upload document in appeal: '.$e->getMessage());
                 }
             }
         }
@@ -121,8 +122,8 @@ class AchievementAppealController extends Controller
         ]);
 
         $appeal->update([
-            'status' => $request->action === 'approve' 
-                ? AchievementAppeal::STATUS_APPROVED 
+            'status' => $request->action === 'approve'
+                ? AchievementAppeal::STATUS_APPROVED
                 : AchievementAppeal::STATUS_REJECTED,
             'reviewed_by' => auth()->id(),
             'review_notes' => $request->review_notes,
@@ -132,13 +133,13 @@ class AchievementAppealController extends Controller
         $achievement = $appeal->studentAchievement;
 
         if ($request->action === 'approve') {
-            $this->approvalService->approve($achievement, auth()->user(), 'Banding disetujui: ' . $request->review_notes);
+            $this->approvalService->approve($achievement, auth()->user(), 'Banding disetujui: '.$request->review_notes);
         } else {
-            $this->approvalService->reject($achievement, auth()->user(), 'Banding ditolak: ' . $request->review_notes);
+            $this->approvalService->reject($achievement, auth()->user(), 'Banding ditolak: '.$request->review_notes);
         }
 
         return redirect()
             ->route('admin.appeals.index')
-            ->with('success', 'Banding berhasil ' . ($request->action === 'approve' ? 'disetujui' : 'ditolak') . '.');
+            ->with('success', 'Banding berhasil '.($request->action === 'approve' ? 'disetujui' : 'ditolak').'.');
     }
 }

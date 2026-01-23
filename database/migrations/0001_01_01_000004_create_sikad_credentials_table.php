@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Schema;
  * Migration for sikad_credentials table.
  * (No changes needed - kept as is)
  */
-return new class extends Migration {
+return new class() extends Migration
+{
     public function up(): void
     {
         Schema::create('sikad_credentials', function (Blueprint $table) {

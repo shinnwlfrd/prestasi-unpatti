@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Achievement;
+use App\Models\AchievementDocument;
 use App\Models\Student;
 use App\Models\StudentAchievement;
-use App\Models\ValidationLog;
 use App\Models\ValidationChecklist;
-use App\Models\AchievementDocument;
-use App\Models\Achievement;
+use App\Models\ValidationLog;
 use App\Services\AchievementApprovalService;
 use App\Services\DocumentVerificationService;
 use Illuminate\Http\Request;
@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 class ValidatorController extends Controller
 {
     protected AchievementApprovalService $approvalService;
+
     protected DocumentVerificationService $verificationService;
 
     public function __construct(
@@ -33,43 +34,43 @@ class ValidatorController extends Controller
     public function dashboard(Request $request)
     {
         $user = auth()->user();
-        
+
         $query = StudentAchievement::with(['student', 'achievement.category', 'documents'])
             ->whereIn('validation_status', ['pending', 'Menunggu'])
             ->orderByDesc('created_at');
-        
+
         // Filter by faculty if validator has faculty assigned
         if ($user->role === 'Validator' && $user->faculty) {
-            $query->whereHas('student', function($q) use ($user) {
+            $query->whereHas('student', function ($q) use ($user) {
                 $q->where('faculty', $user->faculty);
             });
         }
-        
+
         // Search filter
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('event_name', 'like', "%{$search}%")
-                  ->orWhere('student_id', 'like', "%{$search}%")
-                  ->orWhere('organizer', 'like', "%{$search}%")
-                  ->orWhereHas('student', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhere('student_id', 'like', "%{$search}%")
+                    ->orWhere('organizer', 'like', "%{$search}%")
+                    ->orWhereHas('student', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
             });
         }
-        
+
         // Level filter
         if ($request->filled('level')) {
             $query->where('level', $request->level);
         }
-        
+
         // Category filter
         if ($request->filled('category')) {
-            $query->whereHas('achievement', function($q) use ($request) {
+            $query->whereHas('achievement', function ($q) use ($request) {
                 $q->where('category_id', $request->category);
             });
         }
-        
+
         // Date range filter
         if ($request->filled('date_from')) {
             $query->whereDate('event_date', '>=', $request->date_from);
@@ -77,14 +78,14 @@ class ValidatorController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('event_date', '<=', $request->date_to);
         }
-        
+
         // Submitted by filter
         if ($request->filled('submitted_by')) {
             $query->where('submitted_by', $request->submitted_by);
         }
-        
+
         $pendingAchievements = $query->paginate(15)->withQueryString();
-        
+
         // Get filter options
         $categories = \App\Models\AchievementCategory::orderBy('name')->get();
         $levels = ['Universitas', 'Nasional', 'Internasional'];
@@ -95,27 +96,73 @@ class ValidatorController extends Controller
     /**
      * Display validation history.
      */
-    public function history()
+    public function history(Request $request)
     {
         $user = auth()->user();
-        
+
         $query = ValidationLog::with([
-            'studentAchievement.student', 
-            'studentAchievement.achievement.category', 
+            'studentAchievement.student',
+            'studentAchievement.achievement.category',
             'studentAchievement.documents',
-            'validator'
+            'validator',
         ])->orderByDesc('validated_at');
-        
+
         // Filter by faculty if validator has faculty assigned
         if ($user->role === 'Validator' && $user->faculty) {
-            $query->whereHas('studentAchievement.student', function($q) use ($user) {
+            $query->whereHas('studentAchievement.student', function ($q) use ($user) {
                 $q->where('faculty', $user->faculty);
             });
         }
-        
-        $logs = $query->paginate(10);
 
-        return view('validator.history', compact('logs'));
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('studentAchievement', function ($q) use ($search) {
+                    $q->where('event_name', 'like', "%{$search}%")
+                        ->orWhere('student_id', 'like', "%{$search}%");
+                })->orWhereHas('studentAchievement.student', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('student_id', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('new_status', $request->status);
+        }
+
+        // Category filter
+        if ($request->filled('category')) {
+            $query->whereHas('studentAchievement.achievement', function ($q) use ($request) {
+                $q->where('category_id', $request->category);
+            });
+        }
+
+        // Level filter
+        if ($request->filled('level')) {
+            $query->whereHas('studentAchievement', function ($q) use ($request) {
+                $q->where('level', $request->level);
+            });
+        }
+
+        // Date range filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('validated_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('validated_at', '<=', $request->date_to);
+        }
+
+        $logs = $query->paginate($request->input('per_page', 15))->withQueryString();
+
+        // Get filter options
+        $categories = \App\Models\AchievementCategory::orderBy('name')->get();
+        $levels = ['Universitas', 'Nasional', 'Internasional'];
+        $statuses = ['Disetujui', 'Ditolak', 'Revisi'];
+
+        return view('validator.history', compact('logs', 'categories', 'levels', 'statuses'));
     }
 
     /**
@@ -125,9 +172,9 @@ class ValidatorController extends Controller
     {
         // Get SK document path
         $skPath = $log->sk_document;
-        
+
         // If not in validation log, try to get from achievement documents
-        if (!$skPath && $log->new_status === 'Disetujui') {
+        if (! $skPath && $log->new_status === 'Disetujui') {
             $skDoc = $log->studentAchievement?->documents()
                 ->where('document_type', AchievementDocument::TYPE_SK_RESMI)
                 ->where('status', AchievementDocument::STATUS_APPROVED)
@@ -135,18 +182,18 @@ class ValidatorController extends Controller
                 ->first();
             $skPath = $skDoc?->file_path;
         }
-        
+
         // If still no SK, return 404
-        if (!$skPath) {
+        if (! $skPath) {
             abort(404, 'SK Resmi tidak ditemukan');
         }
-        
+
         // Check if file exists
-        $fullPath = storage_path('app/public/' . $skPath);
-        if (!file_exists($fullPath)) {
+        $fullPath = storage_path('app/public/'.$skPath);
+        if (! file_exists($fullPath)) {
             abort(404, 'File SK Resmi tidak ditemukan');
         }
-        
+
         // Return file
         return response()->file($fullPath);
     }
@@ -163,7 +210,7 @@ class ValidatorController extends Controller
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
             }
         }
-        
+
         $achievement->load([
             'student',
             'achievement.category',
@@ -207,7 +254,7 @@ class ValidatorController extends Controller
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
             }
         }
-        
+
         $request->validate([
             'action' => 'required|in:approve,reject,request_revision',
             'notes' => 'nullable|string|max:1000',
@@ -218,7 +265,7 @@ class ValidatorController extends Controller
         $validator = auth()->user();
 
         // Validasi SK Resmi WAJIB untuk approve
-        if ($request->action === 'approve' && !$request->hasFile('sk_resmi')) {
+        if ($request->action === 'approve' && ! $request->hasFile('sk_resmi')) {
             return back()->withErrors(['sk_resmi' => 'SK Resmi wajib diupload untuk approve prestasi.'])->withInput();
         }
 
@@ -237,7 +284,7 @@ class ValidatorController extends Controller
         }
 
         // Process action
-        $success = match($request->action) {
+        $success = match ($request->action) {
             'approve' => $this->approvalService->approve($achievement, $validator, $request->notes, $skDocumentPath),
             'reject' => $this->approvalService->reject($achievement, $validator, $request->rejection_reason),
             'request_revision' => $this->approvalService->requestRevision($achievement, $validator, $request->revision_reason, []),
@@ -245,7 +292,7 @@ class ValidatorController extends Controller
         };
 
         if ($success) {
-            $message = match($request->action) {
+            $message = match ($request->action) {
                 'approve' => 'Prestasi berhasil disetujui dan SK Resmi telah diupload.',
                 'reject' => 'Prestasi berhasil ditolak.',
                 'request_revision' => 'Permintaan revisi berhasil dikirim.',
@@ -265,8 +312,8 @@ class ValidatorController extends Controller
         ]);
 
         $file = $request->file('sk_resmi');
-        $fileName = 'SK_Resmi_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+        $fileName = 'SK_Resmi_'.$achievement->sa_id.'_'.time().'.'.$file->getClientOriginalExtension();
+        $filePath = $file->storeAs('achievements/'.$achievement->sa_id, $fileName, 'public');
 
         // Create document record
         $achievement->documents()->create([
@@ -296,7 +343,7 @@ class ValidatorController extends Controller
 
         $user = auth()->user();
 
-        $result = match($request->action) {
+        $result = match ($request->action) {
             'approve' => $this->verificationService->approveDocument($document, $user, $request->notes),
             'reject' => $this->verificationService->rejectDocument($document, $user, $request->notes),
             'revision' => $this->verificationService->requestRevision($document, $user, $request->notes),
@@ -304,7 +351,7 @@ class ValidatorController extends Controller
         };
 
         if ($result) {
-            $message = match($request->action) {
+            $message = match ($request->action) {
                 'approve' => 'Dokumen berhasil disetujui.',
                 'reject' => 'Dokumen berhasil ditolak.',
                 'revision' => 'Permintaan revisi berhasil dikirim.',
@@ -328,6 +375,7 @@ class ValidatorController extends Controller
         if ($request->wantsJson()) {
             return response()->json(['success' => false, 'error' => 'Gagal memproses verifikasi.'], 422);
         }
+
         return back()->with('error', 'Gagal memproses verifikasi.');
     }
 
@@ -372,7 +420,7 @@ class ValidatorController extends Controller
         $initialStatus = $request->submit_action === 'approve' ? 'Disetujui' : 'Menunggu';
 
         // Determine SK required
-        $skRequired = !$request->boolean('skip_sk');
+        $skRequired = ! $request->boolean('skip_sk');
 
         $achievement = StudentAchievement::create([
             'student_id' => $validated['student_id'],
@@ -396,12 +444,12 @@ class ValidatorController extends Controller
         // Handle approve action
         if ($request->submit_action === 'approve') {
             $skDocumentPath = null;
-            
+
             // Upload SK Resmi if provided
             if ($request->hasFile('sk_resmi')) {
                 $file = $request->file('sk_resmi');
-                $fileName = 'SK_Resmi_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+                $fileName = 'SK_Resmi_'.$achievement->sa_id.'_'.time().'.'.$file->getClientOriginalExtension();
+                $filePath = $file->storeAs('achievements/'.$achievement->sa_id, $fileName, 'public');
 
                 $achievement->documents()->create([
                     'document_type' => AchievementDocument::TYPE_SK_RESMI,
@@ -416,12 +464,12 @@ class ValidatorController extends Controller
 
                 $skDocumentPath = $filePath;
             }
-            
+
             // Upload alternative document if provided
             if ($request->hasFile('alternative_document')) {
                 $file = $request->file('alternative_document');
-                $fileName = 'Alt_Doc_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+                $fileName = 'Alt_Doc_'.$achievement->sa_id.'_'.time().'.'.$file->getClientOriginalExtension();
+                $filePath = $file->storeAs('achievements/'.$achievement->sa_id, $fileName, 'public');
 
                 // Save path to achievement
                 $achievement->update(['alternative_document_path' => $filePath]);
@@ -440,10 +488,10 @@ class ValidatorController extends Controller
             }
 
             // Log approval
-            $notes = $skRequired 
-                ? 'Disetujui langsung oleh validator saat submit' 
-                : 'Disetujui tanpa SK: ' . ($request->sk_waiver_reason ? StudentAchievement::getSkWaiverReasons()[$request->sk_waiver_reason] : 'N/A');
-            
+            $notes = $skRequired
+                ? 'Disetujui langsung oleh validator saat submit'
+                : 'Disetujui tanpa SK: '.($request->sk_waiver_reason ? StudentAchievement::getSkWaiverReasons()[$request->sk_waiver_reason] : 'N/A');
+
             $this->approvalService->approve($achievement, auth()->user(), $notes, $skDocumentPath);
 
             return redirect()->route('validator.dashboard')

@@ -59,10 +59,11 @@ class ValidationChecklist extends Model
     {
         $count = 0;
         foreach (array_keys(self::CHECKLIST_ITEMS) as $item) {
-            if ($this->{$item . '_valid'}) {
+            if ($this->{$item.'_valid'}) {
                 $count++;
             }
         }
+
         return $count;
     }
 

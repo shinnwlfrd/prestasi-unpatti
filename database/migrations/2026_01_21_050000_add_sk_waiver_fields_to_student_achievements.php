@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class() extends Migration
 {
     public function up(): void
     {
@@ -14,7 +14,7 @@ return new class extends Migration
                 'tingkat_universitas',
                 'sk_dalam_proses',
                 'dokumen_alternatif',
-                'lainnya'
+                'lainnya',
             ])->nullable()->after('sk_required');
             $table->text('sk_waiver_notes')->nullable()->after('sk_waiver_reason');
             $table->string('alternative_document_path')->nullable()->after('sk_waiver_notes');
@@ -28,7 +28,7 @@ return new class extends Migration
                 'sk_required',
                 'sk_waiver_reason',
                 'sk_waiver_notes',
-                'alternative_document_path'
+                'alternative_document_path',
             ]);
         });
     }

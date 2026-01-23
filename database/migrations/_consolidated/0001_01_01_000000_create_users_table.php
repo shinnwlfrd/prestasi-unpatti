@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Schema;
  * - 2025_12_09_052450_add_role_to_users_table.php
  * - 2025_12_15_004908_add_photo_to_students_and_users_table.php (users part)
  */
-return new class extends Migration {
+return new class() extends Migration
+{
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {

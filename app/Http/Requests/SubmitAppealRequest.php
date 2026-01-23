@@ -9,15 +9,15 @@ class SubmitAppealRequest extends FormRequest
     public function authorize(): bool
     {
         // Check if student is authenticated via session
-        if (session('auth_role') !== 'student' || !session('student_id')) {
+        if (session('auth_role') !== 'student' || ! session('student_id')) {
             return false;
         }
 
         // Get the achievement from route parameter
         $achievement = $this->route('achievement');
-        
+
         // Check if achievement exists
-        if (!$achievement) {
+        if (! $achievement) {
             return false;
         }
 
@@ -44,7 +44,7 @@ class SubmitAppealRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             // Jika tidak ada link publikasi dan tidak ada dokumen, berikan error
-            if (!$this->filled('publication_link') && !$this->hasFile('additional_documents')) {
+            if (! $this->filled('publication_link') && ! $this->hasFile('additional_documents')) {
                 $validator->errors()->add(
                     'additional_documents',
                     'Anda harus mengupload minimal 1 dokumen tambahan atau memasukkan link publikasi.'

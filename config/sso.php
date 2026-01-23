@@ -28,7 +28,7 @@ return [
         'client_secret' => env('SIAKAD_SSO_CLIENT_SECRET'),
         'redirect_uri' => env('SIAKAD_SSO_REDIRECT_URI'),
         'scopes' => env('SIAKAD_SSO_SCOPES', 'openid,profile,email,role'),
-        
+
         // Endpoints
         'authorize_endpoint' => '/oauth/authorize',
         'token_endpoint' => '/oauth/token',

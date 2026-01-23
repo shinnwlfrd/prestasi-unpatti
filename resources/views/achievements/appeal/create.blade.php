@@ -216,12 +216,12 @@
 function documentUploader() {
     return {
         files: [],
-        fileObjects: [], // Store actual File objects
+        fileObjects: [], // Store actual File objects separately
         
         addFiles(event) {
             const newFiles = Array.from(event.target.files);
             
-            // Validate each file
+            // Validate and add each file
             newFiles.forEach(file => {
                 // Check file size (10MB)
                 if (file.size > 10 * 1024 * 1024) {
@@ -247,43 +247,13 @@ function documentUploader() {
                 this.fileObjects.push(file);
             });
             
-            // Reset input
+            // Reset the input so same file can be added again if needed
             event.target.value = '';
-            
-            // Update hidden inputs
-            this.updateFormFiles();
         },
         
         removeFile(index) {
             this.files.splice(index, 1);
             this.fileObjects.splice(index, 1);
-            this.updateFormFiles();
-        },
-        
-        updateFormFiles() {
-            // Remove existing hidden file inputs
-            const existingInputs = document.querySelectorAll('input[name="additional_documents[]"][type="file"]:not(#additional-docs)');
-            existingInputs.forEach(input => input.remove());
-            
-            // Create new hidden inputs for each file
-            if (this.fileObjects.length > 0) {
-                const form = document.querySelector('form');
-                const dt = new DataTransfer();
-                
-                this.fileObjects.forEach(file => {
-                    dt.items.add(file);
-                });
-                
-                // Create single hidden input with all files
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'file';
-                hiddenInput.name = 'additional_documents[]';
-                hiddenInput.multiple = true;
-                hiddenInput.style.display = 'none';
-                hiddenInput.files = dt.files;
-                
-                form.appendChild(hiddenInput);
-            }
         },
         
         formatFileSize(bytes) {
@@ -293,5 +263,76 @@ function documentUploader() {
         }
     }
 }
+
+// Handle form submission with files using FormData
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[enctype="multipart/form-data"]');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        const uploaderElement = document.querySelector('[x-data*="documentUploader"]');
+        if (!uploaderElement) return;
+        
+        const uploaderData = Alpine.$data(uploaderElement);
+        
+        if (uploaderData && uploaderData.fileObjects.length > 0) {
+            e.preventDefault();
+            
+            // Remove the original file input
+            const originalInput = document.getElementById('additional-docs');
+            if (originalInput) {
+                originalInput.remove();
+            }
+            
+            // Create FormData and append files directly
+            const formData = new FormData(form);
+            
+            // Add each file
+            uploaderData.fileObjects.forEach((file, index) => {
+                formData.append('additional_documents[]', file, file.name);
+            });
+            
+            // Submit using fetch
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+                return response.text();
+            })
+            .then(html => {
+                if (html) {
+                    // If we got HTML back, it might be a validation error page
+                    // Check if it contains error messages
+                    if (html.includes('error') || html.includes('validation')) {
+                        document.open();
+                        document.write(html);
+                        document.close();
+                    } else {
+                        // Success - redirect to dashboard
+                        window.location.href = '{{ route("student.dashboard") }}';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat mengupload dokumen. Silakan coba lagi.');
+                // Re-enable submit button
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                }
+            });
+        }
+    });
+});
 </script>
 @endsection

@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Schema;
  * Migration for validator_profiles table.
  * (No changes needed - kept as is)
  */
-return new class extends Migration {
+return new class() extends Migration
+{
     public function up(): void
     {
         Schema::create('validator_profiles', function (Blueprint $table) {

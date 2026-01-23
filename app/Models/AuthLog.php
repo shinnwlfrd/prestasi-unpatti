@@ -25,10 +25,15 @@ class AuthLog extends Model
 
     // Actions
     const ACTION_LOGIN = 'login';
+
     const ACTION_LOGOUT = 'logout';
+
     const ACTION_FAILED_LOGIN = 'failed_login';
+
     const ACTION_SSO_LINK = 'sso_link';
+
     const ACTION_REGISTER = 'register';
+
     const ACTION_PASSWORD_RESET = 'password_reset';
 
     public function user(): BelongsTo

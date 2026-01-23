@@ -11,6 +11,7 @@ class AchievementCategoryController extends Controller
     public function index()
     {
         $categories = AchievementCategory::latest()->paginate(15);
+
         return view('admin.categories.index', compact('categories'));
     }
 
@@ -41,7 +42,7 @@ class AchievementCategoryController extends Controller
     public function update(Request $request, AchievementCategory $category)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:achievement_categories,name,' . $category->id,
+            'name' => 'required|string|max:255|unique:achievement_categories,name,'.$category->id,
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);

@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\StudentAchievement;
-use App\Models\ValidationLog;
-use App\Models\ValidationChecklist;
 use App\Models\User;
+use App\Models\ValidationChecklist;
+use App\Models\ValidationLog;
 use App\Notifications\AchievementStatusChanged;
 use Illuminate\Support\Facades\DB;
 
@@ -110,7 +110,7 @@ class AchievementApprovalService
                 $student->user->notify(new AchievementStatusChanged($achievement, $action));
             } catch (\Exception $e) {
                 // Log notification failure but don't break the flow
-                \Log::warning('Failed to send notification: ' . $e->getMessage());
+                \Log::warning('Failed to send notification: '.$e->getMessage());
             }
         }
     }
@@ -121,7 +121,7 @@ class AchievementApprovalService
         if ($periodId) {
             $query->where('academic_period_id', $periodId);
         }
-        
+
         $total = (clone $query)->count();
         $pending = (clone $query)->pending()->count();
         $approved = (clone $query)->approved()->count();
@@ -130,22 +130,27 @@ class AchievementApprovalService
 
         // Average time to approve (in days)
         $dbDriver = config('database.default');
-        
+
         $avgQuery = ValidationLog::where('new_status', StudentAchievement::STATUS_APPROVED)
             ->whereNotNull('validated_at')
             ->join('student_achievements', 'validation_logs.sa_id', '=', 'student_achievements.sa_id');
-        
+
         if ($periodId) {
             $avgQuery->where('student_achievements.academic_period_id', $periodId);
         }
-        
+
         if ($dbDriver === 'sqlite') {
             // SQLite uses JULIANDAY for date calculations
             $avgTimeToApprove = $avgQuery
                 ->selectRaw('AVG(JULIANDAY(validation_logs.validated_at) - JULIANDAY(student_achievements.submitted_at)) as avg_days')
                 ->value('avg_days') ?? 0;
+        } elseif ($dbDriver === 'pgsql') {
+            // PostgreSQL uses EXTRACT(EPOCH FROM ...) for date difference
+            $avgTimeToApprove = $avgQuery
+                ->selectRaw('AVG(EXTRACT(EPOCH FROM (validation_logs.validated_at - student_achievements.submitted_at))/86400) as avg_days')
+                ->value('avg_days') ?? 0;
         } else {
-            // MySQL and other databases use DATEDIFF
+            // MySQL uses DATEDIFF
             $avgTimeToApprove = $avgQuery
                 ->selectRaw('AVG(DATEDIFF(validation_logs.validated_at, student_achievements.submitted_at)) as avg_days')
                 ->value('avg_days') ?? 0;
@@ -165,31 +170,31 @@ class AchievementApprovalService
     public function getMonthlyTrend(int $months = 6, ?int $periodId = null): array
     {
         $data = [];
-        
+
         if ($periodId) {
             // Get period details
             $period = \App\Models\AcademicPeriod::find($periodId);
-            
+
             if ($period) {
                 // Generate months within the period
                 $startDate = $period->start_date;
                 $endDate = $period->end_date;
                 $currentDate = $startDate->copy();
-                
+
                 while ($currentDate->lte($endDate)) {
                     $monthLabel = $currentDate->format('M Y');
-                    
+
                     $submittedQuery = StudentAchievement::whereYear('submitted_at', $currentDate->year)
                         ->whereMonth('submitted_at', $currentDate->month)
                         ->where('academic_period_id', $periodId);
-                    
+
                     $submitted = $submittedQuery->count();
 
                     $approvedQuery = StudentAchievement::whereYear('submitted_at', $currentDate->year)
                         ->whereMonth('submitted_at', $currentDate->month)
                         ->where('validation_status', StudentAchievement::STATUS_APPROVED)
                         ->where('academic_period_id', $periodId);
-                    
+
                     $approved = $approvedQuery->count();
 
                     $data[] = [
@@ -197,7 +202,7 @@ class AchievementApprovalService
                         'submitted' => $submitted,
                         'approved' => $approved,
                     ];
-                    
+
                     $currentDate->addMonth();
                 }
             }
@@ -231,11 +236,11 @@ class AchievementApprovalService
     {
         $query = StudentAchievement::selectRaw('level, COUNT(*) as count')
             ->groupBy('level');
-        
+
         if ($periodId) {
             $query->where('academic_period_id', $periodId);
         }
-        
+
         return $query->pluck('count', 'level')->toArray();
     }
 

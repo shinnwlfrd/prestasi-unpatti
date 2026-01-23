@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Achievement;
 use App\Models\StudentAchievement;
+use Illuminate\Http\Request;
 
 class StudentAchievementController extends Controller
 {
     public function create()
     {
         $types = Achievement::with('category')->get();
+
         return view('student.submit', compact('types'));
     }
 
@@ -45,7 +46,7 @@ class StudentAchievementController extends Controller
             }
         }
 
-        if (!$hasCertificate) {
+        if (! $hasCertificate) {
             return back()->withErrors(['documents' => 'Minimal 1 sertifikat wajib diupload.'])->withInput();
         }
 
@@ -68,16 +69,16 @@ class StudentAchievementController extends Controller
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $index => $file) {
                 if ($file && $file->isValid()) {
-                    $path = $file->store('achievements/' . $achievement->sa_id, 'public');
-                    
+                    $path = $file->store('achievements/'.$achievement->sa_id, 'public');
+
                     // Map document type to AchievementDocument type
-                    $docType = match($request->document_types[$index] ?? 'other') {
+                    $docType = match ($request->document_types[$index] ?? 'other') {
                         'certificate' => \App\Models\AchievementDocument::TYPE_SERTIFIKAT,
                         'supporting_document' => \App\Models\AchievementDocument::TYPE_SUPPORTING_DOCUMENT,
                         'photo' => \App\Models\AchievementDocument::TYPE_PHOTO,
                         default => \App\Models\AchievementDocument::TYPE_OTHER,
                     };
-                    
+
                     \App\Models\AchievementDocument::create([
                         'sa_id' => $achievement->sa_id,
                         'document_type' => $docType,
@@ -88,7 +89,7 @@ class StudentAchievementController extends Controller
                         'status' => 'pending',
                         'uploaded_by' => session('student_id'),
                     ]);
-                    
+
                     $uploadedCount++;
                 }
             }
@@ -96,7 +97,7 @@ class StudentAchievementController extends Controller
 
         $message = "Prestasi berhasil diajukan dengan {$uploadedCount} dokumen!";
         if ($uploadedCount < count($request->file('documents'))) {
-            $message .= " Beberapa file gagal diupload.";
+            $message .= ' Beberapa file gagal diupload.';
         }
 
         return redirect()->route('student.dashboard')

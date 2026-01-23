@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Schema;
  * - 2025_12_09_052509_create_students_table.php
  * - 2025_12_15_004908_add_photo_to_students_and_users_table.php (students part)
  */
-return new class extends Migration {
+return new class() extends Migration
+{
     public function up(): void
     {
         Schema::create('students', function (Blueprint $table) {

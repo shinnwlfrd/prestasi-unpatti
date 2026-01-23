@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Student;
-use App\Models\SikadCredential;
 use App\Models\AuthLog;
+use App\Models\SikadCredential;
+use App\Models\Student;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -18,37 +18,41 @@ class AuthService
     {
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->logAuthActivity(null, 'failed_login', [
                 'method' => 'local',
                 'reason' => 'user_not_found',
                 'email' => $email,
             ]);
+
             return null;
         }
 
         // Check if user only has SSO (no password)
-        if (!$user->password) {
+        if (! $user->password) {
             $this->logAuthActivity($user, 'failed_login', [
                 'method' => 'local',
                 'reason' => 'sso_only_account',
             ]);
+
             return null;
         }
 
-        if (!Hash::check($password, $user->password)) {
+        if (! Hash::check($password, $user->password)) {
             $this->logAuthActivity($user, 'failed_login', [
                 'method' => 'local',
                 'reason' => 'invalid_password',
             ]);
+
             return null;
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             $this->logAuthActivity($user, 'failed_login', [
                 'method' => 'local',
                 'reason' => 'account_inactive',
             ]);
+
             return null;
         }
 
@@ -70,11 +74,11 @@ class AuthService
     {
         $credential = SikadCredential::where('student_id', $studentId)->first();
 
-        if (!$credential) {
+        if (! $credential) {
             return null;
         }
 
-        if (!Hash::check($password, $credential->password_hash)) {
+        if (! Hash::check($password, $credential->password_hash)) {
             return null;
         }
 
@@ -91,8 +95,8 @@ class AuthService
 
         // 1. Find by provider_id (most accurate)
         $user = User::where('provider', $provider)
-                    ->where('provider_id', $providerId)
-                    ->first();
+            ->where('provider_id', $providerId)
+            ->first();
 
         if ($user) {
             return $this->updateSSOUser($user, $ssoData, $tokens);
@@ -118,8 +122,8 @@ class AuthService
             'name' => $ssoData['name'] ?? $user->name,
             'provider_token' => isset($tokens['access_token']) ? encrypt($tokens['access_token']) : null,
             'provider_refresh_token' => isset($tokens['refresh_token']) ? encrypt($tokens['refresh_token']) : null,
-            'provider_token_expires_at' => isset($tokens['expires_in']) 
-                ? now()->addSeconds($tokens['expires_in']) 
+            'provider_token_expires_at' => isset($tokens['expires_in'])
+                ? now()->addSeconds($tokens['expires_in'])
                 : null,
             'provider_data' => $ssoData,
             'last_login_at' => now(),
@@ -134,16 +138,20 @@ class AuthService
     /**
      * Link existing local user to SSO
      */
-    protected function linkExistingUser(User $user, string $provider, string $providerId, 
-                                        array $ssoData, array $tokens): User
-    {
+    protected function linkExistingUser(
+        User $user,
+        string $provider,
+        string $providerId,
+        array $ssoData,
+        array $tokens
+    ): User {
         $user->update([
             'provider' => $provider,
             'provider_id' => $providerId,
             'provider_token' => isset($tokens['access_token']) ? encrypt($tokens['access_token']) : null,
             'provider_refresh_token' => isset($tokens['refresh_token']) ? encrypt($tokens['refresh_token']) : null,
-            'provider_token_expires_at' => isset($tokens['expires_in']) 
-                ? now()->addSeconds($tokens['expires_in']) 
+            'provider_token_expires_at' => isset($tokens['expires_in'])
+                ? now()->addSeconds($tokens['expires_in'])
                 : null,
             'provider_data' => $ssoData,
             'linked_at' => now(),
@@ -163,9 +171,12 @@ class AuthService
     /**
      * Create new user from SSO
      */
-    protected function createSSOUser(string $provider, string $providerId, 
-                                      array $ssoData, array $tokens): User
-    {
+    protected function createSSOUser(
+        string $provider,
+        string $providerId,
+        array $ssoData,
+        array $tokens
+    ): User {
         $user = User::create([
             'name' => $ssoData['name'] ?? 'User',
             'email' => $ssoData['email'],
@@ -174,8 +185,8 @@ class AuthService
             'provider_id' => $providerId,
             'provider_token' => isset($tokens['access_token']) ? encrypt($tokens['access_token']) : null,
             'provider_refresh_token' => isset($tokens['refresh_token']) ? encrypt($tokens['refresh_token']) : null,
-            'provider_token_expires_at' => isset($tokens['expires_in']) 
-                ? now()->addSeconds($tokens['expires_in']) 
+            'provider_token_expires_at' => isset($tokens['expires_in'])
+                ? now()->addSeconds($tokens['expires_in'])
                 : null,
             'provider_data' => $ssoData,
             'role' => $this->mapRole($ssoData),
@@ -214,11 +225,11 @@ class AuthService
     {
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
-        if ($user->provider && !$user->password) {
+        if ($user->provider && ! $user->password) {
             return [
                 'type' => 'sso_only',
                 'message' => 'Akun ini terdaftar via SSO. Silakan login dengan SSO.',
@@ -255,7 +266,7 @@ class AuthService
                 'metadata' => $metadata,
             ]);
         } catch (\Exception $e) {
-            Log::warning('Failed to log auth activity: ' . $e->getMessage());
+            Log::warning('Failed to log auth activity: '.$e->getMessage());
         }
     }
 
@@ -264,7 +275,7 @@ class AuthService
      */
     public function getAccessToken(User $user): ?string
     {
-        if (!$user->provider_token) {
+        if (! $user->provider_token) {
             return null;
         }
 
@@ -280,7 +291,7 @@ class AuthService
      */
     public function isTokenExpired(User $user): bool
     {
-        if (!$user->provider_token_expires_at) {
+        if (! $user->provider_token_expires_at) {
             return true;
         }
 
