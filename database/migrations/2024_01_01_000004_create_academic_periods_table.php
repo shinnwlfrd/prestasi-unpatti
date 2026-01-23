@@ -4,28 +4,27 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class() extends Migration
+return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('academic_periods', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // e.g., "Semester Ganjil 2024/2025"
-            $table->string('code')->unique(); // e.g., "2024-1"
+            $table->string('name');
+            $table->string('code')->unique();
+            $table->string('semester'); // Ganjil/Genap
+            $table->string('year');
             $table->date('start_date');
             $table->date('end_date');
-            $table->text('description')->nullable();
-            $table->boolean('is_active')->default(false); // Only one can be active
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
+            
+            $table->index('is_active');
+            $table->index(['year', 'semester']);
+            $table->index('code');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('academic_periods');
