@@ -26,7 +26,10 @@ class DashboardController extends Controller
 
         $categories = AchievementCategory::orderBy('name')->get();
         $levels = ['Universitas', 'Nasional', 'Internasional'];
+        
+        // Get SK documents for validation modal
+        $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
 
-        return view('validator.dashboard', compact('pendingAchievements', 'categories', 'levels'));
+        return view('validator.dashboard', compact('pendingAchievements', 'categories', 'levels', 'skDocuments'));
     }
 }

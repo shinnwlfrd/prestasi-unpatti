@@ -38,246 +38,100 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Left: Achievement Details & Documents -->
-        <div class="space-y-6">
-            <!-- Achievement Info -->
-            <x-card title="Informasi Prestasi">
-                <dl class="grid grid-cols-2 gap-4">
-                    <div>
-                        <dt class="text-sm text-gray-500 dark:text-gray-400">Nama Lomba</dt>
-                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->event_name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-gray-500 dark:text-gray-400">Kategori</dt>
-                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category?->name ?? '-' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-gray-500 dark:text-gray-400">Tingkat</dt>
-                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->level }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-gray-500 dark:text-gray-400">Penyelenggara</dt>
-                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->organizer }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-gray-500 dark:text-gray-400">Tanggal Pelaksanaan</dt>
-                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->event_date?->format('d F Y') }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-gray-500 dark:text-gray-400">Peringkat</dt>
-                        <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->ranking ?? '-' }}</dd>
-                    </div>
-                    <div class="col-span-2">
-                        <dt class="text-sm text-gray-500 dark:text-gray-400">Deskripsi</dt>
-                        <dd class="text-sm text-gray-900 dark:text-white">{{ $achievement->description ?? '-' }}</dd>
-                    </div>
-                </dl>
-            </x-card>
+    <!-- Action Buttons -->
+    <div class="flex gap-3 mb-6">
+        <button type="button" @click="showDetailModal = true"
+            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Lihat Detail Prestasi
+        </button>
+        <button type="button" @click="showValidationModal = true"
+            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Validasi Prestasi
+        </button>
+    </div>
 
-            <!-- Documents -->
-            <x-card title="Dokumen Bukti ({{ $achievement->documents->count() }})" :padding="false">
-                <div class="p-6">
-                    @php
-                        $docStats = [
-                            'pending' => $achievement->documents->where('status', 'pending')->count(),
-                            'approved' => $achievement->documents->where('status', 'approved')->count(),
-                            'rejected' => $achievement->documents->where('status', 'rejected')->count(),
-                        ];
-                    @endphp
-                    <div class="flex gap-2 mb-4 text-xs">
-                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded">{{ $docStats['pending'] }} Pending</span>
-                        <span class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">{{ $docStats['approved'] }} Approved</span>
-                        <span class="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded">{{ $docStats['rejected'] }} Rejected</span>
-                    </div>
-                    
-                    @if($achievement->documents->isEmpty())
-                        <p class="text-gray-500 dark:text-gray-400 text-center py-8">Belum ada dokumen yang diunggah</p>
-                    @else
-                        <div class="grid grid-cols-1 gap-4">
-                            @foreach($achievement->documents as $document)
-                                <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                                                @if($document->isPdf())
-                                                    <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
-                                                    </svg>
-                                                @else
-                                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-                                                    </svg>
-                                                @endif
-                                            </div>
-                                            <div>
-                                                <p class="font-medium text-gray-900 dark:text-white text-sm">{{ $document->type_name }}</p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $document->file_name }} • {{ $document->file_size_formatted }}</p>
-                                            </div>
+    <div class="grid grid-cols-1 gap-6">
+        <!-- Documents List -->
+        <div class="space-y-6">
+
+        <!-- Documents -->
+        <x-card title="Dokumen Bukti ({{ $achievement->documents->count() }})" :padding="false">
+            <div class="p-6">
+                @php
+                    $docStats = [
+                        'pending' => $achievement->documents->where('status', 'pending')->count(),
+                        'approved' => $achievement->documents->where('status', 'approved')->count(),
+                        'rejected' => $achievement->documents->where('status', 'rejected')->count(),
+                    ];
+                @endphp
+                <div class="flex gap-2 mb-4 text-xs">
+                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded">{{ $docStats['pending'] }} Pending</span>
+                    <span class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded">{{ $docStats['approved'] }} Approved</span>
+                    <span class="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded">{{ $docStats['rejected'] }} Rejected</span>
+                </div>
+                
+                @if($achievement->documents->isEmpty())
+                    <p class="text-gray-500 dark:text-gray-400 text-center py-8">Belum ada dokumen yang diunggah</p>
+                @else
+                    <div class="grid grid-cols-1 gap-4">
+                        @foreach($achievement->documents as $document)
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                                            @if($document->isPdf())
+                                                <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                                                </svg>
+                                            @else
+                                                <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                                                </svg>
+                                            @endif
                                         </div>
-                                        <span class="px-2 py-1 rounded text-xs font-medium bg-{{ $document->status_badge }}-100 text-{{ $document->status_badge }}-700 dark:bg-{{ $document->status_badge }}-900/30 dark:text-{{ $document->status_badge }}-400">
-                                            {{ $document->status_label }}
-                                        </span>
+                                        <div>
+                                            <p class="font-medium text-gray-900 dark:text-white text-sm">{{ $document->type_name }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $document->file_name }} • {{ $document->file_size_formatted }}</p>
+                                        </div>
                                     </div>
-                                    
-                                    <div class="flex items-center gap-2 mt-3">
-                                        <a href="{{ route('achievements.documents.preview', $document) }}" target="_blank"
-                                            class="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40">
-                                            Lihat
-                                        </a>
-                                        @if($document->status === 'pending')
-                                            <button type="button" onclick="verifyDocument({{ $document->id }}, 'approve')"
-                                                class="px-3 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40">
-                                                Setujui
-                                            </button>
-                                            <button type="button" onclick="verifyDocument({{ $document->id }}, 'reject')"
-                                                class="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40">
-                                                Tolak
-                                            </button>
-                                            <button type="button" onclick="verifyDocument({{ $document->id }}, 'revision')"
-                                                class="px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/40">
-                                                Minta Revisi
-                                            </button>
-                                        @endif
-                                    </div>
+                                    <span class="px-2 py-1 rounded text-xs font-medium bg-{{ $document->status_badge }}-100 text-{{ $document->status_badge }}-700 dark:bg-{{ $document->status_badge }}-900/30 dark:text-{{ $document->status_badge }}-400">
+                                        {{ $document->status_label }}
+                                    </span>
                                 </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            </x-card>
-        </div>
-
-        <!-- Right: Validation Form -->
-        <div class="space-y-6">
-            <!-- Progress Bar -->
-            <x-card title="Progress Validasi">
-                <div class="mb-4">
-                    <div class="flex justify-between text-sm mb-2">
-                        <span class="text-gray-600 dark:text-gray-400">Item Tervalidasi</span>
-                        <span class="font-medium text-gray-900 dark:text-white" x-text="checkedCount + '/6'"></span>
-                    </div>
-                    <div class="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-emerald-500 rounded-full transition-all duration-300" :style="'width: ' + (checkedCount / 6 * 100) + '%'"></div>
-                    </div>
-                </div>
-            </x-card>
-
-            <!-- Validation Checklist -->
-            <form action="{{ route('validator.achievements.validate', $achievement) }}" method="POST">
-                @csrf
-                <x-card title="Checklist Validasi">
-                    <div class="space-y-3">
-                        @php
-                            $checklistItems = [
-                                'nama_peserta' => 'Nama Peserta',
-                                'nama_lomba' => 'Nama Lomba',
-                                'tanggal' => 'Tanggal Pelaksanaan',
-                                'peringkat' => 'Peringkat/Ranking',
-                                'penyelenggara' => 'Penyelenggara',
-                                'keaslian_dokumen' => 'Keaslian Dokumen',
-                            ];
-                        @endphp
-                        @foreach($checklistItems as $key => $label)
-                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                <div class="flex items-start gap-3">
-                                    <div class="flex items-center h-6">
-                                        <input type="checkbox" name="checklist[{{ $key }}_valid]" id="{{ $key }}_valid" value="1"
-                                            {{ ($checklist->{$key . '_valid'} ?? false) ? 'checked' : '' }}
-                                            class="w-5 h-5 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
-                                            @change="updateProgress()">
-                                    </div>
-                                    <div class="flex-1">
-                                        <label for="{{ $key }}_valid" class="font-medium text-gray-900 dark:text-white cursor-pointer">{{ $label }}</label>
-                                        <input type="text" name="checklist[{{ $key }}_notes]" placeholder="Catatan (opsional)"
-                                            value="{{ $checklist->{$key . '_notes'} ?? '' }}"
-                                            class="w-full mt-2 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                    </div>
+                                
+                                <div class="flex items-center gap-2 mt-3">
+                                    <a href="{{ route('achievements.documents.preview', $document) }}" target="_blank"
+                                        class="px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40">
+                                        Lihat
+                                    </a>
+                                    @if($document->status === 'pending')
+                                        <button type="button" onclick="verifyDocument({{ $document->id }}, 'approve')"
+                                            class="px-3 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40">
+                                            Setujui
+                                        </button>
+                                        <button type="button" onclick="verifyDocument({{ $document->id }}, 'reject')"
+                                            class="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40">
+                                            Tolak
+                                        </button>
+                                        <button type="button" onclick="verifyDocument({{ $document->id }}, 'revision')"
+                                            class="px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/40">
+                                            Minta Revisi
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
                     </div>
+                @endif
+            </div>
+        </x-card>
 
-                    <!-- Overall Notes -->
-                    <div class="mt-6">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catatan Keseluruhan</label>
-                        <textarea name="notes" rows="3" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="Catatan tambahan untuk verifikasi...">{{ $checklist->overall_notes ?? '' }}</textarea>
-                    </div>
-
-                    <!-- Rejection/Revision Reason -->
-                    <div x-show="selectedAction === 'reject'" x-cloak class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                        <label class="block text-sm font-medium text-red-700 dark:text-red-400 mb-2">Alasan Penolakan *</label>
-                        <textarea name="rejection_reason" rows="2" 
-                            :required="selectedAction === 'reject'"
-                            class="w-full border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-red-500 focus:ring-red-500" 
-                            placeholder="Jelaskan alasan penolakan..."></textarea>
-                    </div>
-
-                    <div x-show="selectedAction === 'request_revision'" x-cloak class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <label class="block text-sm font-medium text-blue-700 dark:text-blue-400 mb-2">Alasan Permintaan Revisi *</label>
-                        <textarea name="revision_reason" rows="2" 
-                            :required="selectedAction === 'request_revision'"
-                            class="w-full border-blue-300 dark:border-blue-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500" 
-                            placeholder="Jelaskan dokumen apa yang diperlukan..."></textarea>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex gap-3 mt-6">
-                        <button type="button"
-                            @click="showApproveModal = true"
-                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            Approve
-                        </button>
-                        <button type="button"
-                            @click="
-                                selectedAction = 'reject';
-                                const reason = document.querySelector('[name=rejection_reason]');
-                                if (!reason.value) {
-                                    reason.focus();
-                                    return;
-                                }
-                                const form = $el.closest('form');
-                                const actionInput = document.createElement('input');
-                                actionInput.type = 'hidden';
-                                actionInput.name = 'action';
-                                actionInput.value = 'reject';
-                                form.appendChild(actionInput);
-                                form.submit();
-                            "
-                            class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                            Reject
-                        </button>
-                        <button type="button"
-                            @click="
-                                selectedAction = 'request_revision';
-                                const reason = document.querySelector('[name=revision_reason]');
-                                if (!reason.value) {
-                                    reason.focus();
-                                    return;
-                                }
-                                const form = $el.closest('form');
-                                const actionInput = document.createElement('input');
-                                actionInput.type = 'hidden';
-                                actionInput.name = 'action';
-                                actionInput.value = 'request_revision';
-                                form.appendChild(actionInput);
-                                form.submit();
-                            "
-                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
-                            Revisi
-                        </button>
-                    </div>
-                </x-card>
-            </form>
 
             <!-- Validation History -->
             @if($achievement->validationLogs->isNotEmpty())
@@ -309,7 +163,247 @@
         </div>
     </div>
 
-    <!-- Modal Upload SK Resmi -->
+    <!-- Modal Detail Prestasi -->
+    <div x-show="showDetailModal" 
+         x-cloak
+         @click.self="showDetailModal = false"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+        <div @click.away="showDetailModal = false" 
+             class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Detail Prestasi</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Informasi lengkap prestasi mahasiswa</p>
+                    </div>
+                </div>
+                <button @click="showDetailModal = false" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 space-y-6">
+                <!-- Student Info -->
+                <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                    <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Informasi Mahasiswa</h4>
+                    <dl class="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <dt class="text-gray-500 dark:text-gray-400">Nama</dt>
+                            <dd class="font-medium text-gray-900 dark:text-white">{{ $achievement->student?->name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-500 dark:text-gray-400">NIM</dt>
+                            <dd class="font-medium text-gray-900 dark:text-white">{{ $achievement->student_id }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-500 dark:text-gray-400">Fakultas</dt>
+                            <dd class="font-medium text-gray-900 dark:text-white">{{ $achievement->student?->faculty ?? '-' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-500 dark:text-gray-400">Program Studi</dt>
+                            <dd class="font-medium text-gray-900 dark:text-white">{{ $achievement->student?->program_study ?? '-' }}</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <!-- Achievement Info -->
+                <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                    <h4 class="font-semibold text-gray-900 dark:text-white mb-3">Informasi Prestasi</h4>
+                    <dl class="grid grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Nama Lomba</dt>
+                            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->event_name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Kategori</dt>
+                            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->achievement?->category?->name ?? '-' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Tingkat</dt>
+                            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->level }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Penyelenggara</dt>
+                            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->organizer }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Tanggal Pelaksanaan</dt>
+                            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->event_date?->format('d F Y') }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Peringkat</dt>
+                            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ $achievement->ranking ?? '-' }}</dd>
+                        </div>
+                        <div class="col-span-2">
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Deskripsi</dt>
+                            <dd class="text-sm text-gray-900 dark:text-white">{{ $achievement->description ?? '-' }}</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="sticky bottom-0 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+                <button type="button" 
+                        @click="showDetailModal = false"
+                        class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Validasi Prestasi -->
+    <div x-show="showValidationModal" 
+         x-cloak
+         @click.self="showValidationModal = false"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+        <div @click.away="showValidationModal = false" 
+             class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Validasi Prestasi</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Pilih aksi validasi</p>
+                    </div>
+                </div>
+                <button @click="showValidationModal = false" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <form action="{{ route('validator.achievements.validate', $achievement) }}" method="POST" id="validationForm">
+                @csrf
+                <div class="p-6 space-y-4">
+                    <!-- Achievement Summary -->
+                    <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-2">{{ $achievement->event_name }}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ $achievement->student?->name }} - {{ $achievement->level }}</p>
+                    </div>
+
+                    <!-- Catatan Validasi -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                            Catatan Validasi <span class="text-gray-400 text-xs">(Opsional)</span>
+                        </label>
+                        <textarea name="notes" 
+                                  rows="3" 
+                                  placeholder="Tambahkan catatan untuk validasi ini..."
+                                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"></textarea>
+                    </div>
+
+                    <!-- Rejection Reason (shown when reject selected) -->
+                    <div x-show="validationAction === 'reject'" x-cloak class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <label class="block text-sm font-medium text-red-700 dark:text-red-400 mb-2">
+                            Alasan Penolakan <span class="text-red-500">*</span>
+                        </label>
+                        <textarea name="rejection_reason" 
+                                  rows="3" 
+                                  :required="validationAction === 'reject'"
+                                  placeholder="Jelaskan alasan penolakan..."
+                                  class="w-full px-4 py-2 border border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"></textarea>
+                    </div>
+
+                    <!-- Revision Reason (shown when revision selected) -->
+                    <div x-show="validationAction === 'request_revision'" x-cloak class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <label class="block text-sm font-medium text-blue-700 dark:text-blue-400 mb-2">
+                            Alasan Permintaan Revisi <span class="text-blue-500">*</span>
+                        </label>
+                        <textarea name="revision_reason" 
+                                  rows="3" 
+                                  :required="validationAction === 'request_revision'"
+                                  placeholder="Jelaskan dokumen apa yang perlu diperbaiki..."
+                                  class="w-full px-4 py-2 border border-blue-300 dark:border-blue-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+
+                    <!-- SK Selection (shown when approve selected) -->
+                    <div x-show="validationAction === 'approve'" x-cloak class="space-y-3">
+                        <label class="block">
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">
+                                Pilih Surat Keputusan (SK) <span class="text-red-500">*</span>
+                            </span>
+                        </label>
+
+                        <select name="sk_id" 
+                                :required="validationAction === 'approve'"
+                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                            <option value="">-- Pilih SK --</option>
+                            @foreach($skDocuments as $sk)
+                                <option value="{{ $sk->id }}">
+                                    {{ $sk->sk_number }} - {{ $sk->title }} ({{ $sk->issued_date->format('d/m/Y') }})
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @if($skDocuments->isEmpty())
+                            <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                                <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                                    Belum ada SK yang tersedia. Silakan hubungi admin.
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="sticky bottom-0 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 px-6 py-4 space-y-3">
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" 
+                                @click="validationAction = 'approve'; submitValidation()"
+                                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Approve
+                        </button>
+                        <button type="button" 
+                                @click="validationAction = 'reject'; submitValidation()"
+                                class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Reject
+                        </button>
+                        <button type="button" 
+                                @click="validationAction = 'request_revision'; submitValidation()"
+                                class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Revisi
+                        </button>
+                    </div>
+                    
+                    <button type="button" 
+                            @click="showValidationModal = false"
+                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
+                        Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Upload SK Resmi (kept for approve flow) -->
     <div x-show="showApproveModal" 
          x-cloak
          @click.self="showApproveModal = false"
@@ -458,15 +552,49 @@
 function validationForm() {
     return {
         selectedAction: '',
-        checkedCount: {{ $checklist->checked_count ?? 0 }},
+        showDetailModal: false,
+        showValidationModal: false,
+        validationAction: '',
         showApproveModal: false,
         selectedSkId: '',
         approvalNotes: '',
         isSubmitting: false,
         
-        updateProgress() {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="checklist"]');
-            this.checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        submitValidation() {
+            const form = document.getElementById('validationForm');
+            
+            // Validate based on action
+            if (this.validationAction === 'approve') {
+                const skSelect = form.querySelector('[name="sk_id"]');
+                if (!skSelect || !skSelect.value) {
+                    alert('Pilih SK yang akan di-assign ke prestasi ini!');
+                    return;
+                }
+            } else if (this.validationAction === 'reject') {
+                const rejectReason = form.querySelector('[name="rejection_reason"]');
+                if (!rejectReason || !rejectReason.value.trim()) {
+                    alert('Alasan penolakan wajib diisi!');
+                    rejectReason.focus();
+                    return;
+                }
+            } else if (this.validationAction === 'request_revision') {
+                const revisionReason = form.querySelector('[name="revision_reason"]');
+                if (!revisionReason || !revisionReason.value.trim()) {
+                    alert('Alasan permintaan revisi wajib diisi!');
+                    revisionReason.focus();
+                    return;
+                }
+            }
+            
+            // Add action to form
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = this.validationAction;
+            form.appendChild(actionInput);
+            
+            // Submit form
+            form.submit();
         },
         
         submitApproval() {
@@ -501,19 +629,8 @@ function validationForm() {
                 formData.append('notes', this.approvalNotes);
             }
             
-            // Add checklist data from form
-            const form = document.querySelector('form[action*="validate"]');
-            const checklistInputs = form.querySelectorAll('input[name^="checklist"], textarea[name^="checklist"]');
-            checklistInputs.forEach(input => {
-                if (input.type === 'checkbox') {
-                    formData.append(input.name, input.checked ? '1' : '0');
-                } else if (input.value) {
-                    formData.append(input.name, input.value);
-                }
-            });
-            
             // Submit form
-            fetch(form.action, {
+            fetch('{{ route("validator.achievements.validate", $achievement) }}', {
                 method: 'POST',
                 body: formData,
                 headers: {

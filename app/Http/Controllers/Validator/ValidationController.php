@@ -141,4 +141,51 @@ class ValidationController extends Controller
 
         return $filePath;
     }
+
+    public function getAchievementData(StudentAchievement $achievement)
+    {
+        // Check faculty access for validator
+        $user = auth()->user();
+        if ($user->role === 'Validator' && $user->faculty) {
+            // Load student first to check faculty
+            $achievement->load('student');
+            
+            if (!$achievement->student || $achievement->student->faculty !== $user->faculty) {
+                return response()->json(['error' => 'Unauthorized access'], 403);
+            }
+        }
+
+        // Load all necessary relationships
+        $achievement->load([
+            'student',
+            'achievement.category',
+            'documents',
+        ]);
+
+        return response()->json([
+            'sa_id' => $achievement->sa_id,
+            'event_name' => $achievement->event_name,
+            'level' => $achievement->level,
+            'organizer' => $achievement->organizer,
+            'event_date' => $achievement->event_date?->format('d M Y'),
+            'description' => $achievement->description,
+            'ranking' => $achievement->ranking,
+            'validation_status' => $achievement->validation_status,
+            'submitted_at' => $achievement->submitted_at?->format('d M Y H:i'),
+            'student' => [
+                'name' => $achievement->student?->name ?? 'N/A',
+                'student_id' => $achievement->student_id,
+                'faculty' => $achievement->student?->faculty ?? 'N/A',
+            ],
+            'documents' => $achievement->documents->map(function ($doc) {
+                return [
+                    'id' => $doc->id,
+                    'type_name' => $doc->type_name ?? $doc->document_type,
+                    'file_name' => $doc->file_name,
+                    'file_path' => $doc->file_path,
+                    'status' => $doc->status,
+                ];
+            }),
+        ]);
+    }
 }

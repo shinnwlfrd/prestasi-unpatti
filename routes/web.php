@@ -111,6 +111,11 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 });
 
+// API Routes for Validator (must be before validator prefix to avoid /validator/api/validator path)
+Route::middleware(['auth', 'auth.validator'])->group(function () {
+    Route::get('/api/validator/achievements/{achievement}', [\App\Http\Controllers\Validator\ValidationController::class, 'getAchievementData'])->name('api.validator.achievements.data');
+});
+
 // Validator routes (hanya untuk role Validator)
 Route::middleware(['auth', 'auth.validator'])->prefix('validator')->name('validator.')->group(function () {
     // Dashboard - using new controller
@@ -124,8 +129,6 @@ Route::middleware(['auth', 'auth.validator'])->prefix('validator')->name('valida
     Route::post('/submit', [\App\Http\Controllers\Validator\SubmitController::class, 'store'])->name('submit.store');
 
     // Achievement validation - using new controller
-    Route::get('/achievements/{achievement}', [\App\Http\Controllers\Validator\ValidationController::class, 'show'])->name('achievements.show');
-    Route::get('/achievements/{achievement}/documents', [\App\Http\Controllers\Validator\ValidationController::class, 'documents'])->name('achievements.documents');
     Route::post('/achievements/{achievement}/validate', [\App\Http\Controllers\Validator\ValidationController::class, 'validate'])->name('achievements.validate');
     Route::post('/documents/{document}/verify', [ValidatorController::class, 'verifyDocument'])->name('documents.verify');
 

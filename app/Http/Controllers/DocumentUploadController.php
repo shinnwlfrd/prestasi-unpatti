@@ -47,7 +47,7 @@ class DocumentUploadController extends Controller
                     return redirect()->route('admin.achievements.validation.show', $achievement)
                         ->with('warning', $message);
                 } elseif ($user->role === 'Validator') {
-                    return redirect()->route('validator.achievements.show', $achievement)
+                    return redirect()->route('validator.dashboard')
                         ->with('warning', $message);
                 }
             }
