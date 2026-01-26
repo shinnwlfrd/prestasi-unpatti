@@ -30,8 +30,9 @@ class AdminAchievementController extends Controller
         $achievements = Achievement::with('category')->get();
         $categories = AchievementCategory::active()->get();
         $levels = AchievementLevel::active()->get();
+        $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
 
-        return view('admin.achievements.submit', compact('students', 'achievements', 'categories', 'levels'));
+        return view('admin.submit', compact('students', 'achievements', 'categories', 'levels', 'skDocuments'));
     }
 
     /**

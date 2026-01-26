@@ -35,6 +35,71 @@ class ValidatorController extends Controller
     {
         $user = auth()->user();
 
+        // Basic Statistics - filtered by faculty
+        $statsQuery = StudentAchievement::query();
+        if ($user->role === 'Validator' && $user->faculty) {
+            $statsQuery->whereHas('student', function ($q) use ($user) {
+                $q->where('faculty', $user->faculty);
+            });
+        }
+
+        $stats = [
+            'students' => Student::when($user->faculty, fn($q) => $q->where('faculty', $user->faculty))->count(),
+            'achievements' => (clone $statsQuery)->count(),
+            'validators' => \App\Models\User::where('role', 'Validator')->where('is_active', true)->count(),
+        ];
+
+        // Status Statistics - filtered by faculty
+        $statusStats = [
+            'menunggu' => (clone $statsQuery)->where('validation_status', 'Menunggu')->count(),
+            'disetujui' => (clone $statsQuery)->where('validation_status', 'Disetujui')->count(),
+            'ditolak' => (clone $statsQuery)->where('validation_status', 'Ditolak')->count(),
+            'revisi' => (clone $statsQuery)->where('validation_status', 'Revisi')->count(),
+        ];
+
+        // Recent Achievements (last 10) - filtered by faculty
+        $recentAchievements = StudentAchievement::with(['student', 'achievement.category'])
+            ->when($user->faculty, function ($q) use ($user) {
+                $q->whereHas('student', fn($sq) => $sq->where('faculty', $user->faculty));
+            })
+            ->latest()
+            ->take(10)
+            ->get();
+
+        // Urgent Pending (older than 7 days) - filtered by faculty
+        $urgentPending = StudentAchievement::with(['student', 'achievement.category'])
+            ->where('validation_status', 'Menunggu')
+            ->where('submitted_at', '<', now()->subDays(7))
+            ->when($user->faculty, function ($q) use ($user) {
+                $q->whereHas('student', fn($sq) => $sq->where('faculty', $user->faculty));
+            })
+            ->orderBy('submitted_at', 'asc')
+            ->take(5)
+            ->get();
+
+        // Recent Validations (last 10) - filtered by faculty
+        $recentValidations = ValidationLog::with(['studentAchievement.student', 'validator'])
+            ->when($user->faculty, function ($q) use ($user) {
+                $q->whereHas('studentAchievement.student', fn($sq) => $sq->where('faculty', $user->faculty));
+            })
+            ->latest('validated_at')
+            ->take(10)
+            ->get();
+
+        // Active Period
+        $activePeriod = \App\Models\AcademicPeriod::where('is_active', true)->first();
+
+        // Top 5 Students by Achievement Count - filtered by faculty
+        $topStudents = Student::withCount(['achievements' => function ($q) {
+                $q->where('validation_status', 'Disetujui');
+            }])
+            ->when($user->faculty, fn($q) => $q->where('faculty', $user->faculty))
+            ->having('achievements_count', '>', 0)
+            ->orderByDesc('achievements_count')
+            ->take(5)
+            ->get();
+
+        // Pending Achievements Query for table
         $query = StudentAchievement::with(['student', 'achievement.category', 'documents'])
             ->whereIn('validation_status', ['pending', 'Menunggu'])
             ->orderByDesc('created_at');
@@ -90,7 +155,18 @@ class ValidatorController extends Controller
         $categories = \App\Models\AchievementCategory::orderBy('name')->get();
         $levels = ['Universitas', 'Nasional', 'Internasional'];
 
-        return view('validator.dashboard', compact('pendingAchievements', 'categories', 'levels'));
+        return view('validator.dashboard', compact(
+            'pendingAchievements',
+            'categories',
+            'levels',
+            'stats',
+            'statusStats',
+            'recentAchievements',
+            'urgentPending',
+            'recentValidations',
+            'activePeriod',
+            'topStudents'
+        ));
     }
 
     /**
@@ -157,12 +233,62 @@ class ValidatorController extends Controller
 
         $logs = $query->paginate($request->input('per_page', 15))->withQueryString();
 
+        // Calculate statistics based on current filters
+        $statsQuery = ValidationLog::query();
+        
+        // Apply same faculty filter
+        if ($user->role === 'Validator' && $user->faculty) {
+            $statsQuery->whereHas('studentAchievement.student', function ($q) use ($user) {
+                $q->where('faculty', $user->faculty);
+            });
+        }
+        
+        // Apply same filters as main query (except status for stats)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $statsQuery->where(function ($q) use ($search) {
+                $q->whereHas('studentAchievement', function ($q) use ($search) {
+                    $q->where('event_name', 'like', "%{$search}%")
+                        ->orWhere('student_id', 'like', "%{$search}%");
+                })->orWhereHas('studentAchievement.student', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('student_id', 'like', "%{$search}%");
+                });
+            });
+        }
+        
+        if ($request->filled('category')) {
+            $statsQuery->whereHas('studentAchievement.achievement', function ($q) use ($request) {
+                $q->where('category_id', $request->category);
+            });
+        }
+        
+        if ($request->filled('level')) {
+            $statsQuery->whereHas('studentAchievement', function ($q) use ($request) {
+                $q->where('level', $request->level);
+            });
+        }
+        
+        if ($request->filled('date_from')) {
+            $statsQuery->whereDate('validated_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $statsQuery->whereDate('validated_at', '<=', $request->date_to);
+        }
+
+        // Calculate stats
+        $stats = [
+            'approved' => (clone $statsQuery)->where('new_status', 'Disetujui')->count(),
+            'rejected' => (clone $statsQuery)->where('new_status', 'Ditolak')->count(),
+            'revision' => (clone $statsQuery)->where('new_status', 'Revisi')->count(),
+        ];
+
         // Get filter options
         $categories = \App\Models\AchievementCategory::orderBy('name')->get();
         $levels = ['Universitas', 'Nasional', 'Internasional'];
         $statuses = ['Disetujui', 'Ditolak', 'Revisi'];
 
-        return view('validator.history', compact('logs', 'categories', 'levels', 'statuses'));
+        return view('validator.history', compact('logs', 'categories', 'levels', 'statuses', 'stats'));
     }
 
     /**

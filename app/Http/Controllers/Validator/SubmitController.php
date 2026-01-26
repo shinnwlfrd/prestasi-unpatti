@@ -20,8 +20,9 @@ class SubmitController extends Controller
         $students = Student::orderBy('name')->get();
         $achievements = Achievement::with('category')->get();
         $levels = AchievementLevel::active()->get();
+        $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
 
-        return view('validator.submit', compact('students', 'achievements', 'levels'));
+        return view('validator.submit', compact('students', 'achievements', 'levels', 'skDocuments'));
     }
 
     public function store(SubmitAchievementRequest $request)
@@ -42,7 +43,7 @@ class SubmitController extends Controller
             $this->submissionService->handleApproval(
                 $achievement,
                 $user,
-                $request->file('sk_resmi'),
+                $request->input('sk_id'),
                 $request->file('alternative_document')
             );
 

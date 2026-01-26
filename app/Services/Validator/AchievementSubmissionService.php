@@ -54,19 +54,21 @@ class AchievementSubmissionService
     public function handleApproval(
         StudentAchievement $achievement,
         $user,
-        ?UploadedFile $skResmi = null,
+        ?int $skId = null,
         ?UploadedFile $alternativeDocument = null
     ): void {
-        $skDocumentPath = null;
-
-        // Upload SK Resmi if provided
-        if ($skResmi) {
-            $skDocumentPath = $this->uploadDocument(
-                $achievement,
-                $skResmi,
-                AchievementDocument::TYPE_SK_RESMI,
-                $user->id
-            );
+        // Assign SK if provided
+        if ($skId) {
+            $sk = \App\Models\SKDocument::findOrFail($skId);
+            
+            // Create SK assignment
+            $sk->assignments()->create([
+                'sa_id' => $achievement->sa_id,
+                'assigned_by' => $user->id,
+                'assigned_at' => now(),
+                'assignment_type' => 'individual',
+                'notes' => 'Assigned saat submit prestasi oleh validator',
+            ]);
         }
 
         // Upload alternative document if provided
@@ -86,7 +88,7 @@ class AchievementSubmissionService
             ? 'Disetujui langsung oleh validator saat submit'
             : 'Disetujui tanpa SK: '.($achievement->sk_waiver_reason ? StudentAchievement::getSkWaiverReasons()[$achievement->sk_waiver_reason] : 'N/A');
 
-        $this->approvalService->approve($achievement, $user, $notes, $skDocumentPath);
+        $this->approvalService->approve($achievement, $user, $notes, null);
     }
 
     public function handleRejection(StudentAchievement $achievement, $user, string $reason): void

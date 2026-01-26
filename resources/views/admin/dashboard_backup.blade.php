@@ -3,51 +3,23 @@
 @section('title', 'Dashboard Admin')
 
 @section('content')
-@php
-    // Set default values for all variables to prevent undefined errors
-    $stats = $stats ?? ['students' => 0, 'achievements' => 0, 'validators' => 0, 'approved' => 0];
-    $statusStats = $statusStats ?? ['menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0, 'revisi' => 0];
-    $urgentPending = $urgentPending ?? collect();
-    $recentValidations = $recentValidations ?? collect();
-    $recentAchievements = $recentAchievements ?? collect();
-    $topPerformers = $topPerformers ?? collect();
-    $periods = $periods ?? collect();
-    $selectedPeriod = $selectedPeriod ?? null;
-    $periodComparison = $periodComparison ?? null;
-    $activePeriod = $activePeriod ?? null;
-    $statistics = $statistics ?? ['total' => 0, 'pending' => 0, 'approved' => 0, 'approval_rate' => 0, 'avg_time_to_approve' => 0];
-    $monthlyTrend = $monthlyTrend ?? collect();
-    $levelDistribution = $levelDistribution ?? ['Internasional' => 0, 'Nasional' => 0, 'Universitas' => 0];
-    $facultyComparison = $facultyComparison ?? collect();
-    $categoryDistribution = $categoryDistribution ?? collect();
-@endphp
 <div class="space-y-6">
-    <!-- Header with Period Filter -->
+    <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Admin</h2>
             <p class="text-gray-500 dark:text-gray-400 mt-1">Selamat datang, {{ auth()->user()->name }}</p>
         </div>
-        <div class="flex items-center gap-3">
-            <!-- Period Filter -->
-            <form method="GET" action="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
-                <select name="period" onchange="this.form.submit()" 
-                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
-                    <option value="all" {{ !isset($selectedPeriod) || !$selectedPeriod ? 'selected' : '' }}>Semua Periode</option>
-                    @if(isset($periods))
-                        @foreach($periods as $period)
-                            <option value="{{ $period->id }}" {{ isset($selectedPeriod) && $selectedPeriod && $selectedPeriod->id == $period->id ? 'selected' : '' }}>
-                                {{ $period->name }} {{ $period->is_active ? '(Aktif)' : '' }}
-                            </option>
-                        @endforeach
-                    @endif
-                </select>
-            </form>
-        </div>
+        <a href="{{ route('admin.achievements.dashboard') }}" 
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Monitoring Prestasi
+        </a>
     </div>
 
     <!-- Active Period Info -->
-    @isset($activePeriod)
     @if($activePeriod)
     <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
         <div class="flex items-center gap-3">
@@ -66,7 +38,6 @@
         </div>
     </div>
     @endif
-    @endisset
 
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -221,6 +192,7 @@
                 </div>
             @else
                 <div class="space-y-3 max-h-[400px] overflow-y-auto">
+                    <!-- Recent Validations (3 items) -->
                     @foreach($recentValidations->take(3) as $log)
                     <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors">
                         <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ $log->new_status === 'Disetujui' ? 'bg-green-100 dark:bg-green-900/30' : ($log->new_status === 'Ditolak' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-100 dark:bg-blue-900/30') }}">
@@ -255,6 +227,7 @@
                     </div>
                     @endforeach
 
+                    <!-- Recent Achievements (2 items) -->
                     @foreach($recentAchievements->take(2) as $achievement)
                     <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors">
                         <div class="flex items-start justify-between gap-3">
@@ -294,60 +267,82 @@
             @endif
         </div>
 
-        <!-- Top 5 Students -->
+        <!-- Faculty Validation Statistics -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 104 0 2 2 0 00-4 0zm8 0a2 2 0 104 0 2 2 0 00-4 0z" clip-rule="evenodd"/>
                         </svg>
-                        Top 5 Mahasiswa Berprestasi
+                        Validasi Per Fakultas
+                        @if($activePeriod)
+                            <span class="text-purple-600 dark:text-purple-400 text-sm font-normal">({{ $activePeriod->name }})</span>
+                        @endif
                     </h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Berdasarkan jumlah prestasi disetujui</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        @if($activePeriod)
+                            Statistik validasi prestasi periode aktif
+                        @else
+                            Tidak ada periode aktif
+                        @endif
+                    </p>
                 </div>
             </div>
-            @if($topPerformers->isEmpty())
+            @if($facultyValidationStats->isEmpty())
                 <div class="text-center py-8">
                     <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
-                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Belum ada data mahasiswa berprestasi</p>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">
+                        @if($activePeriod)
+                            Belum ada validasi di periode ini
+                        @else
+                            Tidak ada periode aktif
+                        @endif
+                    </p>
                 </div>
             @else
                 <div class="space-y-3 max-h-[400px] overflow-y-auto">
-                    @foreach($topPerformers->take(5) as $index => $student)
+                    @foreach($facultyValidationStats as $faculty)
                     <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center gap-4">
-                            <div class="flex-shrink-0">
-                                @if($index === 0)
-                                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg">
-                                        <span class="text-white font-bold text-lg">1</span>
-                                    </div>
-                                @elseif($index === 1)
-                                    <div class="w-12 h-12 bg-gradient-to-br from-gray-300 to-gray-500 rounded-full flex items-center justify-center shadow-lg">
-                                        <span class="text-white font-bold text-lg">2</span>
-                                    </div>
-                                @elseif($index === 2)
-                                    <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-                                        <span class="text-white font-bold text-lg">3</span>
-                                    </div>
-                                @else
-                                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-                                        <span class="text-purple-600 dark:text-purple-400 font-bold text-lg">{{ $index + 1 }}</span>
-                                    </div>
-                                @endif
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold text-sm">{{ substr($faculty['faculty'], 0, 1) }}</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $faculty['faculty'] }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $faculty['total_validated'] }} prestasi divalidasi</p>
+                                </div>
                             </div>
-                            
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $student->name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $student->student_id }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $student->faculty }}</p>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ $faculty['approval_rate'] }}%</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Tingkat Persetujuan</p>
                             </div>
-                            
-                            <div class="text-right flex-shrink-0">
-                                <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ $student->achievements_count }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Prestasi</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Disetujui</p>
+                                <p class="text-sm font-bold text-green-600 dark:text-green-400">{{ $faculty['approved'] }}</p>
+                            </div>
+                            <div class="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Ditolak</p>
+                                <p class="text-sm font-bold text-red-600 dark:text-red-400">{{ $faculty['rejected'] }}</p>
+                            </div>
+                            <div class="text-center p-2 bg-white dark:bg-gray-800 rounded-lg">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Revisi</p>
+                                <p class="text-sm font-bold text-blue-600 dark:text-blue-400">{{ $faculty['revision'] }}</p>
+                            </div>
+                        </div>
+                        <!-- Progress bar for approval rate -->
+                        <div class="mt-3">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                <span>Tingkat Persetujuan</span>
+                                <span>{{ $faculty['approval_rate'] }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="bg-emerald-600 dark:bg-emerald-400 h-2 rounded-full transition-all" style="width: {{ $faculty['approval_rate'] }}%"></div>
                             </div>
                         </div>
                     </div>
@@ -356,367 +351,5 @@
             @endif
         </div>
     </div>
-
-    <!-- Charts Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Monthly Trend / Period Comparison Chart -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            @if($periodComparison)
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Perbandingan Prestasi Per Periode</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Distribusi dan status prestasi di setiap periode akademik</p>
-                </div>
-                <div class="h-80">
-                    <canvas id="periodComparisonChart"></canvas>
-                </div>
-            @else
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Trend Submission Bulanan</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Perbandingan pengajuan dan persetujuan</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                            <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
-                            Submitted
-                        </span>
-                        <span class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                            <span class="w-3 h-3 bg-green-500 rounded-full"></span>
-                            Approved
-                        </span>
-                    </div>
-                </div>
-                <div class="h-80">
-                    <canvas id="monthlyTrendChart"></canvas>
-                </div>
-            @endif
-        </div>
-
-        <!-- Faculty Comparison Chart -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Perbandingan Per Fakultas</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Distribusi prestasi berdasarkan fakultas</p>
-            </div>
-            <div class="h-80">
-                <canvas id="facultyComparisonChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Level & Category Distribution -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Level Distribution -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Tingkat Lomba</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Berdasarkan tingkat kompetisi</p>
-            </div>
-            <div class="h-80 flex items-center justify-center">
-                <canvas id="levelDistributionChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Category Distribution -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Kategori</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Prestasi berdasarkan kategori</p>
-            </div>
-            <div class="h-80">
-                <canvas id="categoryDistributionChart"></canvas>
-            </div>
-        </div>
-    </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const isDark = document.documentElement.classList.contains('dark');
-    const textColor = isDark ? '#9ca3af' : '#6b7280';
-    const gridColor = isDark ? '#374151' : '#e5e7eb';
-
-    // Debug: Log all data
-    console.log('Period Comparison:', @json($periodComparison ?? null));
-    console.log('Monthly Trend:', @json($monthlyTrend ?? []));
-    console.log('Level Distribution:', @json($levelDistribution ?? []));
-    console.log('Faculty Comparison:', @json($facultyComparison ?? []));
-    console.log('Category Distribution:', @json($categoryDistribution ?? []));
-
-    @if($periodComparison)
-    // Period Comparison Chart
-    const periodData = @json($periodComparison);
-    if (periodData && periodData.length > 0) {
-        new Chart(document.getElementById('periodComparisonChart'), {
-        type: 'bar',
-        data: {
-            labels: periodData.map(d => d.period),
-            datasets: [
-                {
-                    label: 'Total',
-                    data: periodData.map(d => d.total),
-                    backgroundColor: '#8b5cf6',
-                    borderRadius: 4,
-                    barThickness: 20
-                },
-                {
-                    label: 'Disetujui',
-                    data: periodData.map(d => d.approved),
-                    backgroundColor: '#10b981',
-                    borderRadius: 4,
-                    barThickness: 20
-                },
-                {
-                    label: 'Menunggu',
-                    data: periodData.map(d => d.pending),
-                    backgroundColor: '#f59e0b',
-                    borderRadius: 4,
-                    barThickness: 20
-                },
-                {
-                    label: 'Ditolak',
-                    data: periodData.map(d => d.rejected),
-                    backgroundColor: '#ef4444',
-                    borderRadius: 4,
-                    barThickness: 20
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: textColor,
-                        padding: 10,
-                        font: { size: 10 },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { color: textColor, font: { size: 9 } },
-                    grid: { color: gridColor, drawBorder: false }
-                },
-                x: {
-                    ticks: { color: textColor, font: { size: 9 }, maxRotation: 45 },
-                    grid: { display: false }
-                }
-            }
-        }
-    });
-    } else {
-        console.warn('Period comparison data is empty');
-        document.getElementById('periodComparisonChart').parentElement.innerHTML = '<p class="text-center text-gray-500 py-8">Tidak ada data periode</p>';
-    }
-    @else
-    // Monthly Trend Chart
-    const monthlyData = @json($monthlyTrend);
-    if (monthlyData && monthlyData.length > 0) {
-        new Chart(document.getElementById('monthlyTrendChart'), {
-        type: 'line',
-        data: {
-            labels: monthlyData.map(d => d.month),
-            datasets: [
-                {
-                    label: 'Submitted',
-                    data: monthlyData.map(d => d.submitted),
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#8b5cf6',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2
-                },
-                {
-                    label: 'Approved',
-                    data: monthlyData.map(d => d.approved),
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#10b981',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { color: textColor, font: { size: 11 } },
-                    grid: { color: gridColor, drawBorder: false }
-                },
-                x: {
-                    ticks: { color: textColor, font: { size: 11 } },
-                    grid: { display: false }
-                }
-            }
-        }
-    });
-    } else {
-        console.warn('Monthly trend data is empty');
-        document.getElementById('monthlyTrendChart').parentElement.innerHTML = '<p class="text-center text-gray-500 py-8">Tidak ada data trend bulanan</p>';
-    }
-    @endif
-
-    // Level Distribution Chart
-    const levelData = @json($levelDistribution);
-    if (levelData && Object.keys(levelData).length > 0 && Object.values(levelData).some(v => v > 0)) {
-        new Chart(document.getElementById('levelDistributionChart'), {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(levelData),
-            datasets: [{
-                data: Object.values(levelData),
-                backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981'],
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: textColor,
-                        padding: 12,
-                        font: { size: 10 },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                }
-            },
-            cutout: '65%'
-        }
-    });
-    } else {
-        console.warn('Level distribution data is empty');
-        document.getElementById('levelDistributionChart').parentElement.innerHTML = '<p class="text-center text-gray-500 py-8">Tidak ada data distribusi tingkat</p>';
-    }
-
-    // Faculty Comparison Chart
-    const facultyData = @json($facultyComparison);
-    if (facultyData && facultyData.length > 0) {
-        new Chart(document.getElementById('facultyComparisonChart'), {
-        type: 'bar',
-        data: {
-            labels: facultyData.map(d => d.faculty),
-            datasets: [
-                {
-                    label: 'Total',
-                    data: facultyData.map(d => d.total),
-                    backgroundColor: '#8b5cf6',
-                    borderRadius: 6
-                },
-                {
-                    label: 'Disetujui',
-                    data: facultyData.map(d => d.approved),
-                    backgroundColor: '#10b981',
-                    borderRadius: 6
-                },
-                {
-                    label: 'Menunggu',
-                    data: facultyData.map(d => d.pending),
-                    backgroundColor: '#f59e0b',
-                    borderRadius: 6
-                },
-                {
-                    label: 'Ditolak',
-                    data: facultyData.map(d => d.rejected),
-                    backgroundColor: '#ef4444',
-                    borderRadius: 6
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        color: textColor,
-                        padding: 10,
-                        font: { size: 11 },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { color: textColor, font: { size: 10 } },
-                    grid: { color: gridColor, drawBorder: false }
-                },
-                x: {
-                    ticks: { color: textColor, font: { size: 10 } },
-                    grid: { display: false }
-                }
-            }
-        }
-    });
-    } else {
-        console.warn('Faculty comparison data is empty');
-        document.getElementById('facultyComparisonChart').parentElement.innerHTML = '<p class="text-center text-gray-500 py-8">Tidak ada data perbandingan fakultas</p>';
-    }
-
-    // Category Distribution Chart
-    const categoryData = @json($categoryDistribution);
-    if (categoryData && categoryData.length > 0 && categoryData.some(d => d.total > 0)) {
-        new Chart(document.getElementById('categoryDistributionChart'), {
-        type: 'doughnut',
-        data: {
-            labels: categoryData.map(d => d.category),
-            datasets: [{
-                data: categoryData.map(d => d.total),
-                backgroundColor: categoryData.map(d => d.color || '#8b5cf6'),
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: textColor,
-                        padding: 12,
-                        font: { size: 10 },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                }
-            },
-            cutout: '65%'
-        }
-    });
-    } else {
-        console.warn('Category distribution data is empty');
-        document.getElementById('categoryDistributionChart').parentElement.innerHTML = '<p class="text-center text-gray-500 py-8">Tidak ada data distribusi kategori</p>';
-    }
-});
-</script>
 @endsection

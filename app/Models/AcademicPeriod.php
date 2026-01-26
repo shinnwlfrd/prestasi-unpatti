@@ -30,7 +30,7 @@ class AcademicPeriod extends Model
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('start_date', 'desc');
+        return $query->orderBy('year', 'desc')->orderBy('semester', 'desc');
     }
 
     // Get current active period

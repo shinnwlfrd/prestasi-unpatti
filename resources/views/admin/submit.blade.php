@@ -1,18 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Ajukan Prestasi Mahasiswa')
-@section('subtitle', 'Panel Validator')
-
-@php
-    $userName = auth()->user()->name ?? 'Validator';
-@endphp
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6 animate-fade-in">
     <!-- Back Button -->
     <div>
-        <a href="{{ route('validator.dashboard') }}"
-            class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+        <a href="{{ route('admin.dashboard') }}"
+            class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -23,8 +18,8 @@
     <!-- Header -->
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
         <div class="flex items-center gap-4">
-            <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
             </div>
@@ -36,7 +31,7 @@
     </div>
 
     <!-- Form -->
-    <form action="{{ route('validator.submit.store') }}" method="POST" enctype="multipart/form-data" 
+    <form action="{{ route('admin.submit.store') }}" method="POST" enctype="multipart/form-data" 
           class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
           x-data="{ loading: false, action: 'pending' }" @submit="loading = true">
         @csrf
@@ -52,7 +47,7 @@
                     <option value="">Pilih Mahasiswa</option>
                     @foreach($students as $student)
                         <option value="{{ $student->student_id }}" {{ old('student_id') == $student->student_id ? 'selected' : '' }}>
-                            {{ $student->name }} - {{ $student->student_id }}
+                            {{ $student->name }} - {{ $student->student_id }} ({{ $student->faculty }})
                         </option>
                     @endforeach
                 </select>
@@ -104,8 +99,8 @@
                             <label class="relative">
                                 <input type="radio" name="level" value="{{ $level->name }}" {{ old('level') == $level->name ? 'checked' : '' }}
                                     required class="peer sr-only">
-                                <div class="px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-center cursor-pointer transition-all peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30 hover:border-gray-300">
-                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400">
+                                <div class="px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-center cursor-pointer transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 dark:peer-checked:bg-purple-900/30 hover:border-gray-300">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 peer-checked:text-purple-600 dark:peer-checked:text-purple-400">
                                         {{ $level->name }}
                                     </span>
                                 </div>
@@ -208,7 +203,7 @@
                 <!-- Preview Button -->
                 <div x-show="fileName" class="mt-3 flex justify-center">
                     <button type="button" @click="showPreview = true"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -276,7 +271,7 @@
                 </div>
             </div>
 
-            <!-- Conditional Fields -->
+            <!-- Conditional Fields for Approve -->
             <div x-show="action === 'approve'" x-cloak class="space-y-4"
                 x-data="{ 
                     skipSk: false,
@@ -302,12 +297,12 @@
                 </div>
 
                 <!-- SK Resmi Selection (jika tidak skip) -->
-                <div x-show="!skipSk" class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-                    <label class="block text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-2">
+                <div x-show="!skipSk" class="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                    <label class="block text-sm font-medium text-purple-700 dark:text-purple-400 mb-2">
                         Pilih SK Resmi <span class="text-red-500">*</span>
                     </label>
                     <select name="sk_id" :required="action === 'approve' && !skipSk"
-                        class="w-full border-emerald-300 dark:border-emerald-600 dark:bg-gray-700 dark:text-white rounded-lg">
+                        class="w-full border-purple-300 dark:border-purple-600 dark:bg-gray-700 dark:text-white rounded-lg">
                         <option value="">Pilih SK</option>
                         @foreach($skDocuments as $sk)
                             <option value="{{ $sk->id }}" {{ old('sk_id') == $sk->id ? 'selected' : '' }}>
@@ -321,12 +316,12 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                             </svg>
                             Belum ada SK tersedia. 
-                            <a href="{{ route('validator.sk.index') }}" target="_blank" class="underline hover:text-amber-700">
+                            <a href="{{ route('admin.sk.index') }}" target="_blank" class="underline hover:text-amber-700">
                                 Lihat Manajemen SK
                             </a>
                         </p>
                     @else
-                        <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">Pilih SK yang sesuai untuk prestasi ini</p>
+                        <p class="text-sm text-purple-600 dark:text-purple-400 mt-2">Pilih SK yang sesuai untuk prestasi ini</p>
                     @endif
                 </div>
 
@@ -395,7 +390,7 @@
                         <p class="font-medium text-blue-800 dark:text-blue-200 text-sm">Informasi</p>
                         <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
                             <strong>Pending:</strong> Prestasi akan disimpan dengan status "Menunggu" dan Anda akan diarahkan ke halaman upload dokumen tambahan.<br>
-                            <strong>Approve:</strong> Prestasi langsung disetujui (wajib upload SK Resmi).
+                            <strong>Approve:</strong> Prestasi langsung disetujui (wajib upload SK Resmi atau pilih alasan waiver).
                         </p>
                     </div>
                 </div>
@@ -404,11 +399,11 @@
 
         <!-- Submit Button -->
         <div class="mt-8 flex justify-end gap-3">
-            <a href="{{ route('validator.dashboard') }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <a href="{{ route('admin.dashboard') }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                 Batal
             </a>
             <button type="submit" :disabled="loading"
-                class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <svg x-show="loading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
