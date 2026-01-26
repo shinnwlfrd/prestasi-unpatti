@@ -12,37 +12,28 @@ class ValidationChecklist extends Model
     protected $fillable = [
         'sa_id',
         'validator_id',
-        'nama_peserta_valid',
-        'nama_peserta_notes',
-        'nama_lomba_valid',
-        'nama_lomba_notes',
-        'tanggal_valid',
-        'tanggal_notes',
-        'peringkat_valid',
-        'peringkat_notes',
-        'penyelenggara_valid',
-        'penyelenggara_notes',
-        'keaslian_dokumen_valid',
-        'keaslian_dokumen_notes',
-        'overall_notes',
+        'certificate_valid',
+        'event_date_valid',
+        'organizer_valid',
+        'level_appropriate',
+        'documents_complete',
+        'notes',
     ];
 
     protected $casts = [
-        'nama_peserta_valid' => 'boolean',
-        'nama_lomba_valid' => 'boolean',
-        'tanggal_valid' => 'boolean',
-        'peringkat_valid' => 'boolean',
-        'penyelenggara_valid' => 'boolean',
-        'keaslian_dokumen_valid' => 'boolean',
+        'certificate_valid' => 'boolean',
+        'event_date_valid' => 'boolean',
+        'organizer_valid' => 'boolean',
+        'level_appropriate' => 'boolean',
+        'documents_complete' => 'boolean',
     ];
 
     const CHECKLIST_ITEMS = [
-        'nama_peserta' => 'Nama Peserta',
-        'nama_lomba' => 'Nama Lomba',
-        'tanggal' => 'Tanggal Pelaksanaan',
-        'peringkat' => 'Peringkat/Ranking',
-        'penyelenggara' => 'Penyelenggara',
-        'keaslian_dokumen' => 'Keaslian Dokumen',
+        'certificate' => 'Sertifikat Valid',
+        'event_date' => 'Tanggal Kegiatan Valid',
+        'organizer' => 'Penyelenggara Valid',
+        'level' => 'Tingkat Sesuai',
+        'documents' => 'Dokumen Lengkap',
     ];
 
     public function studentAchievement()

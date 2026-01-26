@@ -12,8 +12,12 @@ class AchievementService
         // Upload certificate
         $certificatePath = $certificate->store('certificates', 'public');
 
+        if (! $certificatePath) {
+            throw new \Exception('Gagal menyimpan file sertifikat ke storage.');
+        }
+
         // Create achievement
-        return StudentAchievement::create([
+        $achievement = StudentAchievement::create([
             'student_id' => $studentId,
             'achievement_id' => $data['achievement_id'],
             'event_name' => $data['event_name'],
@@ -27,6 +31,16 @@ class AchievementService
             'submitted_by' => 'student',
             'submitted_at' => now(),
         ]);
+
+        // Log for debugging
+        \Log::info('Achievement submitted', [
+            'sa_id' => $achievement->sa_id,
+            'student_id' => $studentId,
+            'certificate_path' => $certificatePath,
+            'file_exists' => \Storage::disk('public')->exists($certificatePath),
+        ]);
+
+        return $achievement;
     }
 
     public function getStudentAchievements(string $studentId)

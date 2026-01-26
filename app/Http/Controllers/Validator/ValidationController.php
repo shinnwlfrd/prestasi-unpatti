@@ -39,7 +39,10 @@ class ValidationController extends Controller
             'validator_id' => auth()->id(),
         ]);
 
-        return view('validator.achievements.show', compact('achievement', 'checklist'));
+        // Get available SK documents for selection
+        $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
+
+        return view('validator.achievements.show', compact('achievement', 'checklist', 'skDocuments'));
     }
 
     public function documents(StudentAchievement $achievement)
@@ -74,15 +77,31 @@ class ValidationController extends Controller
             $this->approvalService->processChecklist($achievement, $validator, $checklistData);
         }
 
-        // Handle SK Resmi upload (WAJIB untuk approve)
-        $skDocumentPath = null;
-        if ($request->action === 'approve' && $request->hasFile('sk_resmi')) {
-            $skDocumentPath = $this->uploadSkResmi($request, $achievement, $validator);
+        // Handle SK for approval
+        $skId = null;
+        if ($request->action === 'approve') {
+            if (!$request->filled('sk_id')) {
+                return back()->withErrors(['sk_id' => 'SK wajib dipilih untuk approve prestasi.'])->withInput();
+            }
+            
+            $skId = $request->sk_id;
+            
+            // Create SK assignment
+            $skDocument = \App\Models\SKDocument::find($skId);
+            if ($skDocument) {
+                $skDocument->assignments()->create([
+                    'sa_id' => $achievement->sa_id,
+                    'assigned_by' => $validator->id,
+                    'assigned_at' => now(),
+                    'assignment_type' => 'individual',
+                    'notes' => $request->notes,
+                ]);
+            }
         }
 
         // Process action
         $success = match ($request->action) {
-            'approve' => $this->approvalService->approve($achievement, $validator, $request->notes, $skDocumentPath),
+            'approve' => $this->approvalService->approve($achievement, $validator, $request->notes, $skId),
             'reject' => $this->approvalService->reject($achievement, $validator, $request->rejection_reason),
             'request_revision' => $this->approvalService->requestRevision($achievement, $validator, $request->revision_reason, []),
             default => false,
@@ -90,7 +109,7 @@ class ValidationController extends Controller
 
         if ($success) {
             $message = match ($request->action) {
-                'approve' => 'Prestasi berhasil disetujui dan SK Resmi telah diupload.',
+                'approve' => 'Prestasi berhasil disetujui dan SK telah di-assign.',
                 'reject' => 'Prestasi berhasil ditolak.',
                 'request_revision' => 'Permintaan revisi berhasil dikirim.',
                 default => 'Status berhasil diperbarui.',

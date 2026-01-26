@@ -124,6 +124,23 @@ class StudentAchievement extends Model
         return $this->hasOne(AchievementAppeal::class, 'sa_id', 'sa_id')->latestOfMany();
     }
 
+    public function skAssignment()
+    {
+        return $this->hasOne(SKAssignment::class, 'sa_id', 'sa_id');
+    }
+
+    public function skDocument()
+    {
+        return $this->hasOneThrough(
+            SKDocument::class,
+            SKAssignment::class,
+            'sa_id',
+            'id',
+            'sa_id',
+            'sk_id'
+        );
+    }
+
     // Accessors
     public function getStatusBadgeAttribute(): string
     {

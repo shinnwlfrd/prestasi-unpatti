@@ -155,28 +155,33 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
-                                        @if(!in_array($item->validation_status, ['Disetujui', 'Ditolak']))
-                                            <a href="{{ route('achievements.documents.index', $item) }}" 
-                                                class="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-                                                title="Kelola Dokumen">
+                                        @if($item->validation_status === 'Menunggu')
+                                            <!-- Pending: Show Manage Documents button -->
+                                            <button onclick="window.openDocModal({{ $item->sa_id }}, '{{ addslashes($item->event_name) }}', '{{ $item->achievement->category->name ?? '-' }}', '{{ $item->level }}', '{{ $item->certificate }}', {{ $item->documents->toJson() }}, true)" 
+                                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-sm font-medium">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                                 </svg>
-                                            </a>
-                                        @else
-                                            <span class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed" title="Upload dokumen tidak diperbolehkan">
+                                                Kelola Dokumen
+                                            </button>
+                                        @elseif(in_array($item->validation_status, ['Disetujui', 'Ditolak']))
+                                            <!-- Approved/Rejected: Show View Documents button (read-only) -->
+                                            <button onclick="window.openDocModal({{ $item->sa_id }}, '{{ addslashes($item->event_name) }}', '{{ $item->achievement->category->name ?? '-' }}', '{{ $item->level }}', '{{ $item->certificate }}', {{ $item->documents->toJson() }}, false)" 
+                                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
-                                            </span>
-                                        @endif
-                                        @if($item->validation_status === 'Revisi')
+                                                Lihat Dokumen
+                                            </button>
+                                        @elseif($item->validation_status === 'Revisi')
+                                            <!-- Revision: Show Appeal button only -->
                                             <a href="{{ route('achievements.appeal.create', $item) }}" 
-                                                class="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
-                                                title="Ajukan Banding">
+                                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors text-sm font-medium">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                                 </svg>
+                                                Ajukan Banding
                                             </a>
                                         @endif
                                     </div>
@@ -224,4 +229,185 @@
         </div>
         @endif
     </div>
+
+    <!-- Document Modal -->
+    <div id="docModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="closeDocModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Dokumen Prestasi</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" id="modalEventName"></p>
+                    </div>
+                    <button onclick="closeDocModal()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6 overflow-y-auto max-h-[calc(90vh-180px)]" id="modalContent">
+                    <!-- Content will be inserted here -->
+                </div>
+
+                <!-- Footer -->
+                <div class="flex justify-between items-center p-6 border-t border-gray-200 dark:border-gray-700">
+                    <div id="manageButtonContainer"></div>
+                    <button onclick="closeDocModal()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors ml-auto">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.openDocModal = function(saId, eventName, category, level, certificate, documents, canManage) {
+    // Set event name
+    document.getElementById('modalEventName').textContent = eventName;
+    
+    // Build content
+    let content = `
+        <!-- Achievement Info -->
+        <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <span>${category}</span>
+                <span>•</span>
+                <span>${level}</span>
+            </div>
+        </div>
+    `;
+    
+    // Add certificate if exists
+    if (certificate) {
+        content += `
+            <div class="mb-6">
+                <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
+                    </svg>
+                    Sertifikat Utama
+                </h5>
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-10 h-10 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-gray-900 dark:text-white">Sertifikat</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">File sertifikat prestasi</p>
+                            <a href="/storage/${certificate}" target="_blank" 
+                                class="inline-flex items-center gap-1 mt-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 font-medium">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                Lihat/Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add documents if exists
+    if (documents && documents.length > 0) {
+        content += `
+            <div>
+                <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                    </svg>
+                    Dokumen Pendukung (${documents.length})
+                </h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        `;
+        
+        documents.forEach(doc => {
+            content += `
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">${doc.document_type_label || 'Dokumen'}</p>
+                            <a href="/storage/${doc.file_path}" target="_blank" 
+                                class="inline-flex items-center gap-1 mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                Lihat
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        content += `
+                </div>
+            </div>
+        `;
+    }
+    
+    // No documents message
+    if (!certificate && (!documents || documents.length === 0)) {
+        content += `
+            <div class="text-center py-8">
+                <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p class="mt-4 text-gray-600 dark:text-gray-400">Belum ada dokumen yang diupload</p>
+            </div>
+        `;
+    }
+    
+    document.getElementById('modalContent').innerHTML = content;
+    
+    // Add manage button if can manage
+    if (canManage) {
+        document.getElementById('manageButtonContainer').innerHTML = `
+            <a href="/achievements/${saId}/documents" 
+                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Kelola Dokumen
+            </a>
+        `;
+    } else {
+        document.getElementById('manageButtonContainer').innerHTML = '';
+    }
+    
+    // Show modal
+    document.getElementById('docModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeDocModal = function() {
+    document.getElementById('docModal').classList.add('hidden');
+    document.body.style.overflow = '';
+};
+
+// Close on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDocModal();
+    }
+});
+</script>
 @endsection

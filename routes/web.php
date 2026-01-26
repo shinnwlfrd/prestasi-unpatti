@@ -132,6 +132,15 @@ Route::middleware(['auth', 'auth.validator'])->prefix('validator')->name('valida
     // Legacy routes (keep for backward compatibility)
     Route::patch('/achievements/{sa_id}/approve', [ValidatorController::class, 'approve']);
     Route::patch('/achievements/{sa_id}/reject', [ValidatorController::class, 'reject']);
+
+    // SK Document Management (Read-only for Validator)
+    Route::prefix('sk')->name('sk.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Validator\SKDocumentController::class, 'index'])->name('index');
+        Route::get('/{sk}', [\App\Http\Controllers\Validator\SKDocumentController::class, 'show'])->name('show');
+        Route::get('/{sk}/achievements', [\App\Http\Controllers\Validator\SKDocumentController::class, 'getAchievements'])->name('achievements');
+        Route::post('/{sk}/process-assignment', [\App\Http\Controllers\Validator\SKDocumentController::class, 'processAssignment'])->name('process-assignment');
+        Route::get('/{sk}/preview', [\App\Http\Controllers\Validator\SKDocumentController::class, 'preview'])->name('preview');
+    });
 });
 
 // Admin routes
@@ -196,4 +205,15 @@ Route::middleware(['auth', 'auth.admin'])->prefix('admin')->name('admin.')->grou
 
     Route::get('/appeals/{appeal}', [AchievementAppealController::class, 'show'])->name('appeals.show');
     Route::post('/appeals/{appeal}/review', [AchievementAppealController::class, 'review'])->name('appeals.review');
+
+    // SK Document Management
+    Route::prefix('sk')->name('sk.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\SKDocumentController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\SKDocumentController::class, 'store'])->name('store');
+        Route::get('/{sk}', [\App\Http\Controllers\Admin\SKDocumentController::class, 'show'])->name('show');
+        Route::delete('/{sk}', [\App\Http\Controllers\Admin\SKDocumentController::class, 'destroy'])->name('destroy');
+        Route::get('/{sk}/achievements', [\App\Http\Controllers\Admin\SKDocumentController::class, 'getAchievements'])->name('achievements');
+        Route::post('/{sk}/process-assignment', [\App\Http\Controllers\Admin\SKDocumentController::class, 'processAssignment'])->name('process-assignment');
+        Route::get('/{sk}/preview', [\App\Http\Controllers\Admin\SKDocumentController::class, 'preview'])->name('preview');
+    });
 });

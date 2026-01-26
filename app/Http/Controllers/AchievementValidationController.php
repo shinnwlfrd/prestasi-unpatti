@@ -103,17 +103,15 @@ class AchievementValidationController extends Controller
             'validator_id' => auth()->id(),
         ]);
 
-        return view('admin.achievements.validation.show', compact('achievement', 'checklist'));
+        // Get available SK documents for selection
+        $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
+
+        return view('admin.achievements.validation.show', compact('achievement', 'checklist', 'skDocuments'));
     }
 
     public function validate(ValidateAchievementRequest $request, StudentAchievement $achievement)
     {
         $validator = auth()->user();
-
-        // Validasi SK Resmi WAJIB untuk approve
-        if ($request->action === 'approve' && ! $request->hasFile('sk_resmi')) {
-            return back()->withErrors(['sk_resmi' => 'SK Resmi wajib diupload untuk approve prestasi.'])->withInput();
-        }
 
         // Save checklist first
         if ($request->has('checklist')) {
@@ -123,15 +121,31 @@ class AchievementValidationController extends Controller
             $this->approvalService->processChecklist($achievement, $validator, $checklistData);
         }
 
-        // Handle SK Resmi upload (WAJIB untuk approve)
-        $skDocumentPath = null;
-        if ($request->action === 'approve' && $request->hasFile('sk_resmi')) {
-            $skDocumentPath = $this->uploadSkResmi($request, $achievement, $validator);
+        // Handle SK for approval
+        $skId = null;
+        if ($request->action === 'approve') {
+            if (!$request->filled('sk_id')) {
+                return back()->withErrors(['sk_id' => 'SK wajib dipilih untuk approve prestasi.'])->withInput();
+            }
+            
+            $skId = $request->sk_id;
+            
+            // Create SK assignment
+            $skDocument = \App\Models\SKDocument::find($skId);
+            if ($skDocument) {
+                $skDocument->assignments()->create([
+                    'sa_id' => $achievement->sa_id,
+                    'assigned_by' => $validator->id,
+                    'assigned_at' => now(),
+                    'assignment_type' => 'individual',
+                    'notes' => $request->notes,
+                ]);
+            }
         }
 
         // Process action
         $success = match ($request->action) {
-            'approve' => $this->approvalService->approve($achievement, $validator, $request->notes, $skDocumentPath),
+            'approve' => $this->approvalService->approve($achievement, $validator, $request->notes, $skId),
             'reject' => $this->approvalService->reject($achievement, $validator, $request->rejection_reason),
             'request_revision' => $this->approvalService->requestRevision(
                 $achievement,
@@ -144,7 +158,7 @@ class AchievementValidationController extends Controller
 
         if ($success) {
             $message = match ($request->action) {
-                'approve' => 'Prestasi berhasil disetujui dan SK Resmi telah diupload.',
+                'approve' => 'Prestasi berhasil disetujui dan SK telah di-assign.',
                 'reject' => 'Prestasi berhasil ditolak.',
                 'request_revision' => 'Permintaan revisi berhasil dikirim.',
                 default => 'Status berhasil diperbarui.',
@@ -187,24 +201,17 @@ class AchievementValidationController extends Controller
     public function saveChecklist(Request $request, StudentAchievement $achievement)
     {
         $validated = $request->validate([
-            'nama_peserta_valid' => 'boolean',
-            'nama_peserta_notes' => 'nullable|string|max:500',
-            'nama_lomba_valid' => 'boolean',
-            'nama_lomba_notes' => 'nullable|string|max:500',
-            'tanggal_valid' => 'boolean',
-            'tanggal_notes' => 'nullable|string|max:500',
-            'peringkat_valid' => 'boolean',
-            'peringkat_notes' => 'nullable|string|max:500',
-            'penyelenggara_valid' => 'boolean',
-            'penyelenggara_notes' => 'nullable|string|max:500',
-            'keaslian_dokumen_valid' => 'boolean',
-            'keaslian_dokumen_notes' => 'nullable|string|max:500',
-            'overall_notes' => 'nullable|string|max:1000',
+            'certificate_valid' => 'boolean',
+            'event_date_valid' => 'boolean',
+            'organizer_valid' => 'boolean',
+            'level_appropriate' => 'boolean',
+            'documents_complete' => 'boolean',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         $checklist = ValidationChecklist::updateOrCreate(
-            ['sa_id' => $achievement->sa_id, 'validator_id' => auth()->id()],
-            $validated
+            ['sa_id' => $achievement->sa_id],
+            array_merge($validated, ['validator_id' => auth()->id()])
         );
 
         return response()->json([

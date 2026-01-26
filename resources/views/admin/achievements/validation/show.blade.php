@@ -372,60 +372,47 @@
                     </dl>
                 </div>
 
-                <!-- Upload SK Resmi -->
+                <!-- SK Selection -->
                 <div class="space-y-3">
                     <label class="block">
                         <span class="text-sm font-medium text-gray-900 dark:text-white">
-                            Upload SK Resmi <span class="text-red-500">*</span>
+                            Pilih Surat Keputusan (SK) <span class="text-red-500">*</span>
                         </span>
                         <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            File SK Resmi wajib diupload untuk approve prestasi
+                            Pilih SK yang akan di-assign ke prestasi ini
                         </span>
                     </label>
+
+                    <select x-model="selectedSkId"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="">-- Pilih SK --</option>
+                        @foreach($skDocuments as $sk)
+                            <option value="{{ $sk->id }}">
+                                {{ $sk->sk_number }} - {{ $sk->title }} ({{ $sk->issued_date->format('d/m/Y') }})
+                            </option>
+                        @endforeach
+                    </select>
                     
-                    <div class="relative">
-                        <input type="file" 
-                               id="sk_resmi_modal" 
-                               accept=".pdf,.jpg,.jpeg,.png" 
-                               @change="handleFileSelect($event)"
-                               class="hidden">
-                        <label for="sk_resmi_modal" 
-                               class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors"
-                               :class="skFile ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-green-400 bg-gray-50 dark:bg-gray-900/50'">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-10 h-10 mb-3" :class="skFile ? 'text-green-500' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                                </svg>
-                                <p class="mb-2 text-sm" :class="skFile ? 'text-green-700 dark:text-green-300 font-medium' : 'text-gray-500 dark:text-gray-400'">
-                                    <span x-show="!skFile">Klik untuk pilih file atau drag & drop</span>
-                                    <span x-show="skFile" x-text="skFileName"></span>
-                                </p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">PDF, JPG, PNG (Maks. 10MB)</p>
-                            </div>
-                        </label>
+                    <!-- SK Preview -->
+                    <div x-show="selectedSkId" x-cloak class="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                        <p class="text-sm text-purple-900 dark:text-purple-100">
+                            <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            SK yang dipilih akan di-assign ke prestasi ini
+                        </p>
                     </div>
 
-                    <!-- File Preview -->
-                    <div x-show="skFile" x-cloak class="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-green-900 dark:text-green-100" x-text="skFileName"></p>
-                                    <p class="text-xs text-green-600 dark:text-green-400" x-text="skFileSize"></p>
-                                </div>
-                            </div>
-                            <button type="button" @click="clearFile()" class="p-1 hover:bg-green-100 dark:hover:bg-green-900/40 rounded">
-                                <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    @if($skDocuments->isEmpty())
+                        <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                            <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                                <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                                 </svg>
-                            </button>
+                                Belum ada SK yang tersedia. Silakan upload SK terlebih dahulu di menu <a href="{{ route('admin.sk.index') }}" class="font-semibold underline">Manajemen SK</a>.
+                            </p>
                         </div>
-                    </div>
+                    @endif
                 </div>
 
                 <!-- Catatan Tambahan (Opsional) -->
@@ -470,9 +457,7 @@ function validationForm() {
         checkedCount: {{ $checklist->checked_count ?? 0 }},
         totalItems: 6,
         showApproveModal: false,
-        skFile: null,
-        skFileName: '',
-        skFileSize: '',
+        selectedSkId: '',
         approvalNotes: '',
         isSubmitting: false,
         
@@ -495,47 +480,10 @@ function validationForm() {
             }
         },
         
-        handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            // Validate file type
-            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('Format file tidak didukung. Gunakan PDF, JPG, atau PNG.');
-                event.target.value = '';
-                return;
-            }
-            
-            // Validate file size (10MB)
-            const maxSize = 10 * 1024 * 1024;
-            if (file.size > maxSize) {
-                alert('Ukuran file terlalu besar. Maksimal 10MB.');
-                event.target.value = '';
-                return;
-            }
-            
-            this.skFile = file;
-            this.skFileName = file.name;
-            this.skFileSize = this.formatFileSize(file.size);
-        },
-        
-        clearFile() {
-            this.skFile = null;
-            this.skFileName = '';
-            this.skFileSize = '';
-            document.getElementById('sk_resmi_modal').value = '';
-        },
-        
-        formatFileSize(bytes) {
-            if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
-            if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
-            return bytes + ' bytes';
-        },
-        
         submitApproval() {
-            if (!this.skFile) {
-                alert('SK Resmi wajib diupload untuk approve prestasi!');
+            // Validate SK selection
+            if (!this.selectedSkId) {
+                alert('Pilih SK yang akan di-assign ke prestasi ini!');
                 return;
             }
             
@@ -556,8 +504,8 @@ function validationForm() {
             // Add action (REQUIRED)
             formData.append('action', 'approve');
             
-            // Add SK file (REQUIRED)
-            formData.append('sk_resmi', this.skFile);
+            // Add SK ID
+            formData.append('sk_id', this.selectedSkId);
             
             // Add approval notes if provided
             if (this.approvalNotes) {

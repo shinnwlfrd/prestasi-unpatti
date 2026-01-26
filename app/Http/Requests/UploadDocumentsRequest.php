@@ -9,7 +9,8 @@ class UploadDocumentsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        // Check if user is authenticated via Laravel auth OR student session
+        return auth()->check() || (session('auth_role') === 'student' && session('student_id'));
     }
 
     public function rules(): array

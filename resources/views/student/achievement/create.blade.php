@@ -118,7 +118,7 @@
                     </label>
                     <input type="file" name="certificate" id="certificate" accept=".pdf,.jpg,.jpeg,.png" required
                         class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Format: PDF, JPG, JPEG, PNG. Maksimal 5MB</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Format: PDF, JPG, JPEG, PNG. Maksimal 2MB</p>
                     @error('certificate')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror

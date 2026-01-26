@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AuthLog extends Model
 {
-    public $timestamps = false;
-
     protected $fillable = [
         'user_id',
         'action',
@@ -22,6 +20,8 @@ class AuthLog extends Model
         'metadata' => 'array',
         'created_at' => 'datetime',
     ];
+
+    const UPDATED_AT = null; // Only use created_at, not updated_at
 
     // Actions
     const ACTION_LOGIN = 'login';

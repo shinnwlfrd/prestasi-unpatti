@@ -13,15 +13,18 @@ class SubmitAchievementRequest extends FormRequest
 
     public function rules(): array
     {
+        // Get valid levels from database
+        $validLevels = \App\Models\AchievementLevel::active()->pluck('name')->toArray();
+        
         return [
             'achievement_id' => 'required|exists:achievements,id',
             'event_name' => 'required|string|max:255',
-            'level' => 'required|in:Universitas,Nasional,Internasional',
+            'level' => 'required|in:' . implode(',', $validLevels),
             'organizer' => 'required|string|max:255',
             'event_date' => 'required|date',
             'ranking' => 'nullable|string|max:100',
             'description' => 'nullable|string',
-            'certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048', // 2MB max
         ];
     }
 
@@ -36,7 +39,7 @@ class SubmitAchievementRequest extends FormRequest
             'event_date.required' => 'Tanggal kegiatan wajib diisi.',
             'certificate.required' => 'Sertifikat wajib diupload.',
             'certificate.mimes' => 'Format sertifikat harus PDF, JPG, JPEG, atau PNG.',
-            'certificate.max' => 'Ukuran sertifikat maksimal 5MB.',
+            'certificate.max' => 'Ukuran sertifikat maksimal 2MB.', // Changed from 5MB to 2MB
         ];
     }
 }

@@ -17,6 +17,10 @@
             class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.history') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
             Riwayat
         </a>
+        <a href="{{ route('validator.sk.index') }}"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.sk.*') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
+            Manajemen SK
+        </a>
     </div>
 @endsection
 

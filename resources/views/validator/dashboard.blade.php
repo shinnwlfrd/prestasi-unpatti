@@ -9,19 +9,33 @@
 @endphp
 
 @section('nav-links')
-    <div class="hidden md:flex items-center gap-1 bg-gray-100/50 dark:bg-gray-700/50 rounded-xl p-1">
-        <a href="{{ route('validator.dashboard') }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.dashboard') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
-            Menunggu
-            @if($pendingCount > 0)
-                <span class="ml-1 px-1.5 py-0.5 text-xs rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">{{ $pendingCount }}</span>
-            @endif
-        </a>
-        <a href="{{ route('validator.history') }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.history') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
-            Riwayat
-        </a>
-    </div>
+    @php
+    $baseClass = 'px-4 py-2 rounded-lg text-sm font-medium transition-colors';
+    $activeClass = 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm';
+    $inactiveClass = 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white';
+@endphp
+
+<div class="hidden md:flex items-center gap-1 bg-gray-100/50 dark:bg-gray-700/50 rounded-xl p-1">
+    <a href="{{ route('validator.dashboard') }}"
+       class="{{ $baseClass }} {{ request()->routeIs('validator.dashboard') ? $activeClass : $inactiveClass }}">
+        Menunggu
+        @if($pendingCount > 0)
+            <span class="ml-1 px-1.5 py-0.5 text-xs rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                {{ $pendingCount }}
+            </span>
+        @endif
+    </a>
+
+    <a href="{{ route('validator.history') }}"
+       class="{{ $baseClass }} {{ request()->routeIs('validator.history') ? $activeClass : $inactiveClass }}">
+        Riwayat
+    </a>
+
+    <a href="{{ route('validator.sk.index') }}"
+       class="{{ $baseClass }} {{ request()->routeIs('validator.sk.*') ? $activeClass : $inactiveClass }}">
+        Manajemen SK
+    </a>
+</div>
 @endsection
 
 @section('content')
