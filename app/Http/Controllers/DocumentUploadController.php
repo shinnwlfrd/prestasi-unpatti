@@ -44,10 +44,10 @@ class DocumentUploadController extends Controller
             if (auth()->check()) {
                 $user = auth()->user();
                 if ($user->role === 'Admin') {
-                    return redirect()->route('admin.achievements.validation.show', $achievement)
+                    return redirect()->route('admin.student-achievements')
                         ->with('warning', $message);
                 } elseif ($user->role === 'Validator') {
-                    return redirect()->route('validator.dashboard')
+                    return redirect()->route('validator.pending.index')
                         ->with('warning', $message);
                 }
             }
@@ -56,7 +56,7 @@ class DocumentUploadController extends Controller
             return redirect()->route('student.dashboard')->with('warning', $message);
         }
 
-        $achievement->load(['documents.revisions', 'documents.verifier']);
+        $achievement->load(['documents.revisions', 'documents.verifier', 'student', 'achievement.category']);
 
         // Check if user is validator/admin - they can upload all document types including SK Resmi
         $isValidatorOrAdmin = auth()->check() && in_array(auth()->user()->role, ['Admin', 'Validator']);
@@ -151,7 +151,7 @@ class DocumentUploadController extends Controller
             if ($user->role === 'Admin') {
                 return redirect()->route('admin.achievements.validation.index')->with('success', $message);
             } elseif ($user->role === 'Validator') {
-                return redirect()->route('validator.dashboard')->with('success', $message);
+                return redirect()->route('validator.pending.index')->with('success', $message);
             }
         }
 
@@ -448,8 +448,22 @@ class DocumentUploadController extends Controller
         if (auth()->check()) {
             $user = auth()->user();
 
-            // Admin and validator can access all documents
-            if (in_array($user->role, ['Admin', 'Validator'])) {
+            // Admin can access ALL documents (no restrictions)
+            if ($user->role === 'Admin') {
+                return;
+            }
+
+            // Validator can access documents from their faculty
+            if ($user->role === 'Validator') {
+                // If validator has faculty assigned, check if achievement is from same faculty
+                if ($user->faculty) {
+                    $achievementFaculty = $achievement->student->faculty ?? null;
+                    if ($achievementFaculty === $user->faculty) {
+                        return;
+                    }
+                    abort(403, 'Anda hanya dapat mengakses dokumen dari fakultas Anda.');
+                }
+                // Validator without faculty can access all (super validator)
                 return;
             }
 

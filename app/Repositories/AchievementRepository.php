@@ -47,7 +47,7 @@ class AchievementRepository implements AchievementRepositoryInterface
 
     public function getWithFilters(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->model->with(['student', 'achievement.category', 'validator']);
+        $query = $this->model->with(['student', 'achievement.category', 'validator', 'latestAppeal']);
 
         // Search by student name, NIM, or event name
         if (! empty($filters['search'])) {
@@ -78,7 +78,31 @@ class AchievementRepository implements AchievementRepositoryInterface
             });
         }
 
-        return $query->latest('sa_id')->paginate($perPage)->withQueryString();
+        // Filter by SIGAP faculty_id
+        if (! empty($filters['faculty_id'])) {
+            $query->whereHas('student', function ($q) use ($filters) {
+                $q->where('faculty_id', $filters['faculty_id']);
+            });
+        }
+
+        // Filter by SIGAP department_id
+        if (! empty($filters['department_id'])) {
+            $query->whereHas('student', function ($q) use ($filters) {
+                $q->where('department_id', $filters['department_id']);
+            });
+        }
+
+        // Filter by SIGAP program_study_id
+        if (! empty($filters['program_study_id'])) {
+            $query->whereHas('student', function ($q) use ($filters) {
+                $q->where('program_study_id', $filters['program_study_id']);
+            });
+        }
+
+        // Admin can see ALL achievements regardless of status
+        // No filtering by validation stage - show everything
+
+        return $query->latest('submitted_at')->latest('sa_id')->paginate($perPage)->withQueryString();
     }
 
     public function getPendingForValidator(?string $faculty = null): Collection

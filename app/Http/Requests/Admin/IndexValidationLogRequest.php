@@ -20,6 +20,9 @@ class IndexValidationLogRequest extends FormRequest
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'per_page' => 'nullable|integer|min:5|max:100',
+            'faculty_id' => 'nullable|string',
+            'department_id' => 'nullable|string',
+            'program_study_id' => 'nullable|string',
         ];
     }
 

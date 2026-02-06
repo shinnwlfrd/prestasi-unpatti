@@ -1,4 +1,18 @@
-@extends('layouts.app')
+@php
+    $isAdmin = auth()->check() && auth()->user()->role === 'Admin';
+    $isValidator = auth()->check() && auth()->user()->role === 'Validator';
+    
+    // Determine layout based on role
+    if ($isAdmin) {
+        $layout = 'layouts.admin';
+    } elseif ($isValidator) {
+        $layout = 'layouts.validator';
+    } else {
+        $layout = 'layouts.app';
+    }
+@endphp
+
+@extends($layout)
 
 @section('title', 'Upload Dokumen')
 
@@ -14,9 +28,9 @@
                 
                 // Determine back route based on role
                 if ($isAdmin) {
-                    $backRoute = route('admin.achievements.validation.index');
+                    $backRoute = route('admin.student-achievements');
                 } elseif ($isValidator) {
-                    $backRoute = route('validator.dashboard');
+                    $backRoute = route('validator.pending.index');
                 } else {
                     $backRoute = route('student.dashboard');
                 }
@@ -44,7 +58,7 @@
                     <p class="font-medium text-blue-800 dark:text-blue-200">Informasi Upload Dokumen</p>
                     <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
                         Anda dapat mengupload <strong>Sertifikat</strong> dan <strong>Dokumen Pendukung</strong> lainnya. 
-                        <strong>SK Resmi</strong> akan diupload oleh Validator/Admin saat proses approval.
+                        <strong>SK Resmi</strong> akan diupload oleh Validator/Admin saat<!--  --> proses approval.
                     </p>
                 </div>
             </div>
@@ -81,7 +95,8 @@
         @endif
     </div>
 
-    <!-- Upload Form -->
+    <!-- Upload Form - Only show if status is Pending or Revision -->
+    @if(!in_array($achievement->validation_status, ['Disetujui', 'Ditolak']))
     <form id="uploadForm" action="{{ route('achievements.documents.store', $achievement) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6" @submit.prevent="submitForm()">
         @csrf
         
@@ -208,15 +223,108 @@
             </button>
         </div>
     </form>
-
-    <!-- Existing Documents -->
-    @if($achievement->documents->isNotEmpty())
+    @else
+    <!-- Read-only mode for approved/rejected achievements -->
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Dokumen yang Sudah Diunggah</h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            @foreach($achievement->documents as $document)
-                <x-document-card :document="$document" :deletable="true" />
-            @endforeach
+        <div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            <div>
+                <p class="font-medium text-gray-900 dark:text-white">Mode Lihat Dokumen</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Prestasi ini sudah {{ $achievement->validation_status === 'Disetujui' ? 'disetujui' : 'ditolak' }}. Upload dokumen tidak diperbolehkan.</p>
+            </div>
+        </div>
+        <div class="mt-4 flex justify-end">
+            <a href="{{ $backRoute }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                Kembali
+            </a>
+        </div>
+    </div>
+    @endif
+
+    <!-- Existing Documents - Always show if there are documents -->
+    @if($achievement->documents->isNotEmpty() || $achievement->certificate)
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Dokumen yang Sudah Diunggah</h3>
+            <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full">
+                {{ ($achievement->documents->count() + ($achievement->certificate ? 1 : 0)) }} Dokumen
+            </span>
+        </div>
+        
+        <!-- Certificate (from student_achievements table) -->
+        @if($achievement->certificate)
+        <div class="mb-6">
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
+                    <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                </svg>
+                Sertifikat Utama
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3">
+                        @php
+                            $ext = pathinfo($achievement->certificate, PATHINFO_EXTENSION);
+                            $isImage = in_array(strtolower($ext), ['jpg', 'jpeg', 'png']);
+                        @endphp
+                        
+                        @if($isImage)
+                            <img src="{{ asset('storage/' . $achievement->certificate) }}" alt="Sertifikat" class="w-20 h-20 object-cover rounded-lg">
+                        @else
+                            <div class="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-10 h-10 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/>
+                                </svg>
+                            </div>
+                        @endif
+                        
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">Sertifikat</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: {{ strtoupper($ext) }}</p>
+                            <a href="{{ asset('storage/' . $achievement->certificate) }}" target="_blank" 
+                                class="inline-flex items-center gap-1 mt-2 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                Lihat/Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+        
+        <!-- Additional Documents (from achievement_documents table) -->
+        @if($achievement->documents->isNotEmpty())
+        <div>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                </svg>
+                Dokumen Pendukung
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach($achievement->documents as $document)
+                    <x-document-card :document="$document" :deletable="!in_array($achievement->validation_status, ['Disetujui', 'Ditolak'])" />
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+    @else
+    <!-- No documents uploaded yet -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <div class="text-center py-8">
+            <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Belum ada dokumen yang diupload</p>
+            <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">Upload dokumen pendukung untuk melengkapi pengajuan prestasi</p>
         </div>
     </div>
     @endif
@@ -347,9 +455,9 @@ function documentUploader() {
                 if (response.ok) {
                     // Success - redirect to appropriate page based on role
                     @if($isAdmin)
-                        window.location.href = '{{ route("admin.achievements.validation.index") }}';
+                        window.location.href = '{{ route("admin.student-achievements") }}';
                     @elseif($isValidator)
-                        window.location.href = '{{ route("validator.dashboard") }}';
+                        window.location.href = '{{ route("validator.pending.index") }}';
                     @else
                         window.location.href = '{{ route("student.dashboard") }}';
                     @endif

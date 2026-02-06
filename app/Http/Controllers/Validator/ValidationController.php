@@ -39,10 +39,7 @@ class ValidationController extends Controller
             'validator_id' => auth()->id(),
         ]);
 
-        // Get available SK documents for selection
-        $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
-
-        return view('validator.achievements.show', compact('achievement', 'checklist', 'skDocuments'));
+        return view('validator.achievements.show', compact('achievement', 'checklist'));
     }
 
     public function documents(StudentAchievement $achievement)
@@ -115,7 +112,7 @@ class ValidationController extends Controller
                 default => 'Status berhasil diperbarui.',
             };
 
-            return redirect()->route('validator.dashboard')->with('success', $message);
+            return redirect()->route('validator.pending.index')->with('success', $message);
         }
 
         return back()->with('error', 'Gagal memproses validasi.');
@@ -187,5 +184,29 @@ class ValidationController extends Controller
                 ];
             }),
         ]);
+    }
+
+    /**
+     * Verify document (legacy support)
+     */
+    public function verifyDocument(AchievementDocument $document)
+    {
+        $validator = auth()->user();
+
+        // Check faculty access
+        $achievement = $document->achievement;
+        if ($validator->role === 'Validator' && $validator->faculty) {
+            if ($achievement->student->faculty !== $validator->faculty) {
+                abort(403, 'Anda tidak memiliki akses untuk verifikasi dokumen dari fakultas lain.');
+            }
+        }
+
+        $document->update([
+            'status' => AchievementDocument::STATUS_APPROVED,
+            'verified_by' => $validator->id,
+            'verified_at' => now(),
+        ]);
+
+        return back()->with('success', 'Dokumen berhasil diverifikasi.');
     }
 }

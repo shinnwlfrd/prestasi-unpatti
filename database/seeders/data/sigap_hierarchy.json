@@ -1,0 +1,930 @@
+[
+    {
+        "id": "a4ed52fa-8dba-4f0b-a2d5-a93557e2ac62",
+        "kode": "020000",
+        "nama": "Fakultas Hukum",
+        "nama_en": "FHUKUM",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "7c40db5c-0765-49d5-9147-f57c16f8cfa2",
+                "kode": "020200",
+                "nama": "Jurusan Ilmu Hukum",
+                "nama_en": "Jur. IL. Hukum",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "c8fa82ea-ce38-47f9-be29-c9ecca2e6ae0",
+                        "kode": "020201",
+                        "nama": "Program Studi Ilmu Hukum",
+                        "nama_en": "Prodi IL. Hukum",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "a6b45560-d1b7-41a8-a8b3-3d5aed11e629",
+                        "kode": "020203",
+                        "nama": "Program Studi Hukum - PSDKU Kab. Aru",
+                        "nama_en": "Prodi Hukum PSDKU Aru",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "19d38c74-6e1a-402b-ad88-1589d45f9f5e",
+                        "kode": "020202",
+                        "nama": "Program Studi Hukum - PSDKU Kab. MBD",
+                        "nama_en": "Prodi Hukum PSDKU MBD",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "1700a34c-185d-4c86-a19e-c0a4bcc48d9d",
+        "kode": "030000",
+        "nama": "Fakultas Ilmu Sosial dan Ilmu Politik",
+        "nama_en": "FISIP",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "f89917b0-2d8f-472c-8f87-8b4fba3fd715",
+                "kode": "030300",
+                "nama": "Jurusan Ilmu Sosiologi FISIP",
+                "nama_en": "Jur. IL. Sosiologi FISIP",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "49573a15-05ee-461f-9f8c-56380f30a1a4",
+                        "kode": "030301",
+                        "nama": "Program Studi Sosiologi",
+                        "nama_en": "Prodi Sosiologi",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "abdc99e8-0a3a-4849-a3b2-5c2845c54ba1",
+                "kode": "030200",
+                "nama": "Jurusan Ilmu Administrasi FISIP",
+                "nama_en": "Jur. IL. Adm FISIP",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "ee5b5cfd-95f3-404a-8c6c-7db23fb77474",
+                        "kode": "030201",
+                        "nama": "Program Studi Ilmu Administrasi Negara",
+                        "nama_en": "Prodi IL. Adm",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "30babb79-1f5f-4c93-8816-849d1ad3b4db",
+                        "kode": "030203",
+                        "nama": "Program Studi Ilmu Komunikasi",
+                        "nama_en": "Prodi. ILKOM",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "9b00452f-1efe-468c-876d-847e6538f225",
+                        "kode": "030202",
+                        "nama": "Program Studi Ilmu Pemerintahan",
+                        "nama_en": "Prodi IL. Pemerintahan",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "2ba7231c-2305-4efa-adf5-1283951000b4",
+        "kode": "040000",
+        "nama": "Fakultas Keguruan dan Ilmu Pendidikan",
+        "nama_en": "FKIP",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "4807aeda-adbd-41cc-b21e-7cc23f604eb8",
+                "kode": "040200",
+                "nama": "Jurusan Pendidikan Matematika dan Ilmu Pengetahuan Alam",
+                "nama_en": "Jur. Pend. MIPA",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "587435c0-909a-4278-9322-cb9abe3d79ac",
+                        "kode": "040202",
+                        "nama": "Program Studi Pendidikan Matematika PSDKU Kab. MBD",
+                        "nama_en": "Prodi Pend. Matek PSDKU MBD",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "1ca766b3-3775-4b3e-9275-fa9c9ca1f3e7",
+                        "kode": "040203",
+                        "nama": "Program Studi Pendidikan Matematika PSDKU Kab. ARU",
+                        "nama_en": "Prodi Pend. Matek PSDKU ARU",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "c6044325-147d-4f43-a8cf-29c97f3b96a0",
+                        "kode": "040206",
+                        "nama": "Program Studi Pendidikan Kimia",
+                        "nama_en": "Prodi Pend. Kimia",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "a860a447-149e-404f-974f-de4e084974e7",
+                        "kode": "040204",
+                        "nama": "Program Studi Pendidikan Fisika",
+                        "nama_en": "Prodi Pend. Fisika",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "730bcd66-3a74-40f3-a32c-15c5ae7047b2",
+                        "kode": "040201",
+                        "nama": "Program Studi Pendidikan Matematika",
+                        "nama_en": "Prodi Pend. Matek",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "1456fe21-ac7e-45b5-b28c-c75a1e8f29ae",
+                        "kode": "040205",
+                        "nama": "Program Studi Pendidikan Biologi",
+                        "nama_en": "Prodi Pend. Biologi",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "55c3ea5a-961e-4149-b2b0-f956f212f811",
+                "kode": "040300",
+                "nama": "Jurusan Pendidikan Ilmu Pengetahuan Sosial",
+                "nama_en": "Jur. Pend. IPS",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "80527eb3-1502-4e52-b18d-70b52b838381",
+                        "kode": "040303",
+                        "nama": "Program Studi Pendidikan Pancasila dan Kewarganegaraan",
+                        "nama_en": "Prodi PPKn",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "7011c1ed-6e78-4b6b-ac0c-b882ba755f08",
+                        "kode": "040304",
+                        "nama": "Program Studi Pendidikan Ekonomi",
+                        "nama_en": "Prodi Pend. Ekonomi",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "6aabd996-5d87-42da-92b3-dc692434924a",
+                        "kode": "040302",
+                        "nama": "Program Studi Pendidikan Geografi",
+                        "nama_en": "Prodi Pend. Geografi",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "05c575e0-bd21-4635-803b-68ef37401a96",
+                        "kode": "040301",
+                        "nama": "Program Studi Pendidikan Sejarah",
+                        "nama_en": "Prodi Pend. Sejarah",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "cd614c50-bb06-463a-be8e-04c191308b77",
+                        "kode": "040305",
+                        "nama": "Program Studi Pendidikan Akuntansi",
+                        "nama_en": "Prodi Pend. Akuntansi",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "d5f68a16-c0e4-4c10-9892-6ff8d239e1af",
+                "kode": "040500",
+                "nama": "Jurusan Ilmu Pendidikan",
+                "nama_en": "Jur. IL. Pend.",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "2815b19b-d969-4301-917b-56c5981b96a5",
+                        "kode": "040503",
+                        "nama": "Program Studi Pendidikan Guru Sekolah Dasar PSDKU Kabupaten Aru",
+                        "nama_en": "Prodi PGSD PSDKU Aru",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "ef0d2b3f-351d-43a0-abb5-4806f3bcf059",
+                        "kode": "040507",
+                        "nama": "Program Studi Bimbingan dan Konseling",
+                        "nama_en": "Prodi BK",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "049c30fc-c600-45b0-bc15-ddfe80ba27bf",
+                        "kode": "040504",
+                        "nama": "Program Studi Pendidikan Luar Sekolah",
+                        "nama_en": "Prodi PLS",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "19ea4d8d-702d-49e7-831d-070bc9a1c569",
+                        "kode": "040508",
+                        "nama": "Program Studi Administrasi Pendidikan",
+                        "nama_en": "Prodi Adm. Pendidikan",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "213f7346-aa63-4d24-ba2a-79252486d205",
+                        "kode": "040509",
+                        "nama": "Program Studi Pendidikan Profesi Guru",
+                        "nama_en": "Prodi PPG",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "936748a1-3c26-4f25-93b7-1acc7e8790aa",
+                        "kode": "040502",
+                        "nama": "Program Studi Pendidikan Guru Sekolah Dasar PSDKU Kabupaten MBD",
+                        "nama_en": "Prodi PGSD PSDKU MBD",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "44bb2bba-f460-4cde-a4df-c7f3e2a8176e",
+                        "kode": "040505",
+                        "nama": "Program Studi Pendidikan Jasmani, Kesehatan dan Rekreasi",
+                        "nama_en": "Prodi Penjaskesrek",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "c566ead9-939d-4a60-8d56-b4414d53d3e8",
+                        "kode": "040501",
+                        "nama": "Program Studi Pendidikan Guru Sekolah Dasar",
+                        "nama_en": "Prodi. PGSD",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "d835a641-682a-43eb-874a-4d3f8ec7bb20",
+                        "kode": "040506",
+                        "nama": "Program Studi Pendidikan Jasmani, Kesehatan dan Rekreasi PSDKU Kabupten Aru",
+                        "nama_en": "Prodi Penjaskesrek PSDKU Aru",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "8a8d5468-7a9a-4899-ba4f-8bdd980a3939",
+                "kode": "040400",
+                "nama": "Jurusan Pendidikan Bahasa dan Seni",
+                "nama_en": "Jur. Pend. Bahasa dan Seni",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "873e8553-b4cf-4ca8-8402-82e53bac0305",
+                        "kode": "040404",
+                        "nama": "Program Studi Pendidikan Bahasa Inggris PSDKU Kabupaten Aru",
+                        "nama_en": "Prodi. Pend. Bhs. Inggris PSDKU ARU",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "e4551b3e-ab06-44ed-b153-3e7a376a60c2",
+                        "kode": "040401",
+                        "nama": "Program Studi Pendidikan Bahasa dan Sastra Indonesia",
+                        "nama_en": "Prodi. Pend. Bahasa dan Sastra Indonesia",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "9220cab3-403a-4888-824f-e266abe571ea",
+                        "kode": "040402",
+                        "nama": "Program Studi Pendidikan Bahasa Inggris",
+                        "nama_en": "Prodi. Pend. Bhs. Inggris",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "dacae197-0004-4b57-b30f-f38a19e1f5ad",
+                        "kode": "040405",
+                        "nama": "Program Studi Pendidikan Bahasa Jerman",
+                        "nama_en": "Prodi. Pend. Bhs. Jerman",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "edda1589-15be-45b9-9130-70adc4affa9b",
+                        "kode": "040403",
+                        "nama": "Program Studi Pendidikan Bahasa Inggris PSDKU Kabupaten MBD",
+                        "nama_en": "Prodi. Pend. Bhs. Inggris PSDKU MBD",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "887154e9-a017-44d4-bc7c-12f3e3894303",
+        "kode": "050000",
+        "nama": "Fakultas Ekonomi dan Bisnis",
+        "nama_en": "FEBIS",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "338f82e6-2697-4ac6-b23e-2a64bb8931cb",
+                "kode": "050400",
+                "nama": "Jurusan Ekonomi Pembangunan",
+                "nama_en": "Jur. EP",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "179d6300-4a7b-4cd8-a68b-5dc5fe74b6ab",
+                        "kode": "050401",
+                        "nama": "Program Studi Ekonomi Pembangunan",
+                        "nama_en": "Prodi EP",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "d12dfa4c-805c-4f49-9fc1-492951bc71de",
+                "kode": "050200",
+                "nama": "Jurusan Akuntansi",
+                "nama_en": "Jur. Akuntansi",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "7c17d119-e815-457c-aac8-1d9be0cec3d0",
+                        "kode": "050203",
+                        "nama": "Program Studi Akuntansi PSDKU Kabupaten Aru",
+                        "nama_en": "Prodi Akuntansi PSDKU ARU",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "13c7ce2e-adb7-4985-999f-f518e25f7855",
+                        "kode": "050201",
+                        "nama": "Program Studi Akuntansi",
+                        "nama_en": "Prodi. Akuntansi",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "24bc11d3-71d5-449f-b6b4-29fe69a41320",
+                        "kode": "050202",
+                        "nama": "Program Studi Akuntansi PSDKU Kabupaten MBD",
+                        "nama_en": "Prodi Akuntansi PSDKU MBD",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "9000ff9b-9152-4657-99a1-2f58cbc2f5f9",
+                "kode": "050300",
+                "nama": "Jurusan Manajemen",
+                "nama_en": "Jur. Manajemen",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "85fbf8ae-33cb-4150-ad6c-960bc8b17330",
+                        "kode": "050301",
+                        "nama": "Program Studi Manajemen",
+                        "nama_en": "Prodi Manajemen",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "43af3547-2c2e-48e3-a973-14a9a84cf625",
+        "kode": "060000",
+        "nama": "Fakultas Pertanian",
+        "nama_en": "FAPERTA",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "3a296f43-1aef-4240-8993-13c34f312215",
+                "kode": "060300",
+                "nama": "Jurusan Kehutanan",
+                "nama_en": "Jur. Kehutanan",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "94a169fd-71e7-4e6e-8d58-0fa9808cacd3",
+                        "kode": "060303",
+                        "nama": "Program Studi Ilmu Lingkungan",
+                        "nama_en": "Prodi IL. Lingkungan",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "fad35083-2869-49de-bb67-659f91452353",
+                        "kode": "060302",
+                        "nama": "Program Studi Pengelolaan Hutan",
+                        "nama_en": "Prodi Peng. Hutan",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "d63782df-01ef-4d31-96cd-6f76b74602dc",
+                        "kode": "060301",
+                        "nama": "Program Studi Kehutanan",
+                        "nama_en": "Prodi Kehutanan",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "78d912b2-b216-4343-8270-4c5c9df38f58",
+                "kode": "060500",
+                "nama": "Jurusan Sosial Ekonomi Pertanian",
+                "nama_en": "Jur. Sosek Pertanian",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "43be0323-53bd-4f39-94ef-398d2923d6fc",
+                        "kode": "060501",
+                        "nama": "Program Studi Agribisnis",
+                        "nama_en": "Prodi Agribisnis",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "501bfed6-e8b8-46e2-a87a-8ae863e7275e",
+                        "kode": "060502",
+                        "nama": "Program Studi Penyuluhan Pertanian",
+                        "nama_en": "Prodi Penyuluhan Pertanian",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "8fb38a7c-6f59-4e4e-bbd0-3ad84756be77",
+                "kode": "060200",
+                "nama": "Jurusan Budidaya Pertanian",
+                "nama_en": "Jur. BDPer",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "2e9a3706-1a07-438a-8271-2e117cd0c8c0",
+                        "kode": "060201",
+                        "nama": "Program Studi Agroteknologi",
+                        "nama_en": "Prodi Agrotek",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "6c210119-f4a8-4471-b860-a2646a7a00e3",
+                        "kode": "060202",
+                        "nama": "Program Studi Ilmu Tanah",
+                        "nama_en": "Prodi IL. Tanah",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "ed0a28a7-1694-4280-b31e-05ce1f74b90a",
+                        "kode": "060203",
+                        "nama": "Program Studi Pemuliaan Tanaman",
+                        "nama_en": "Prodi. Pemuliaan Tanaman",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "1da676a1-e8f9-4776-98d7-1ada302f4e9d",
+                "kode": "060600",
+                "nama": "Jurusan Teknologi Hasil Pertanian",
+                "nama_en": "Jur. THPer",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "766a9a4a-47e0-4180-bb8a-943a1a6f0121",
+                        "kode": "060601",
+                        "nama": "Program Studi Teknologi Hasil Pertanian",
+                        "nama_en": "Prodi THPer",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "fc8c24be-5b7d-48c5-ab7c-9c8ce466ee6a",
+                "kode": "060400",
+                "nama": "Jurusan Peternakan",
+                "nama_en": "Jur. Peternakan",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "dd876316-48c5-4422-815c-b36e36afd378",
+                        "kode": "060401",
+                        "nama": "Program Studi Peternakan",
+                        "nama_en": "Prodi Peternakan",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "d6699f44-35ab-45fa-9e57-8f733801c03a",
+                        "kode": "060402",
+                        "nama": "Program Studi Peternakan PSDKU Kab. MBD",
+                        "nama_en": "Prodi Peternakan PSDKU MBD",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "66f434e9-53f5-42d1-8408-e99639fb4a82",
+        "kode": "070000",
+        "nama": "Fakultas Teknik",
+        "nama_en": "FATEK",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "ffce9448-eca4-4bc2-911d-5de3c496b8a8",
+                "kode": "070400",
+                "nama": "Jurusan Teknik Industri",
+                "nama_en": "Jur. TI",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "85063c05-9ef5-4d94-a3c1-8f6e89902aff",
+                        "kode": "070401",
+                        "nama": "Program Studi Teknik Industri",
+                        "nama_en": "Prodi. TI",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "e1f26db1-53a7-4340-800e-688cbbe13a8e",
+                "kode": "070200",
+                "nama": "Jurusan Teknik Perkapalan",
+                "nama_en": "Jur. T. Perkapalan",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "c92a077c-8e0c-41ef-b9bd-49f4bf16729a",
+                        "kode": "070202",
+                        "nama": "Program Studi Teknik Sipil",
+                        "nama_en": "Prodi T. Sipil",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "44941e1b-da4e-4df3-bcd0-b687f224ff13",
+                        "kode": "070201",
+                        "nama": "Program Studi Teknik Perkapalan",
+                        "nama_en": "Prodi T. Perkapalan",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "2ca157a0-cb54-4547-8380-0949f2e0a9cb",
+                        "kode": "070203",
+                        "nama": "Program Studi Teknik Transportasi Laut",
+                        "nama_en": "Prodi T. Transla",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "b0f32cee-be30-4a9b-aa94-0ae79479d820",
+                "kode": "070300",
+                "nama": "Jurusan Teknik Mesin",
+                "nama_en": "Jur. T. Mesin",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "f885fb0f-23d0-4047-bfd1-409544221321",
+                        "kode": "070301",
+                        "nama": "Program Studi Teknik Mesin",
+                        "nama_en": "Prodi T. Mesin",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "26a61bc8-1205-458b-88b2-4b6494fb0d4a",
+                        "kode": "070302",
+                        "nama": "Program Studi Teknik Sistem Perkapalan",
+                        "nama_en": "Prodi T. Sistem Perkapalan",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "7bd391b3-18b0-4f37-9df5-fdb5a11287dd",
+                        "kode": "070303",
+                        "nama": "Program Studi Perencanaan Wilayah dan Kota",
+                        "nama_en": "Prodi PWK",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "88086f7b-116f-40ca-aa82-225e2cb4a825",
+                "kode": "070500",
+                "nama": "Jurusan Teknik Geologi",
+                "nama_en": "Jur. T. Geologi",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "65cb7833-f58f-4dbd-a08b-34ca2bc74ecd",
+                        "kode": "070502",
+                        "nama": "Program Studi Teknik Perminyakan",
+                        "nama_en": "Prodi. T. Perminyakan",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "eeeec17c-89c0-48c4-b6ee-ef444823622a",
+                        "kode": "070501",
+                        "nama": "Program Studi Teknik Geologi",
+                        "nama_en": "Prodi. T. Geologi",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "bc3e8280-0119-4ef7-9670-f3a91f333bda",
+                        "kode": "070504",
+                        "nama": "Program Studi Teknik Kimia",
+                        "nama_en": "Prodi. T. Kimia",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "0769a1e7-1ca3-497b-b5bb-d9a2a79ebbd4",
+                        "kode": "070503",
+                        "nama": "Program Studi Teknik Geofisika",
+                        "nama_en": "Prodi. T. Geofisika",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "82359af7-6df2-414b-b869-e8d4d7f0f476",
+        "kode": "080000",
+        "nama": "Fakultas Perikanan dan Ilmu Kelautan",
+        "nama_en": "FPIK",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "bfea4ac4-5b2e-4d70-bbbb-517a239b2b3c",
+                "kode": "080600",
+                "nama": "Jurusan Teknologi Hasil Perikanan",
+                "nama_en": "Jur. THPik",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "a393816f-7118-4471-8cf2-4386409b50f7",
+                        "kode": "080601",
+                        "nama": "Program Studi Teknologi Hasil Perikanan",
+                        "nama_en": "Prodi. THPik",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "25fa2e96-aa91-4ac8-975e-582e8cfa930e",
+                "kode": "080700",
+                "nama": "Jurusan Agrobisnis Perikanan",
+                "nama_en": "Jur. AGP",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "23e84bdf-56c8-486a-8617-1bc690658bf0",
+                        "kode": "080701",
+                        "nama": "Program Studi Agrobisnis Perikanan",
+                        "nama_en": "Prodi. AGP",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "459a2345-b98c-4025-b97f-3e034d8c1d0a",
+                "kode": "080200",
+                "nama": "Jurusan Manajemen Sumberdaya Perairan",
+                "nama_en": "Jur. MSP",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "dfa49e1e-57de-4fd3-8484-4c31d1e1db7f",
+                        "kode": "080201",
+                        "nama": "Program Studi Manajemen Sumberdaya Perairan",
+                        "nama_en": "Prodi. MSP",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "bbebcb5a-1a76-4c01-9ada-6737b9b24bdd",
+                "kode": "080400",
+                "nama": "Jurusan Budidaya Perairan",
+                "nama_en": "Jur. BDPik",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "bf2960ef-ddd5-438a-85da-af5878051796",
+                        "kode": "080401",
+                        "nama": "Program Studi Budidaya Perairan",
+                        "nama_en": "Prodi. BDPik",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "2a725af0-d164-41d8-9d2c-cdf08a5196c3",
+                "kode": "080500",
+                "nama": "Jurusan Pemanfaatan Sumberdaya Perikanan",
+                "nama_en": "Jur. PSP",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "57d49ef8-8dbc-426a-8009-5a5c4088ba01",
+                        "kode": "080501",
+                        "nama": "Program Studi Pemanfaatan Sumberdaya Perikanan",
+                        "nama_en": "Prodi. PSP",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "be860a72-8367-47d7-9d86-5dc58f770803",
+                "kode": "080300",
+                "nama": "Jurusan Ilmu Kelautan",
+                "nama_en": "Jur. IK",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "96f2d786-df54-40e6-b8cc-f8de394f866d",
+                        "kode": "080301",
+                        "nama": "Program Studi Ilmu Kelautan",
+                        "nama_en": "Prodi IK",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "527f9a80-c4cd-4c40-97cf-5f126a614a46",
+        "kode": "090000",
+        "nama": "Fakultas Sains dan Teknologi",
+        "nama_en": "FST",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "8e75f5ab-8ee2-497e-a77b-83b9a40305bb",
+                "kode": "090400",
+                "nama": "Jurusan Biologi",
+                "nama_en": "Jur. Biologi",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "58bfd39c-82f7-4648-82d7-adbcb4399afd",
+                        "kode": "090401",
+                        "nama": "Program Studi Biologi",
+                        "nama_en": "Prodi. Biologi",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "aa6abed7-03a5-4671-8783-9279589f1a22",
+                        "kode": "090402",
+                        "nama": "Program Studi Bioteknologi",
+                        "nama_en": "Prodi. Biotek",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "49db53a8-0c5e-4ddf-9d7c-81b8c6c2ac43",
+                        "kode": "090403",
+                        "nama": "Program Studi Sains Biomedis",
+                        "nama_en": "Prodi. Sains Biomedis",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "d1a58887-cafa-47f5-ac5b-0fe182cdd6bd",
+                "kode": "090200",
+                "nama": "Jurusan Matematika",
+                "nama_en": "Jur. Matematika",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "b5595c09-7e30-47ce-a379-928e41875df4",
+                        "kode": "090202",
+                        "nama": "Program Studi Statistika",
+                        "nama_en": "Prodi. Statistika",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "15c851a3-03b9-44f8-9ed9-50ebc301bf95",
+                        "kode": "090201",
+                        "nama": "Program Studi Matematika",
+                        "nama_en": "Prodi. Matematika",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "8f3bbace-1172-490a-b337-7c0757c9a431",
+                        "kode": "090203",
+                        "nama": "Program Studi Ilmu Komputer",
+                        "nama_en": "Prodi. Ikom",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "debd5a6b-68f9-4151-9ab7-e52717576080",
+                "kode": "090300",
+                "nama": "Jurusan Fisika",
+                "nama_en": "Jur. Fisika",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "b2c16306-5ebd-41ce-81d9-141b90404606",
+                        "kode": "090301",
+                        "nama": "Program Studi Fisika",
+                        "nama_en": "Prodi. Fisika",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "f9f03fa8-8633-4a64-8c1d-4a93d8b9bf21",
+                        "kode": "090303",
+                        "nama": "Program Studi Keselamatan dan Kesehatan Kerja",
+                        "nama_en": "Prodi K3",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "9dc2bc1c-8602-4c50-9ccd-648b523bd820",
+                        "kode": "090302",
+                        "nama": "Program Studi Rekayasa Instrumentasi dan Otomasi",
+                        "nama_en": "Prodi RIO",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "d344e4f8-f0b8-4271-b885-e6bbbd853c0e",
+                "kode": "090500",
+                "nama": "Jurusan Kimia",
+                "nama_en": "Jur. Kimia",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "9bf3015b-ad1d-4ec0-b5a5-7e595ac9fc41",
+                        "kode": "090502",
+                        "nama": "Program Studi Farmasi",
+                        "nama_en": "Prodi. Farmasi",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "27cfe69f-199b-4949-9e80-0db9dfd2de78",
+                        "kode": "090501",
+                        "nama": "Program Studi Kimia",
+                        "nama_en": "Prodi. Kimia",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "eca407f8-a9f1-4200-956a-86e6288cdaa3",
+        "kode": "100000",
+        "nama": "Fakultas Kedokteran",
+        "nama_en": "FKEDOK",
+        "jenis_unit": "fakultas",
+        "departments": [
+            {
+                "id": "c6c97dec-f95a-4c8d-9197-611ca0ac45d3",
+                "kode": "100200",
+                "nama": "Jurusan Pendidikan Dokter",
+                "nama_en": "Jur. Pend. Dokter",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "b36d73a3-16ff-4fa2-a4d8-598a42129ef1",
+                        "kode": "100202",
+                        "nama": "Program Studi Profesi Dokter",
+                        "nama_en": "Prodi. Profesi Dokter",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "31c16b12-ef14-4f87-b616-e5b6d0e2a158",
+                        "kode": "100201",
+                        "nama": "Program Studi Pendidikan Dokter",
+                        "nama_en": "Prodi. Pend. Dokter",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            },
+            {
+                "id": "d14f4d8c-1b5f-4739-9bf0-4d6548d08440",
+                "kode": "100300",
+                "nama": "Jurusan Pendidikan Dokter Gigi",
+                "nama_en": "Jur. Pend. Dokter Gigi",
+                "jenis_unit": "Jurusan",
+                "study_programs": [
+                    {
+                        "id": "5861ea10-013d-4170-827a-ec6550baa6f4",
+                        "kode": "100302",
+                        "nama": "Program Studi Profesi Dokter Gigi",
+                        "nama_en": "Prodi. Profesi Dokter Gigi",
+                        "jenis_unit": "Program Studi"
+                    },
+                    {
+                        "id": "32a3184b-5fab-4e86-b116-b1ba5174e95d",
+                        "kode": "100301",
+                        "nama": "Program Studi Pendidikan Dokter Gigi",
+                        "nama_en": "Prodi. Pend. Dokter Gigi",
+                        "jenis_unit": "Program Studi"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "ac59494f-5751-468d-a6bb-36ef844c55e8",
+        "kode": "110000",
+        "nama": "Program Pascasarjana",
+        "nama_en": "PPS",
+        "jenis_unit": "Fakultas",
+        "departments": []
+    }
+]

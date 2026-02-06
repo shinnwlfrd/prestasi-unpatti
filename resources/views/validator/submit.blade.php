@@ -1,17 +1,12 @@
-@extends('layouts.app')
+@extends('layouts.validator')
 
 @section('title', 'Ajukan Prestasi Mahasiswa')
-@section('subtitle', 'Panel Validator')
-
-@php
-    $userName = auth()->user()->name ?? 'Validator';
-@endphp
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6 animate-fade-in">
     <!-- Back Button -->
     <div>
-        <a href="{{ route('validator.dashboard') }}"
+        <a href="{{ route('validator.pending.index') }}"
             class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -42,36 +37,27 @@
         @csrf
         
         <div class="space-y-6">
-            <!-- Student Selection -->
+            <!-- Student Selection with Multi-Select Search -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Mahasiswa <span class="text-red-500">*</span>
-                </label>
-                <select name="student_id" required
-                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('student_id') border-red-500 @enderror">
-                    <option value="">Pilih Mahasiswa</option>
-                    @foreach($students as $student)
-                        <option value="{{ $student->student_id }}" {{ old('student_id') == $student->student_id ? 'selected' : '' }}>
-                            {{ $student->name }} - {{ $student->student_id }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('student_id')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
+                <x-student-search-select 
+                    name="student_ids" 
+                    :required="true" 
+                    :error="$errors->first('student_ids')" 
+                    :multiple="true"
+                />
             </div>
 
             <!-- Achievement Category -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Kategori Prestasi <span class="text-red-500">*</span>
+                    Jenis Prestasi <span class="text-red-500">*</span>
                 </label>
                 <select name="achievement_id" required
                     class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('achievement_id') border-red-500 @enderror">
-                    <option value="">Pilih Kategori</option>
+                    <option value="">Pilih Jenis Prestasi</option>
                     @foreach($achievements as $achievement)
                         <option value="{{ $achievement->id }}" {{ old('achievement_id') == $achievement->id ? 'selected' : '' }}>
-                            {{ $achievement->category->name ?? 'N/A' }}
+                            {{ $achievement->name }} ({{ $achievement->category->name ?? 'N/A' }})
                         </option>
                     @endforeach
                 </select>
@@ -404,7 +390,7 @@
 
         <!-- Submit Button -->
         <div class="mt-8 flex justify-end gap-3">
-            <a href="{{ route('validator.dashboard') }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <a href="{{ route('validator.pending.index') }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                 Batal
             </a>
             <button type="submit" :disabled="loading"
@@ -422,4 +408,6 @@
 <style>
     [x-cloak] { display: none !important; }
 </style>
+
+@stack('scripts')
 @endsection

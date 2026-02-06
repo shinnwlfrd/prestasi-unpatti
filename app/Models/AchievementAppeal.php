@@ -13,15 +13,19 @@ class AchievementAppeal extends Model
         'sa_id',
         'student_id',
         'appeal_reason',
+        'additional_notes',
         'publication_link',
         'status',
         'reviewed_by',
         'review_notes',
+        'admin_notes',
         'reviewed_at',
+        'submitted_at',
     ];
 
     protected $casts = [
         'reviewed_at' => 'datetime',
+        'submitted_at' => 'datetime',
     ];
 
     const STATUS_PENDING = 'pending';

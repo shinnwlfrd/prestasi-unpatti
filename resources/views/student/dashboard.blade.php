@@ -6,10 +6,12 @@
 @php
     $userName = $student->name ?? 'Mahasiswa';
     $totalAchievements = $achievements->count();
-    $approved = $achievements->where('validation_status', 'Disetujui')->count();
-    $pending = $achievements->where('validation_status', 'Menunggu')->count();
-    $rejected = $achievements->where('validation_status', 'Ditolak')->count();
-    $needRevision = $achievements->where('validation_status', 'Revisi')->count();
+    
+    // Count by status - support both legacy and new statuses
+    $approved = $achievements->whereIn('validation_status', ['Disetujui', 'university_approved'])->count();
+    $pending = $achievements->whereIn('validation_status', ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review'])->count();
+    $rejected = $achievements->whereIn('validation_status', ['Ditolak', 'faculty_rejected', 'university_rejected'])->count();
+    $needRevision = $achievements->whereIn('validation_status', ['Revisi', 'faculty_revision'])->count();
 @endphp
 
 @section('content')
@@ -101,16 +103,30 @@
                         @forelse($achievements as $item)
                             @php
                                 $statusConfig = [
+                                    // Legacy statuses
                                     'Disetujui' => ['label' => 'Disetujui', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
                                     'Ditolak' => ['label' => 'Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
                                     'Menunggu' => ['label' => 'Menunggu', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
                                     'Revisi' => ['label' => 'Perlu Revisi', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
+                                    // Two-stage validation statuses
+                                    'draft' => ['label' => 'Draft', 'class' => 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400', 'icon' => 'clock'],
+                                    'submitted' => ['label' => 'Diajukan', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'clock'],
+                                    'faculty_review' => ['label' => 'Review Fakultas', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
+                                    'faculty_approved' => ['label' => 'Disetujui Fakultas', 'class' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400', 'icon' => 'check'],
+                                    'faculty_rejected' => ['label' => 'Ditolak Fakultas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
+                                    'faculty_revision' => ['label' => 'Revisi Fakultas', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
+                                    'university_review' => ['label' => 'Review Universitas', 'class' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', 'icon' => 'clock'],
+                                    'university_approved' => ['label' => 'Disetujui Universitas', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
+                                    'university_rejected' => ['label' => 'Ditolak Universitas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
+                                    'appeal_submitted' => ['label' => 'Banding Diajukan', 'class' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', 'icon' => 'clock'],
+                                    'appeal_approved' => ['label' => 'Banding Diterima', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
+                                    'appeal_rejected' => ['label' => 'Banding Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
                                 ];
                                 $status = $statusConfig[$item->validation_status] ?? $statusConfig['Menunggu'];
                                 
                                 // Get latest validation log for rejection/revision reason
                                 $latestLog = $item->validationLogs()
-                                    ->whereIn('new_status', ['Ditolak', 'Revisi'])
+                                    ->whereIn('new_status', ['Ditolak', 'Revisi', 'faculty_rejected', 'faculty_revision', 'university_rejected'])
                                     ->latest('validated_at')
                                     ->first();
                             @endphp
@@ -155,8 +171,8 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
-                                        @if($item->validation_status === 'Menunggu')
-                                            <!-- Pending: Show Manage Documents button -->
+                                        @if(in_array($item->validation_status, ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review']))
+                                            <!-- Pending/In Review: Show Manage Documents button -->
                                             <button onclick="window.openDocModal({{ $item->sa_id }}, '{{ addslashes($item->event_name) }}', '{{ $item->achievement->category->name ?? '-' }}', '{{ $item->level }}', '{{ $item->certificate }}', {{ $item->documents->toJson() }}, true)" 
                                                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-sm font-medium">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +180,7 @@
                                                 </svg>
                                                 Kelola Dokumen
                                             </button>
-                                        @elseif(in_array($item->validation_status, ['Disetujui', 'Ditolak']))
+                                        @elseif(in_array($item->validation_status, ['Disetujui', 'Ditolak', 'university_approved', 'university_rejected', 'faculty_rejected']))
                                             <!-- Approved/Rejected: Show View Documents button (read-only) -->
                                             <button onclick="window.openDocModal({{ $item->sa_id }}, '{{ addslashes($item->event_name) }}', '{{ $item->achievement->category->name ?? '-' }}', '{{ $item->level }}', '{{ $item->certificate }}', {{ $item->documents->toJson() }}, false)" 
                                                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
@@ -174,8 +190,8 @@
                                                 </svg>
                                                 Lihat Dokumen
                                             </button>
-                                        @elseif($item->validation_status === 'Revisi')
-                                            <!-- Revision: Show Appeal button only -->
+                                        @elseif(in_array($item->validation_status, ['Revisi', 'faculty_revision']))
+                                            <!-- Revision: Show Appeal button -->
                                             <a href="{{ route('achievements.appeal.create', $item) }}" 
                                                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors text-sm font-medium">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

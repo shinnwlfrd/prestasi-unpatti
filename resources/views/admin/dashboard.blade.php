@@ -33,7 +33,7 @@
             <form method="GET" action="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
                 <select name="period" onchange="this.form.submit()" 
                     class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
-                    <option value="all" {{ !isset($selectedPeriod) || !$selectedPeriod ? 'selected' : '' }}>Semua Periode</option>
+                    <option value="all" {{ isset($periodComparison) && $periodComparison ? 'selected' : '' }}>Semua Periode</option>
                     @if(isset($periods))
                         @foreach($periods as $period)
                             <option value="{{ $period->id }}" {{ isset($selectedPeriod) && $selectedPeriod && $selectedPeriod->id == $period->id ? 'selected' : '' }}>
@@ -47,8 +47,8 @@
     </div>
 
     <!-- Active Period Info -->
-    @isset($activePeriod)
-    @if($activePeriod)
+    @isset($selectedPeriod)
+    @if($selectedPeriod)
     <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
         <div class="flex items-center gap-3">
             <div class="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-lg">
@@ -57,12 +57,67 @@
                 </svg>
             </div>
             <div>
-                <p class="text-sm font-medium text-purple-900 dark:text-purple-100">Periode Akademik Aktif:</p>
-                <p class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ $activePeriod->name }}</p>
+                <p class="text-sm font-medium text-purple-900 dark:text-purple-100">Periode Akademik {{ $selectedPeriod->is_active ? 'Aktif' : 'Terpilih' }}:</p>
+                <p class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ $selectedPeriod->name }}</p>
             </div>
             <div class="ml-auto text-right">
-                <p class="text-xs text-purple-600 dark:text-purple-400">{{ $activePeriod->start_date->format('d M Y') }} - {{ $activePeriod->end_date->format('d M Y') }}</p>
+                <p class="text-xs text-purple-600 dark:text-purple-400">{{ $selectedPeriod->start_date->format('d M Y') }} - {{ $selectedPeriod->end_date->format('d M Y') }}</p>
             </div>
+        </div>
+    </div>
+    @endif
+    @endisset
+
+    <!-- Period Comparison (only shown when "Semua Periode" selected) -->
+    @isset($periodComparison)
+    @if($periodComparison && $periodComparison->isNotEmpty())
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-blue-900 dark:text-blue-100">Perbandingan Semua Periode</p>
+                <p class="text-xs text-blue-600 dark:text-blue-400">Menampilkan data dari semua periode akademik</p>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-blue-100 dark:bg-blue-900/30">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-blue-900 dark:text-blue-100">Periode</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-blue-900 dark:text-blue-100">Total</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-blue-900 dark:text-blue-100">Disetujui</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-blue-900 dark:text-blue-100">Pending</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-blue-900 dark:text-blue-100">Ditolak</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-blue-200 dark:divide-blue-800">
+                    @foreach($periodComparison as $comp)
+                    <tr class="hover:bg-blue-100 dark:hover:bg-blue-900/20">
+                        <td class="px-3 py-2 text-blue-900 dark:text-blue-100 font-medium">{{ $comp->period }}</td>
+                        <td class="px-3 py-2 text-center text-blue-900 dark:text-blue-100">{{ $comp->total }}</td>
+                        <td class="px-3 py-2 text-center">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
+                                {{ $comp->approved }}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-center">
+                            <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-medium">
+                                {{ $comp->pending }}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-center">
+                            <span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-medium">
+                                {{ $comp->rejected }}
+                            </span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
     @endif
@@ -100,7 +155,7 @@
             </div>
             <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Prestasi</p>
             <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ number_format($stats['achievements']) }}</p>
-            <a href="{{ route('admin.achievements.validation.index') }}" class="text-purple-600 dark:text-purple-400 text-xs mt-2 inline-flex items-center gap-1 hover:gap-2 transition-all">
+            <a href="{{ route('admin.student-achievements') }}" class="text-purple-600 dark:text-purple-400 text-xs mt-2 inline-flex items-center gap-1 hover:gap-2 transition-all">
                 Lihat semua
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -138,12 +193,133 @@
             </div>
             <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Disetujui</p>
             <p class="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{{ number_format($statusStats['disetujui']) }}</p>
-            <a href="{{ route('admin.achievements.validation.index', ['tab' => 'approved']) }}" class="text-green-600 dark:text-green-400 text-xs mt-2 inline-flex items-center gap-1 hover:gap-2 transition-all">
+            <a href="{{ route('admin.student-achievements') }}" class="text-green-600 dark:text-green-400 text-xs mt-2 inline-flex items-center gap-1 hover:gap-2 transition-all">
                 Lihat semua
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </a>
+        </div>
+    </div>
+
+    <!-- Two-Stage Validation Queues -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- University Validation Queue -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                        </svg>
+                        Antrian Validasi Universitas
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Disetujui fakultas, menunggu validasi universitas</p>
+                </div>
+                @if(isset($universityPending) && $universityPending->isNotEmpty())
+                    <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-bold rounded-full">
+                        {{ $universityPending->count() }}
+                    </span>
+                @endif
+            </div>
+            @if(!isset($universityPending) || $universityPending->isEmpty())
+                <div class="text-center py-8">
+                    <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Tidak ada prestasi pending</p>
+                </div>
+            @else
+                <div class="space-y-3 max-h-[400px] overflow-y-auto">
+                    @foreach($universityPending as $achievement)
+                    <div class="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $achievement->event_name }}</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $achievement->student?->name }}</p>
+                                <span class="text-xs text-gray-400">•</span>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $achievement->student?->faculty_name }}</p>
+                            </div>
+                            <p class="text-xs text-purple-600 dark:text-purple-400 mt-0.5">
+                                Disetujui fakultas {{ $achievement->faculty_validated_at?->diffForHumans() }}
+                            </p>
+                        </div>
+                        <a href="{{ route('admin.university.show', $achievement) }}" 
+                            class="ml-3 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-lg font-medium transition-colors flex-shrink-0">
+                            Validasi
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <a href="{{ route('admin.university.index') }}" 
+                        class="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 font-medium flex items-center justify-center gap-1">
+                        Lihat Semua Antrian Universitas
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <!-- Appeal Queue -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        Antrian Banding
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Banding dari mahasiswa yang perlu direview</p>
+                </div>
+                @if(isset($appealsPending) && $appealsPending->isNotEmpty())
+                    <span class="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-full">
+                        {{ $appealsPending->count() }}
+                    </span>
+                @endif
+            </div>
+            @if(!isset($appealsPending) || $appealsPending->isEmpty())
+                <div class="text-center py-8">
+                    <svg class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Tidak ada banding pending</p>
+                </div>
+            @else
+                <div class="space-y-3 max-h-[400px] overflow-y-auto">
+                    @foreach($appealsPending as $appeal)
+                    <div class="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $appeal->studentAchievement?->event_name }}</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $appeal->studentAchievement?->student?->name }}</p>
+                                <span class="text-xs text-gray-400">•</span>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $appeal->studentAchievement?->student?->faculty_name }}</p>
+                            </div>
+                            <p class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                                Diajukan {{ $appeal->submitted_at?->diffForHumans() }}
+                            </p>
+                        </div>
+                        <a href="{{ route('admin.appeals.show', $appeal) }}" 
+                            class="ml-3 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg font-medium transition-colors flex-shrink-0">
+                            Review
+                        </a>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <a href="{{ route('admin.appeals.index') }}" 
+                        class="text-sm text-amber-600 hover:text-amber-700 dark:text-amber-400 font-medium flex items-center justify-center gap-1">
+                        Lihat Semua Banding
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -182,7 +358,7 @@
                             <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $alert->event_name }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $alert->student?->name }} • {{ $alert->submitted_at->diffInDays() }} hari</p>
                         </div>
-                        <a href="{{ route('admin.achievements.validation.show', ['achievement' => $alert, 'back' => url()->full()]) }}" 
+                        <a href="{{ route('admin.university.show', $alert) }}" 
                             class="ml-3 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg font-medium transition-colors flex-shrink-0">
                             Review
                         </a>
@@ -202,9 +378,9 @@
                         </svg>
                         Aktivitas & Prestasi Terbaru
                     </h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">3 validasi + 2 prestasi terakhir</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">5 aktivitas terakhir</p>
                 </div>
-                <a href="{{ route('admin.achievements.validation.index') }}" 
+                <a href="{{ route('admin.student-achievements') }}" 
                     class="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 font-medium flex items-center gap-1">
                     Lihat Semua
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,74 +397,102 @@
                 </div>
             @else
                 <div class="space-y-3 max-h-[400px] overflow-y-auto">
-                    @foreach($recentValidations->take(3) as $log)
-                    <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ $log->new_status === 'Disetujui' ? 'bg-green-100 dark:bg-green-900/30' : ($log->new_status === 'Ditolak' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-100 dark:bg-blue-900/30') }}">
-                            @if($log->new_status === 'Disetujui')
-                                <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            @elseif($log->new_status === 'Ditolak')
-                                <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                </svg>
-                            @else
-                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                </svg>
-                            @endif
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                                    Validasi
-                                </span>
-                                <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $log->new_status === 'Disetujui' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ($log->new_status === 'Ditolak' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400') }}">
-                                    {{ $log->new_status }}
-                                </span>
-                            </div>
-                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate mt-1">{{ $log->studentAchievement->event_name }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ $log->validator->name }} • {{ $log->validated_at->diffForHumans() }}
-                            </p>
-                        </div>
-                    </div>
-                    @endforeach
-
-                    @foreach($recentAchievements->take(2) as $achievement)
-                    <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="flex items-start gap-3 flex-1 min-w-0">
-                                <div class="flex-shrink-0 h-8 w-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-                                    <span class="text-purple-600 dark:text-purple-400 font-medium text-xs">{{ substr($achievement->student?->name ?? 'N', 0, 1) }}</span>
+                    @php
+                        // Combine validations and achievements, then sort by date and take 5
+                        $combinedActivities = collect();
+                        
+                        // Add validations with type marker
+                        foreach($recentValidations as $log) {
+                            $combinedActivities->push([
+                                'type' => 'validation',
+                                'data' => $log,
+                                'date' => $log->validated_at
+                            ]);
+                        }
+                        
+                        // Add achievements with type marker
+                        foreach($recentAchievements as $achievement) {
+                            $combinedActivities->push([
+                                'type' => 'achievement',
+                                'data' => $achievement,
+                                'date' => $achievement->created_at
+                            ]);
+                        }
+                        
+                        // Sort by date descending and take 5
+                        $combinedActivities = $combinedActivities->sortByDesc('date')->take(5);
+                    @endphp
+                    
+                    @foreach($combinedActivities as $activity)
+                        @if($activity['type'] === 'validation')
+                            @php $log = $activity['data']; @endphp
+                            <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ $log->new_status === 'Disetujui' ? 'bg-green-100 dark:bg-green-900/30' : ($log->new_status === 'Ditolak' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-100 dark:bg-blue-900/30') }}">
+                                    @if($log->new_status === 'Disetujui')
+                                        <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    @elseif($log->new_status === 'Ditolak')
+                                        <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                        </svg>
+                                    @else
+                                        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    @endif
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2">
-                                        <span class="px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-                                            Pengajuan
+                                        <span class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                            Validasi
                                         </span>
-                                        @php
-                                            $statusColor = match($achievement->validation_status) {
-                                                'Disetujui' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                                'Ditolak' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                                'Revisi' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                                                default => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-                                            };
-                                        @endphp
-                                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColor }}">
-                                            {{ $achievement->validation_status }}
+                                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $log->new_status === 'Disetujui' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ($log->new_status === 'Ditolak' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400') }}">
+                                            {{ $log->new_status }}
                                         </span>
                                     </div>
-                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate mt-1">{{ $achievement->event_name }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $achievement->student?->name ?? '-' }} • {{ $achievement->created_at->diffForHumans() }}</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate mt-1">{{ $log->studentAchievement->event_name }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ $log->validator->name }} • {{ $log->validated_at->diffForHumans() }}
+                                    </p>
                                 </div>
                             </div>
-                            <a href="{{ route('admin.achievements.validation.show', ['achievement' => $achievement, 'back' => url()->full()]) }}" 
-                                class="flex-shrink-0 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-lg font-medium transition-colors">
-                                Detail
-                            </a>
-                        </div>
-                    </div>
+                        @else
+                            @php $achievement = $activity['data']; @endphp
+                            <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex items-start gap-3 flex-1 min-w-0">
+                                        <div class="flex-shrink-0 h-8 w-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                                            <span class="text-purple-600 dark:text-purple-400 font-medium text-xs">{{ substr($achievement->student?->name ?? 'N', 0, 1) }}</span>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+                                                    Pengajuan
+                                                </span>
+                                                @php
+                                                    $statusColor = match($achievement->validation_status) {
+                                                        'Disetujui' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                                                        'Ditolak' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                                                        'Revisi' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                                                        default => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                                                    };
+                                                @endphp
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColor }}">
+                                                    {{ $achievement->validation_status }}
+                                                </span>
+                                            </div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate mt-1">{{ $achievement->event_name }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $achievement->student?->name ?? '-' }} • {{ $achievement->created_at->diffForHumans() }}</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('admin.university.show', $achievement) }}" 
+                                        class="flex-shrink-0 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-lg font-medium transition-colors">
+                                        Detail
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
             @endif
@@ -684,15 +888,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // Category Distribution Chart
     const categoryData = @json($categoryDistribution);
     if (categoryData && categoryData.length > 0 && categoryData.some(d => d.total > 0)) {
+        // Vibrant color palette for categories
+        const categoryColors = [
+            '#8b5cf6', // Purple
+            '#3b82f6', // Blue
+            '#10b981', // Green
+            '#f59e0b', // Amber
+            '#ef4444', // Red
+            '#ec4899', // Pink
+            '#06b6d4', // Cyan
+            '#f97316', // Orange
+            '#84cc16', // Lime
+            '#6366f1', // Indigo
+            '#14b8a6', // Teal
+            '#a855f7', // Violet
+        ];
+        
         new Chart(document.getElementById('categoryDistributionChart'), {
         type: 'doughnut',
         data: {
             labels: categoryData.map(d => d.category),
             datasets: [{
                 data: categoryData.map(d => d.total),
-                backgroundColor: categoryData.map(d => d.color || '#8b5cf6'),
-                borderWidth: 0,
-                hoverOffset: 10
+                backgroundColor: categoryColors,
+                borderWidth: 2,
+                borderColor: isDark ? '#1f2937' : '#ffffff',
+                hoverOffset: 15,
+                hoverBorderWidth: 3
             }]
         },
         options: {
@@ -703,10 +925,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: 'bottom',
                     labels: {
                         color: textColor,
-                        padding: 12,
-                        font: { size: 10 },
+                        padding: 15,
+                        font: { size: 11, weight: '500' },
                         usePointStyle: true,
-                        pointStyle: 'circle'
+                        pointStyle: 'circle',
+                        boxWidth: 8,
+                        boxHeight: 8
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                    titleColor: isDark ? '#f9fafb' : '#111827',
+                    bodyColor: isDark ? '#d1d5db' : '#374151',
+                    borderColor: isDark ? '#374151' : '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return ` ${label}: ${value} (${percentage}%)`;
+                        }
                     }
                 }
             },

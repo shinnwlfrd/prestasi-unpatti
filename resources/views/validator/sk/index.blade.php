@@ -1,24 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.validator')
 
 @section('title', 'Manajemen SK')
-@section('subtitle', 'Panel Validator')
-
-@section('nav-links')
-    <div class="hidden md:flex items-center gap-1 bg-gray-100/50 dark:bg-gray-700/50 rounded-xl p-1">
-        <a href="{{ route('validator.dashboard') }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.dashboard') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
-            Menunggu
-        </a>
-        <a href="{{ route('validator.history') }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.history') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
-            Riwayat
-        </a>
-        <a href="{{ route('validator.sk.index') }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.sk.*') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
-            Manajemen SK
-        </a>
-    </div>
-@endsection
 
 @section('content')
 <div class="max-w-7xl mx-auto" x-data="skManagement()">

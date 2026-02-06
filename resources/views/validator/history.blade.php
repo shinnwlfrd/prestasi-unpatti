@@ -1,28 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.validator')
 
 @section('title', 'Riwayat Validasi')
-@section('subtitle', 'Panel Validator')
-
-@php
-    $userName = auth()->user()->name ?? 'Validator';
-@endphp
-
-@section('nav-links')
-    <div class="hidden md:flex items-center gap-1 bg-gray-100/50 dark:bg-gray-700/50 rounded-xl p-1">
-        <a href="{{ route('validator.dashboard') }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.dashboard') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
-            Menunggu
-        </a>
-        <a href="{{ route('validator.history') }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.history') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
-            Riwayat
-        </a>
-        <a href="{{ route('validator.sk.index') }}"
-            class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('validator.sk.*') ? 'bg-white dark:bg-gray-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white' }}">
-            Manajemen SK
-        </a>
-    </div>
-@endsection
 
 @section('content')
 <div class="space-y-6">
@@ -112,9 +90,26 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
                     <select name="status" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                         <option value="">Semua Status</option>
+                        @php
+                            $statusLabels = [
+                                'pending' => 'Pending',
+                                'submitted' => 'Diajukan',
+                                'faculty_review' => 'Review Fakultas',
+                                'faculty_approved' => 'Disetujui Fakultas',
+                                'faculty_rejected' => 'Ditolak Fakultas',
+                                'university_review' => 'Review Universitas',
+                                'university_approved' => 'Disetujui Universitas',
+                                'university_rejected' => 'Ditolak Universitas',
+                                'rejected' => 'Ditolak',
+                                'revision_requested' => 'Perlu Revisi',
+                                'appeal_submitted' => 'Banding Diajukan',
+                                'appeal_approved' => 'Banding Diterima',
+                                'appeal_rejected' => 'Banding Ditolak',
+                            ];
+                        @endphp
                         @foreach($statuses as $status)
                             <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
-                                {{ $status }}
+                                {{ $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)) }}
                             </option>
                         @endforeach
                     </select>
@@ -243,23 +238,103 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
-                                $statusStyles = [
-                                    'Disetujui' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                    'Ditolak' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                                $statusConfig = [
+                                    'faculty_approved' => [
+                                        'bg' => 'bg-blue-100 dark:bg-blue-900/30',
+                                        'text' => 'text-blue-800 dark:text-blue-300',
+                                        'border' => 'border-blue-200 dark:border-blue-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>',
+                                        'label' => 'Disetujui Fakultas',
+                                        'sublabel' => 'Menunggu review universitas'
+                                    ],
+                                    'university_approved' => [
+                                        'bg' => 'bg-green-100 dark:bg-green-900/30',
+                                        'text' => 'text-green-800 dark:text-green-300',
+                                        'border' => 'border-green-200 dark:border-green-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>',
+                                        'label' => 'Disetujui Universitas',
+                                        'sublabel' => 'Prestasi telah divalidasi'
+                                    ],
+                                    'faculty_rejected' => [
+                                        'bg' => 'bg-red-100 dark:bg-red-900/30',
+                                        'text' => 'text-red-800 dark:text-red-300',
+                                        'border' => 'border-red-200 dark:border-red-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>',
+                                        'label' => 'Ditolak Fakultas',
+                                        'sublabel' => 'Tidak memenuhi kriteria'
+                                    ],
+                                    'university_rejected' => [
+                                        'bg' => 'bg-red-100 dark:bg-red-900/30',
+                                        'text' => 'text-red-800 dark:text-red-300',
+                                        'border' => 'border-red-200 dark:border-red-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>',
+                                        'label' => 'Ditolak Universitas',
+                                        'sublabel' => 'Tidak memenuhi kriteria'
+                                    ],
+                                    'rejected' => [
+                                        'bg' => 'bg-red-100 dark:bg-red-900/30',
+                                        'text' => 'text-red-800 dark:text-red-300',
+                                        'border' => 'border-red-200 dark:border-red-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>',
+                                        'label' => 'Ditolak',
+                                        'sublabel' => 'Tidak memenuhi kriteria'
+                                    ],
+                                    'revision_requested' => [
+                                        'bg' => 'bg-amber-100 dark:bg-amber-900/30',
+                                        'text' => 'text-amber-800 dark:text-amber-300',
+                                        'border' => 'border-amber-200 dark:border-amber-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>',
+                                        'label' => 'Perlu Revisi',
+                                        'sublabel' => 'Dokumen perlu diperbaiki'
+                                    ],
+                                    'appeal_submitted' => [
+                                        'bg' => 'bg-purple-100 dark:bg-purple-900/30',
+                                        'text' => 'text-purple-800 dark:text-purple-300',
+                                        'border' => 'border-purple-200 dark:border-purple-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>',
+                                        'label' => 'Banding Diajukan',
+                                        'sublabel' => 'Menunggu review banding'
+                                    ],
+                                    'appeal_approved' => [
+                                        'bg' => 'bg-indigo-100 dark:bg-indigo-900/30',
+                                        'text' => 'text-indigo-800 dark:text-indigo-300',
+                                        'border' => 'border-indigo-200 dark:border-indigo-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>',
+                                        'label' => 'Banding Diterima',
+                                        'sublabel' => 'Prestasi disetujui'
+                                    ],
+                                    'appeal_rejected' => [
+                                        'bg' => 'bg-rose-100 dark:bg-rose-900/30',
+                                        'text' => 'text-rose-800 dark:text-rose-300',
+                                        'border' => 'border-rose-200 dark:border-rose-800',
+                                        'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>',
+                                        'label' => 'Banding Ditolak',
+                                        'sublabel' => 'Keputusan final'
+                                    ],
+                                ];
+                                
+                                $config = $statusConfig[$log->new_status] ?? [
+                                    'bg' => 'bg-gray-100 dark:bg-gray-700',
+                                    'text' => 'text-gray-800 dark:text-gray-300',
+                                    'border' => 'border-gray-200 dark:border-gray-600',
+                                    'icon' => '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>',
+                                    'label' => ucfirst(str_replace('_', ' ', $log->new_status)),
+                                    'sublabel' => ''
                                 ];
                             @endphp
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium {{ $statusStyles[$log->new_status] ?? 'bg-gray-100 text-gray-700' }}">
-                                @if($log->new_status === 'Disetujui')
-                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                    </svg>
-                                @else
-                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                    </svg>
-                                @endif
-                                {{ $log->new_status }}
-                            </span>
+                            <div class="inline-flex flex-col gap-1">
+                                <div class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border {{ $config['bg'] }} {{ $config['text'] }} {{ $config['border'] }}">
+                                    <div class="flex-shrink-0">
+                                        {!! $config['icon'] !!}
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold leading-tight">{{ $config['label'] }}</span>
+                                        @if(!empty($config['sublabel']))
+                                        <span class="text-[10px] opacity-75 leading-tight">{{ $config['sublabel'] }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php

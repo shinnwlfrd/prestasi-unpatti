@@ -64,16 +64,37 @@ class StudentRepository implements StudentRepositoryInterface
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('student_id', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%");
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        // Filter by faculty
+        // Filter by SIGAP faculty_id
+        if (! empty($filters['faculty_id'])) {
+            $query->where('faculty_id', $filters['faculty_id']);
+        }
+
+        // Filter by SIGAP department_id
+        if (! empty($filters['department_id'])) {
+            $query->where('department_id', $filters['department_id']);
+        }
+
+        // Filter by SIGAP program_study_id
+        if (! empty($filters['program_study_id'])) {
+            $query->where('program_study_id', $filters['program_study_id']);
+        }
+
+        // Filter by old faculty field (for backward compatibility)
         if (! empty($filters['faculty'])) {
             $query->where('faculty', $filters['faculty']);
         }
 
-        // Filter by semester
+        // Filter by angkatan
+        if (! empty($filters['angkatan'])) {
+            $query->where('angkatan', $filters['angkatan']);
+        }
+
+        // Filter by semester (for backward compatibility)
         if (! empty($filters['semester'])) {
             $query->where('semester', $filters['semester']);
         }
@@ -91,9 +112,47 @@ class StudentRepository implements StudentRepositoryInterface
         return $this->model->count();
     }
 
+    public function countWithFilters(array $filters): int
+    {
+        $query = $this->model->query();
+
+        if (!empty($filters['faculty_id'])) {
+            $query->where('faculty_id', $filters['faculty_id']);
+        }
+
+        if (!empty($filters['department_id'])) {
+            $query->where('department_id', $filters['department_id']);
+        }
+
+        if (!empty($filters['program_study_id'])) {
+            $query->where('program_study_id', $filters['program_study_id']);
+        }
+
+        return $query->count();
+    }
+
     public function averageGpa(): float
     {
         return round($this->model->avg('gpa') ?? 0, 2);
+    }
+
+    public function averageGpaWithFilters(array $filters): float
+    {
+        $query = $this->model->query();
+
+        if (!empty($filters['faculty_id'])) {
+            $query->where('faculty_id', $filters['faculty_id']);
+        }
+
+        if (!empty($filters['department_id'])) {
+            $query->where('department_id', $filters['department_id']);
+        }
+
+        if (!empty($filters['program_study_id'])) {
+            $query->where('program_study_id', $filters['program_study_id']);
+        }
+
+        return round($query->avg('gpa') ?? 0, 2);
     }
 
     public function getFaculties()
@@ -103,5 +162,26 @@ class StudentRepository implements StudentRepositoryInterface
             ->whereNotNull('faculty')
             ->orderBy('faculty')
             ->pluck('faculty');
+    }
+
+    public function getFacultiesWithFilters(array $filters)
+    {
+        $query = $this->model->select('faculty_id', 'faculty_name')
+            ->distinct()
+            ->whereNotNull('faculty_id');
+
+        if (!empty($filters['faculty_id'])) {
+            $query->where('faculty_id', $filters['faculty_id']);
+        }
+
+        if (!empty($filters['department_id'])) {
+            $query->where('department_id', $filters['department_id']);
+        }
+
+        if (!empty($filters['program_study_id'])) {
+            $query->where('program_study_id', $filters['program_study_id']);
+        }
+
+        return $query->get();
     }
 }

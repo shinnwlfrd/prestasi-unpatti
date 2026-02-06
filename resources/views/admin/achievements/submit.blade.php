@@ -27,35 +27,23 @@
         
         <div class="space-y-6">
             <!-- Student Selection -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Mahasiswa <span class="text-red-500">*</span>
-                </label>
-                <select name="student_id" required
-                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('student_id') border-red-500 @enderror">
-                    <option value="">Pilih Mahasiswa</option>
-                    @foreach($students as $student)
-                        <option value="{{ $student->student_id }}" {{ old('student_id') == $student->student_id ? 'selected' : '' }}>
-                            {{ $student->name }} - {{ $student->student_id }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('student_id')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
+            <x-student-search-select 
+                name="student_ids" 
+                :error="$errors->first('student_ids')" 
+                :multiple="true" 
+            />
 
             <!-- Achievement Category -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Kategori Prestasi <span class="text-red-500">*</span>
+                    Jenis Prestasi <span class="text-red-500">*</span>
                 </label>
                 <select name="achievement_id" required
                     class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('achievement_id') border-red-500 @enderror">
-                    <option value="">Pilih Kategori</option>
+                    <option value="">Pilih Jenis Prestasi</option>
                     @foreach($achievements as $achievement)
                         <option value="{{ $achievement->id }}" {{ old('achievement_id') == $achievement->id ? 'selected' : '' }}>
-                            {{ $achievement->category->name ?? 'N/A' }}
+                            {{ $achievement->name }} ({{ $achievement->category->name ?? 'N/A' }})
                         </option>
                     @endforeach
                 </select>

@@ -20,6 +20,67 @@
         </a>
     </div>
 
+    <!-- Multi-Role Switcher (if student has multiple roles) -->
+    @if($hasMultipleRoles ?? false)
+    <x-card>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Multi-Role Account</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Anda memiliki {{ count($availableRoles) }} akun yang terhubung</p>
+                </div>
+            </div>
+            <a href="{{ route('role.switch.page') }}" 
+               class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                Ganti Akun
+            </a>
+        </div>
+        
+        <!-- Available Roles List -->
+        <div class="mt-4 space-y-2">
+            @foreach($availableRoles as $role)
+            <div class="flex items-center justify-between p-3 rounded-lg {{ $role['current'] ? 'bg-indigo-50 dark:bg-indigo-900/20 border-2 border-indigo-200 dark:border-indigo-800' : 'bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br {{ $role['role'] === 'student' ? 'from-blue-500 to-cyan-500' : ($role['role'] === 'Admin' ? 'from-purple-500 to-pink-500' : 'from-green-500 to-emerald-500') }} flex items-center justify-center">
+                        @if($role['role'] === 'student')
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        @elseif($role['role'] === 'Admin')
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        @else
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        @endif
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="font-medium text-gray-900 dark:text-white">{{ $role['name'] }}</p>
+                            @if($role['current'])
+                                <span class="px-2 py-0.5 text-xs bg-indigo-600 text-white rounded-full">Aktif</span>
+                            @endif
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ $role['display_name'] }}</p>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </x-card>
+    @endif
+
     <!-- Profile Card -->
     <x-card>
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -61,6 +122,16 @@
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Fakultas</p>
                         <p class="font-semibold text-gray-800 dark:text-white">{{ $student->faculty ?? '-' }}</p>
+                        @if($student->faculty_id)
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                <span class="inline-flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    Data SIGAP
+                                </span>
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -74,6 +145,11 @@
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Program Studi</p>
                         <p class="font-semibold text-gray-800 dark:text-white">{{ $student->program_study ?? '-' }}</p>
+                        @if($student->program_study_code)
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                Kode: {{ $student->program_study_code }}
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>

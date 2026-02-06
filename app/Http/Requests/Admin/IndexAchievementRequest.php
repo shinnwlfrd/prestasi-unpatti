@@ -19,6 +19,9 @@ class IndexAchievementRequest extends FormRequest
             'level' => 'nullable|in:Universitas,Nasional,Internasional',
             'category' => 'nullable|exists:achievement_categories,id',
             'per_page' => 'nullable|integer|min:5|max:100',
+            'faculty_id' => 'nullable|string',
+            'department_id' => 'nullable|string',
+            'program_study_id' => 'nullable|string',
         ];
     }
 

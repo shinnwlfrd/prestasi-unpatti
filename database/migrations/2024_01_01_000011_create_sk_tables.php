@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('sk_number')->unique();
             $table->string('title');
-            $table->string('file_path')->nullable();
+            $table->string('file_path')->nullable(); // Made nullable - SK upload is optional
             $table->string('external_link')->nullable();
             $table->date('issued_date');
             $table->string('issued_by');

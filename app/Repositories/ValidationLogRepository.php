@@ -35,6 +35,9 @@ class ValidationLogRepository implements ValidationLogRepositoryInterface
     {
         $query = $this->model->with(['studentAchievement.student', 'validator']);
 
+        // Apply scope filters for Pimpinan and Operator
+        $filters = $this->applyScopeFilters($filters);
+
         // Search by student name, NIM, or event name
         if (! empty($filters['search'])) {
             $search = $filters['search'];
@@ -67,7 +70,75 @@ class ValidationLogRepository implements ValidationLogRepositoryInterface
             $query->whereDate('validated_at', '<=', $filters['date_to']);
         }
 
+        // Filter by SIGAP faculty_id
+        if (! empty($filters['faculty_id'])) {
+            $query->whereHas('studentAchievement.student', function ($q) use ($filters) {
+                $q->where('faculty_id', $filters['faculty_id']);
+            });
+        }
+
+        // Filter by SIGAP department_id
+        if (! empty($filters['department_id'])) {
+            $query->whereHas('studentAchievement.student', function ($q) use ($filters) {
+                $q->where('department_id', $filters['department_id']);
+            });
+        }
+
+        // Filter by SIGAP program_study_id
+        if (! empty($filters['program_study_id'])) {
+            $query->whereHas('studentAchievement.student', function ($q) use ($filters) {
+                $q->where('program_study_id', $filters['program_study_id']);
+            });
+        }
+
         return $query->latest('validated_at')->paginate($perPage)->withQueryString();
+    }
+
+    /**
+     * Apply scope filters based on user role (Pimpinan/Operator)
+     */
+    protected function applyScopeFilters(array $filters): array
+    {
+        $user = auth()->user();
+
+        // Super admin can see everything
+        if ($user->isSuperAdmin()) {
+            return $filters;
+        }
+
+        // Pimpinan scope filtering
+        if ($user->isPimpinan()) {
+            $level = session('pimpinan_level');
+            
+            if ($level === 'faculty') {
+                $filters['faculty_id'] = session('pimpinan_faculty_id');
+            } elseif ($level === 'department') {
+                $filters['faculty_id'] = session('pimpinan_faculty_id');
+                $filters['department_id'] = session('pimpinan_department_id');
+            } elseif ($level === 'program_study') {
+                $filters['faculty_id'] = session('pimpinan_faculty_id');
+                $filters['department_id'] = session('pimpinan_department_id');
+                $filters['program_study_id'] = session('pimpinan_program_study_id');
+            }
+        }
+
+        // Operator scope filtering
+        if ($user->isOperator()) {
+            $level = session('operator_level');
+            
+            if ($level === 'faculty') {
+                $filters['faculty_id'] = session('operator_faculty_id');
+            } elseif ($level === 'department') {
+                $filters['faculty_id'] = session('operator_faculty_id');
+                $filters['department_id'] = session('operator_department_id');
+            } elseif ($level === 'program_study') {
+                $filters['faculty_id'] = session('operator_faculty_id');
+                $filters['department_id'] = session('operator_department_id');
+                $filters['program_study_id'] = session('operator_program_study_id');
+            }
+        }
+
+        return $filters;
     }
 
     public function getRecentValidations(int $limit = 10): Collection

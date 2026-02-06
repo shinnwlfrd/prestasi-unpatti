@@ -89,6 +89,19 @@
     <!-- Search & Filter -->
     <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <form method="GET" action="{{ route('admin.validation-logs') }}" class="space-y-4">
+            <!-- SIGAP Cascade Filter -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Filter Fakultas & Program Studi</label>
+                <x-sigap-filter-simple 
+                    :faculties="$sigapFaculties"
+                    :departments="$sigapDepartments"
+                    :studyPrograms="$sigapStudyPrograms"
+                    :selectedFaculty="$selectedFaculty"
+                    :selectedDepartment="$selectedDepartment"
+                    :selectedStudyProgram="$selectedStudyProgram"
+                />
+            </div>
+            
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Search -->
                 <div class="lg:col-span-2">
@@ -108,7 +121,7 @@
                 <!-- Filter Decision -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Keputusan</label>
-                    <select name="decision" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <select name="decision" onchange="this.form.submit()" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
                         <option value="">Semua</option>
                         <option value="Disetujui" {{ request('decision') == 'Disetujui' ? 'selected' : '' }}>Disetujui</option>
                         <option value="Ditolak" {{ request('decision') == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
@@ -119,7 +132,7 @@
                 <!-- Filter Validator -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Validator</label>
-                    <select name="validator" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <select name="validator" onchange="this.form.submit()" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
                         <option value="">Semua Validator</option>
                         @foreach($validators as $validator)
                             <option value="{{ $validator->id }}" {{ request('validator') == $validator->id ? 'selected' : '' }}>
@@ -148,7 +161,7 @@
                 <!-- Per Page -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Halaman</label>
-                    <select name="per_page" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <select name="per_page" onchange="this.form.submit()" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
                         <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
                         <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
                         <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
@@ -158,13 +171,21 @@
 
                 <!-- Buttons -->
                 <div class="flex items-end gap-2">
-                    <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">
-                        Filter
-                    </button>
-                    @if(request()->hasAny(['search', 'decision', 'validator', 'date_from', 'date_to']))
-                        <a href="{{ route('admin.validation-logs') }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors">
+                    @if(request()->hasAny(['search', 'decision', 'validator', 'date_from', 'date_to', 'faculty_id', 'department_id', 'program_study_id']))
+                        <a href="{{ route('admin.validation-logs') }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
                             Reset
                         </a>
+                    @endif
+                    <button type="submit" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        Cari
+                    </button>
+                </div>
                     @endif
                 </div>
             </div>
@@ -262,13 +283,24 @@
 
                         <!-- Keputusan -->
                         <td class="px-4 py-3">
-                            <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap
-                                @if($log->new_status == 'Disetujui') bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400
-                                @elseif($log->new_status == 'Ditolak') bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
-                                @elseif($log->new_status == 'Revisi') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
-                                @else bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300
-                                @endif">
-                                {{ $log->new_status }}
+                            @php
+                                $decisionConfig = [
+                                    // Two-stage validation statuses
+                                    'faculty_approved' => ['label' => 'Disetujui Fakultas', 'class' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400', 'icon' => '✓'],
+                                    'faculty_rejected' => ['label' => 'Ditolak Fakultas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => '✗'],
+                                    'faculty_revision' => ['label' => 'Revisi Fakultas', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => '↻'],
+                                    'university_approved' => ['label' => 'Disetujui Universitas', 'class' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', 'icon' => '✓✓'],
+                                    'university_rejected' => ['label' => 'Ditolak Universitas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => '✗✗'],
+                                    // Legacy statuses
+                                    'Disetujui' => ['label' => 'Disetujui', 'class' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', 'icon' => '✓'],
+                                    'Ditolak' => ['label' => 'Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => '✗'],
+                                    'Revisi' => ['label' => 'Revisi', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => '↻'],
+                                ];
+                                $decision = $decisionConfig[$log->new_status] ?? ['label' => $log->new_status, 'class' => 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300', 'icon' => '•'];
+                            @endphp
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap {{ $decision['class'] }}">
+                                <span>{{ $decision['icon'] }}</span>
+                                {{ $decision['label'] }}
                             </span>
                         </td>
 
@@ -288,14 +320,43 @@
                         <!-- Aksi -->
                         <td class="px-4 py-3">
                             @if($log->studentAchievement)
-                                <a href="{{ route('admin.achievements.validation.show', ['achievement' => $log->studentAchievement->sa_id, 'back' => url()->full()]) }}" 
-                                   class="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300" 
-                                   title="Lihat Detail">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </a>
+                                <div class="relative inline-block text-left" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" 
+                                            class="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 p-1 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors" 
+                                            title="Opsi">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                        </svg>
+                                    </button>
+                                    
+                                    <div x-show="open" 
+                                         x-transition:enter="transition ease-out duration-100"
+                                         x-transition:enter-start="transform opacity-0 scale-95"
+                                         x-transition:enter-end="transform opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-75"
+                                         x-transition:leave-start="transform opacity-100 scale-100"
+                                         x-transition:leave-end="transform opacity-0 scale-95"
+                                         class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-200 dark:border-gray-700"
+                                         style="display: none;">
+                                        <div class="py-1">
+                                            <a href="{{ route('admin.student-achievements.show', $log->studentAchievement->sa_id) }}" 
+                                               class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                                Lihat Detail Prestasi
+                                            </a>
+                                            <a href="{{ route('admin.validation-logs', ['sa_id' => $log->studentAchievement->sa_id]) }}" 
+                                               class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                Lihat Riwayat Lengkap
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
                         </td>
                     </tr>

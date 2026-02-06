@@ -21,11 +21,16 @@ class ValidationLog extends Model
         'validation_type',
         'metadata',
         'validated_at',
+        // Two-stage validation fields
+        'validation_stage',
+        'stage_action',
+        'is_stage_transition',
     ];
 
     protected $casts = [
         'validated_at' => 'datetime',
         'metadata' => 'array',
+        'is_stage_transition' => 'boolean',
     ];
 
     // Relasi

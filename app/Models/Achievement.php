@@ -11,12 +11,29 @@ class Achievement extends Model
 
     protected $fillable = [
         'category_id',
+        'level_id',
+        'event_name',
+        'organizer',
+        'start_date',
+        'end_date',
+        'location',
+        'description',
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     // Relasi
     public function category()
     {
         return $this->belongsTo(AchievementCategory::class, 'category_id');
+    }
+
+    public function level()
+    {
+        return $this->belongsTo(AchievementLevel::class, 'level_id');
     }
 
     public function studentAchievements()

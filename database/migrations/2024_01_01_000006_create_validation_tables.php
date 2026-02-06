@@ -18,6 +18,11 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->string('sk_document')->nullable();
             $table->string('validation_type')->nullable(); // manual, auto, appeal, etc
+            
+            // Multi-role system fields
+            $table->foreignId('uploaded_by')->nullable()->constrained('users')->onDelete('set null'); // Who uploaded the achievement
+            $table->enum('validation_level', ['faculty', 'university'])->nullable(); // Which level validated
+            
             $table->json('metadata')->nullable();
             $table->timestamp('validated_at');
             $table->timestamps();
@@ -26,6 +31,8 @@ return new class extends Migration
             $table->index(['validator_id', 'validated_at']);
             $table->index('new_status');
             $table->index('validation_type');
+            $table->index('uploaded_by');
+            $table->index('validation_level');
         });
 
         // Validation Checklists

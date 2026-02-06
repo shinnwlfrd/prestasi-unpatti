@@ -19,6 +19,9 @@ class DashboardController extends Controller
 
     public function index()
     {
+        // Get active period first
+        $activePeriod = AcademicPeriod::where('is_active', true)->first();
+        
         // Get period filter from request
         $periodId = request()->input('period');
         
@@ -29,8 +32,18 @@ class DashboardController extends Controller
         $selectedPeriod = null;
         $periodComparison = null;
         
-        if ($periodId === 'all' || $periodId === null || $periodId === '') {
-            // "Semua Periode" selected - show period comparison
+        // If no period specified in request, use active period as default
+        if ($periodId === null || $periodId === '') {
+            if ($activePeriod) {
+                $periodId = $activePeriod->id;
+                $selectedPeriod = $activePeriod;
+            } else {
+                // No active period, show all periods
+                $periodComparison = $this->getPeriodComparison();
+                $periodId = null;
+            }
+        } elseif ($periodId === 'all') {
+            // "Semua Periode" explicitly selected - show period comparison
             $periodComparison = $this->getPeriodComparison();
             $periodId = null;
         } else {
@@ -46,13 +59,43 @@ class DashboardController extends Controller
             'approved' => StudentAchievement::where('validation_status', 'Disetujui')->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
             'validators' => User::where('role', 'Validator')->where('is_active', true)->count(),
             'users' => User::count(),
+            // Two-stage validation stats
+            'university_pending' => StudentAchievement::universityPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
+            'appeal_pending' => StudentAchievement::appealPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
         ];
 
         // Recent Achievements (last 10)
+        // Note: If no achievements in selected period, show latest without period filter
         $recentAchievements = StudentAchievement::with(['student', 'achievement.category'])
             ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
             ->latest()
             ->take(10)
+            ->get();
+        
+        // If no achievements found with period filter, try without filter
+        if ($recentAchievements->isEmpty() && $periodId) {
+            $recentAchievements = StudentAchievement::with(['student', 'achievement.category'])
+                ->latest()
+                ->take(10)
+                ->get();
+        }
+
+        // University Pending Queue (top 5 oldest)
+        $universityPending = StudentAchievement::with(['student', 'achievement.category', 'facultyValidator'])
+            ->universityPending()
+            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->orderBy('faculty_validated_at', 'asc')
+            ->take(5)
+            ->get();
+
+        // Appeal Pending Queue (top 5 oldest)
+        $appealPending = \App\Models\AchievementAppeal::with(['studentAchievement.student', 'studentAchievement.achievement.category'])
+            ->where('status', 'pending')
+            ->when($periodId, function($q) use ($periodId) {
+                $q->whereHas('studentAchievement', fn($sq) => $sq->where('academic_period_id', $periodId));
+            })
+            ->orderBy('submitted_at', 'asc')
+            ->take(5)
             ->get();
 
         // Pending Review (urgent - older than 7 days)
@@ -73,15 +116,16 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        // Active Period
-        $activePeriod = AcademicPeriod::where('is_active', true)->first();
-
-        // Quick Stats by Status
+        // Quick Stats by Status (including new statuses)
         $statusStats = [
             'menunggu' => StudentAchievement::where('validation_status', 'Menunggu')->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
             'disetujui' => StudentAchievement::where('validation_status', 'Disetujui')->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
             'ditolak' => StudentAchievement::where('validation_status', 'Ditolak')->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
             'revisi' => StudentAchievement::where('validation_status', 'Revisi')->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
+            // New two-stage statuses
+            'faculty_pending' => StudentAchievement::facultyPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
+            'faculty_approved' => StudentAchievement::facultyApproved()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
+            'university_approved' => StudentAchievement::universityApproved()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
         ];
 
         // Monitoring Statistics
@@ -95,6 +139,8 @@ class DashboardController extends Controller
         return view('admin.dashboard', compact(
             'stats',
             'recentAchievements',
+            'universityPending',
+            'appealPending',
             'urgentPending',
             'recentValidations',
             'statusStats',
@@ -315,13 +361,13 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('category_id');
         
+        // Don't send color from database, let JavaScript handle it with the color palette
         return $allCategories->map(function($category) use ($achievementCounts) {
             $counts = $achievementCounts->get($category->id);
             return (object)[
                 'category' => $category->name,
                 'total' => $counts->total ?? 0,
                 'approved' => $counts->approved ?? 0,
-                'color' => $category->color ?? '#8b5cf6'
             ];
         });
     }

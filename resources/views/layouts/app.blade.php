@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html lang="id" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarOpen: true, showModal: false }"
-    :class="{ 'dark': darkMode }">
+    x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
 
 <head>
     <meta charset="utf-8" />
+    <script>
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - Sistem Prestasi UNPATTI</title>
@@ -108,7 +113,7 @@
             $role = 'guest';
             $userName = 'Guest';
         }
-        
+
         $roleColors = [
             'student' => ['from-blue-500', 'to-indigo-600', 'bg-blue-500', 'text-blue-600', 'border-blue-200'],
             'Validator' => ['from-emerald-500', 'to-teal-600', 'bg-emerald-500', 'text-emerald-600', 'border-emerald-200'],
@@ -145,7 +150,7 @@
                 <!-- Right Side -->
                 <div class="flex items-center gap-3">
                     <!-- Dark Mode Toggle -->
-                    <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
+                    <button @click="darkMode = !darkMode"
                         class="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-105">
                         <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -161,28 +166,36 @@
 
                     <!-- User Info -->
                     @php
-                        $profileRoute = session('auth_role') === 'student' 
-                            ? route('student.profile') 
+                        $profileRoute = session('auth_role') === 'student'
+                            ? route('student.profile')
                             : (auth()->check() ? route('profile') : '#');
                     @endphp
-                    <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100/50 dark:bg-gray-700/50">
-                        <a href="{{ $profileRoute }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br {{ $colors[0] }} {{ $colors[1] }} flex items-center justify-center text-white text-sm font-bold">
+                    <div
+                        class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100/50 dark:bg-gray-700/50">
+                        <a href="{{ $profileRoute }}"
+                            class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                            <div
+                                class="w-8 h-8 rounded-lg bg-gradient-to-br {{ $colors[0] }} {{ $colors[1] }} flex items-center justify-center text-white text-sm font-bold">
                                 {{ strtoupper(substr($userName ?? 'U', 0, 1)) }}
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ $userName ?? 'User' }}</span>
+                                <span
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ $userName ?? 'User' }}</span>
                                 @if(auth()->check() && auth()->user()->last_login_method === 'sso')
                                     <span class="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-1">
                                         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            <path fill-rule="evenodd"
+                                                d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                         SSO
                                     </span>
                                 @elseif(session('auth_role') === 'student')
                                     <span class="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-1">
                                         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            <path fill-rule="evenodd"
+                                                d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                         SIAKAD
                                     </span>
@@ -193,8 +206,8 @@
 
                     <!-- Logout -->
                     @php
-                        $logoutRoute = (auth()->check() && auth()->user()->last_login_method === 'sso') 
-                            ? route('sso.logout') 
+                        $logoutRoute = (auth()->check() && auth()->user()->last_login_method === 'sso')
+                            ? route('sso.logout')
                             : route('logout');
                     @endphp
                     <form action="{{ $logoutRoute }}" method="POST">
@@ -215,47 +228,6 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Alerts -->
-        @if(session('success'))
-            <div class="mb-6 animate-slide-up">
-                <div
-                    class="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                    <div
-                        class="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                    <p class="text-emerald-700 dark:text-emerald-400 font-medium">{{ session('success') }}</p>
-                </div>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="mb-6 animate-slide-up">
-                <div
-                    class="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                    <div
-                        class="flex-shrink-0 w-10 h-10 rounded-xl bg-red-100 dark:bg-red-800 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-red-700 dark:text-red-400 font-medium">Terjadi kesalahan:</p>
-                        <ul class="mt-1 text-sm text-red-600 dark:text-red-400 list-disc list-inside">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        @endif
-
         @yield('content')
     </main>
 
@@ -263,6 +235,36 @@
     <footer class="mt-auto py-6 text-center text-sm text-gray-500 dark:text-gray-400">
         <p>© {{ date('Y') }} Universitas Pattimura. Sistem Prestasi Mahasiswa.</p>
     </footer>
+
+    <!-- Toast Notifications -->
+    <x-toast-notification />
+
+    <!-- Show session notifications -->
+    @if(session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                showToast('success', '{{ session('success') }}');
+            });
+        </script>
+    @endif
+
+    @if(session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                showToast('error', '{{ session('error') }}');
+            });
+        </script>
+    @endif
+
+    @if($errors->any())
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                @foreach($errors->all() as $error)
+                    showToast('error', '{{ $error }}');
+                @endforeach
+                    });
+        </script>
+    @endif
 
     @stack('scripts')
     <script src="https://instant.page/5.2.0" type="module"

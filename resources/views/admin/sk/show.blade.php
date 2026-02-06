@@ -5,17 +5,29 @@
 @section('content')
 <div class="max-w-7xl mx-auto">
     <div class="mb-6">
-        <div class="flex items-center gap-3 mb-2">
-            <a href="{{ route('admin.sk.index') }}" 
-               class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-               title="Kembali">
-                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-            </a>
-            <div>
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Detail Surat Keputusan (SK)</h2>
-                <p class="text-gray-600 dark:text-gray-400 mt-1">{{ $sk->sk_number }}</p>
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-3">
+                <a href="{{ route('admin.sk.index') }}" 
+                   class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                   title="Kembali">
+                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                </a>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Detail Surat Keputusan (SK)</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mt-1">{{ $sk->sk_number }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('admin.sk.preview', $sk) }}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    Preview SK
+                </a>
             </div>
         </div>
     </div>

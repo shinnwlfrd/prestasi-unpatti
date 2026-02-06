@@ -18,7 +18,7 @@
     </div>
 
     <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <div class="flex items-center gap-3">
                 <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -60,65 +60,62 @@
                 </div>
             </div>
         </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                    <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Rata-rata IPK</p>
-                    <p class="text-xl font-bold text-gray-900 dark:text-white">{{ number_format($avgGpa, 2) }}</p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Search & Filter -->
     <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-        <form method="GET" action="{{ route('admin.students') }}" class="flex flex-col md:flex-row gap-4">
-            <!-- Search -->
-            <div class="flex-1">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <form method="GET" action="{{ route('admin.students') }}" class="space-y-4">
+            <!-- SIGAP Cascade Filter -->
+            <x-sigap-filter-simple 
+                :faculties="$sigapFaculties"
+                :departments="$sigapDepartments"
+                :studyPrograms="$sigapStudyPrograms"
+                :selectedFaculty="$selectedFaculty"
+                :selectedDepartment="$selectedDepartment"
+                :selectedStudyProgram="$selectedStudyProgram"
+            />
+            
+            <!-- Search & Additional Filters -->
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Search -->
+                <div class="flex-1">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" name="search" value="{{ request('search') }}" 
+                            placeholder="Cari NIM, nama, atau email mahasiswa..." 
+                            class="pl-10 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+                
+                <!-- Filter Angkatan -->
+                <select name="angkatan" onchange="this.form.submit()" class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <option value="">Semua Angkatan</option>
+                    @for($year = 2025; $year >= 2020; $year--)
+                        <option value="{{ $year }}" {{ request('angkatan') == $year ? 'selected' : '' }}>Angkatan {{ $year }}</option>
+                    @endfor
+                </select>
+                
+                <!-- Buttons -->
+                <div class="flex gap-2">
+                    @if(request()->hasAny(['search', 'faculty_id', 'department_id', 'program_study_id', 'angkatan']))
+                        <a href="{{ route('admin.students') }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Reset Filter
+                        </a>
+                    @endif
+                    <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                    </div>
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                        placeholder="Cari NIM atau nama mahasiswa..." 
-                        class="pl-10 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                        Cari
+                    </button>
                 </div>
-            </div>
-            
-            <!-- Filter Fakultas -->
-            <select name="faculty" class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
-                <option value="">Semua Fakultas</option>
-                @foreach($faculties as $faculty)
-                    <option value="{{ $faculty }}" {{ request('faculty') == $faculty ? 'selected' : '' }}>{{ $faculty }}</option>
-                @endforeach
-            </select>
-            
-            <!-- Filter Semester -->
-            <select name="semester" class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
-                <option value="">Semua Semester</option>
-                @for($i = 1; $i <= 8; $i++)
-                    <option value="{{ $i }}" {{ request('semester') == $i ? 'selected' : '' }}>Semester {{ $i }}</option>
-                @endfor
-            </select>
-            
-            <!-- Buttons -->
-            <div class="flex gap-2">
-                <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">
-                    Filter
-                </button>
-                @if(request()->hasAny(['search', 'faculty', 'semester']))
-                    <a href="{{ route('admin.students') }}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors">
-                        Reset
-                    </a>
-                @endif
             </div>
         </form>
     </div>
@@ -127,14 +124,42 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
+                @php
+                    $user = auth()->user();
+                    $showDepartment = true;
+                    $showProgramStudy = true;
+                    
+                    // Tentukan kolom mana yang ditampilkan berdasarkan level
+                    if ($user->isPimpinan()) {
+                        $level = session('pimpinan_level');
+                        if ($level === 'department') {
+                            $showDepartment = false; // Sudah di scope jurusan, tidak perlu tampilkan
+                        } elseif ($level === 'program_study') {
+                            $showDepartment = false;
+                            $showProgramStudy = false; // Sudah di scope prodi
+                        }
+                    } elseif ($user->isOperator()) {
+                        $level = session('operator_level');
+                        if ($level === 'department') {
+                            $showDepartment = false;
+                        } elseif ($level === 'program_study') {
+                            $showDepartment = false;
+                            $showProgramStudy = false;
+                        }
+                    }
+                @endphp
                 <thead class="bg-gray-50 dark:bg-gray-700/50">
                     <tr>
                         <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">NIM</th>
                         <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Nama</th>
                         <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Fakultas</th>
+                        @if($showDepartment)
+                        <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Jurusan</th>
+                        @endif
+                        @if($showProgramStudy)
                         <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Prodi</th>
-                        <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Semester</th>
-                        <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">IPK</th>
+                        @endif
+                        <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Angkatan</th>
                         <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Prestasi</th>
                         <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Aksi</th>
                     </tr>
@@ -151,18 +176,27 @@
                             </div>
                         </td>
                         <td class="px-4 py-3">
-                            <div>
-                                <p class="font-medium text-gray-800 dark:text-gray-200">{{ $s->name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $s->email }}</p>
-                            </div>
+                            <div class="font-medium text-gray-800 dark:text-white">{{ $s->name }}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ $s->email }}</div>
                         </td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $s->faculty }}</td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $s->program_study }}</td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $s->semester }}</td>
                         <td class="px-4 py-3">
-                            <span class="px-2 py-1 rounded text-xs font-medium {{ $s->gpa >= 3.5 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ($s->gpa >= 3.0 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400') }}">
-                                {{ $s->gpa }}
-                            </span>
+                            <div class="text-gray-700 dark:text-gray-300 text-sm">{{ Str::limit($s->faculty ?? '-', 25) }}</div>
+                        </td>
+                        @if($showDepartment)
+                        <td class="px-4 py-3">
+                            <div class="text-gray-700 dark:text-gray-300 text-sm">{{ Str::limit($s->department ?? '-', 25) }}</div>
+                        </td>
+                        @endif
+                        @if($showProgramStudy)
+                        <td class="px-4 py-3">
+                            <div class="text-gray-700 dark:text-gray-300 text-sm">{{ Str::limit($s->program_study ?? $s->program ?? '-', 25) }}</div>
+                            @if($s->program_study_code)
+                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $s->program_study_code }}</div>
+                            @endif
+                        </td>
+                        @endif
+                        <td class="px-4 py-3">
+                            <span class="text-gray-700 dark:text-gray-300">{{ $s->angkatan ?? '-' }}</span>
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
@@ -178,7 +212,7 @@
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('admin.achievements.validation.index') }}" 
+                                <a href="{{ route('admin.students.show', $s->student_id) }}" 
                                     class="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300" 
                                     title="Lihat Prestasi">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

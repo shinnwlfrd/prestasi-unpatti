@@ -87,8 +87,14 @@ class AchievementController extends Controller
                 ];
             });
 
-            // Check if can manage (only if status is Menunggu or Revisi)
-            $canManage = in_array($achievement->validation_status, ['Menunggu', 'Revisi']);
+            // Check if can manage (only if status allows editing)
+            $canManage = in_array($achievement->validation_status, [
+                StudentAchievement::STATUS_DRAFT,
+                StudentAchievement::STATUS_FACULTY_REVISION,
+                // Legacy statuses
+                StudentAchievement::STATUS_PENDING,
+                StudentAchievement::STATUS_NEED_REVISION,
+            ]);
 
             return response()->json([
                 'achievement' => [

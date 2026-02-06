@@ -16,7 +16,7 @@ class AchievementService
             throw new \Exception('Gagal menyimpan file sertifikat ke storage.');
         }
 
-        // Create achievement
+        // Create achievement with two-stage validation status
         $achievement = StudentAchievement::create([
             'student_id' => $studentId,
             'achievement_id' => $data['achievement_id'],
@@ -27,7 +27,10 @@ class AchievementService
             'ranking' => $data['ranking'] ?? null,
             'description' => $data['description'] ?? null,
             'certificate' => $certificatePath,
-            'validation_status' => 'Menunggu',
+            // Two-stage validation fields
+            'validation_status' => StudentAchievement::STATUS_SUBMITTED,
+            'validation_stage' => StudentAchievement::STAGE_FACULTY,
+            'current_stage' => StudentAchievement::STAGE_FACULTY,
             'submitted_by' => 'student',
             'submitted_at' => now(),
         ]);
@@ -37,6 +40,8 @@ class AchievementService
             'sa_id' => $achievement->sa_id,
             'student_id' => $studentId,
             'certificate_path' => $certificatePath,
+            'status' => $achievement->validation_status,
+            'stage' => $achievement->current_stage,
             'file_exists' => \Storage::disk('public')->exists($certificatePath),
         ]);
 
@@ -57,10 +62,22 @@ class AchievementService
 
         return [
             'total' => $achievements->count(),
-            'pending' => (clone $achievements)->where('validation_status', 'Menunggu')->count(),
-            'approved' => (clone $achievements)->where('validation_status', 'Disetujui')->count(),
-            'rejected' => (clone $achievements)->where('validation_status', 'Ditolak')->count(),
-            'revision' => (clone $achievements)->where('validation_status', 'Revisi')->count(),
+            // Two-stage validation statuses
+            'submitted' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_SUBMITTED)->count(),
+            'faculty_review' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_FACULTY_REVIEW)->count(),
+            'faculty_approved' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_FACULTY_APPROVED)->count(),
+            'faculty_revision' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_FACULTY_REVISION)->count(),
+            'university_review' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_UNIVERSITY_REVIEW)->count(),
+            'university_approved' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_UNIVERSITY_APPROVED)->count(),
+            // Legacy statuses (for backward compatibility)
+            'pending' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_PENDING)->count(),
+            'approved' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_APPROVED)->count(),
+            'rejected' => (clone $achievements)->whereIn('validation_status', [
+                StudentAchievement::STATUS_FACULTY_REJECTED,
+                StudentAchievement::STATUS_UNIVERSITY_REJECTED,
+                StudentAchievement::STATUS_REJECTED
+            ])->count(),
+            'revision' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_NEED_REVISION)->count(),
         ];
     }
 }
