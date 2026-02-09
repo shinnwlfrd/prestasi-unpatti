@@ -18,7 +18,7 @@ class SubmitAchievementRequest extends FormRequest
             'student_id' => 'nullable|exists:students,student_id',
             'student_ids' => 'required|array|min:1',
             'student_ids.*' => 'required|exists:students,student_id',
-            
+
             'achievement_id' => 'required|exists:achievements,id',
             'event_name' => 'required|string|max:255',
             'level' => 'required|in:Universitas,Nasional,Internasional',
@@ -44,7 +44,7 @@ class SubmitAchievementRequest extends FormRequest
             'student_ids.min' => 'Pilih minimal satu mahasiswa.',
             'student_ids.*.required' => 'ID mahasiswa tidak valid.',
             'student_ids.*.exists' => 'Salah satu mahasiswa tidak ditemukan.',
-            
+
             'achievement_id.required' => 'Jenis prestasi wajib dipilih.',
             'achievement_id.exists' => 'Jenis prestasi tidak ditemukan.',
             'event_name.required' => 'Nama kegiatan wajib diisi.',

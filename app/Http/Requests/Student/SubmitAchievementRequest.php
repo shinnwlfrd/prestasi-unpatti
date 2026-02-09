@@ -15,7 +15,7 @@ class SubmitAchievementRequest extends FormRequest
     {
         // Get valid levels from database
         $validLevels = \App\Models\AchievementLevel::active()->pluck('name')->toArray();
-        
+
         return [
             'achievement_id' => 'required|exists:achievements,id',
             'event_name' => 'required|string|max:255',

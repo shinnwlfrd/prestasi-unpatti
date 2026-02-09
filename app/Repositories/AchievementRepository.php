@@ -50,7 +50,7 @@ class AchievementRepository implements AchievementRepositoryInterface
         $query = $this->model->with(['student', 'achievement.category', 'validator', 'latestAppeal']);
 
         // Search by student name, NIM, or event name
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('event_name', 'like', "%{$search}%")
@@ -62,38 +62,38 @@ class AchievementRepository implements AchievementRepositoryInterface
         }
 
         // Filter by status
-        if (! empty($filters['status'])) {
+        if (!empty($filters['status'])) {
             $query->where('validation_status', $filters['status']);
         }
 
         // Filter by level
-        if (! empty($filters['level'])) {
+        if (!empty($filters['level'])) {
             $query->where('level', $filters['level']);
         }
 
         // Filter by category
-        if (! empty($filters['category'])) {
+        if (!empty($filters['category'])) {
             $query->whereHas('achievement', function ($q) use ($filters) {
                 $q->where('category_id', $filters['category']);
             });
         }
 
         // Filter by SIGAP faculty_id
-        if (! empty($filters['faculty_id'])) {
+        if (!empty($filters['faculty_id'])) {
             $query->whereHas('student', function ($q) use ($filters) {
                 $q->where('faculty_id', $filters['faculty_id']);
             });
         }
 
         // Filter by SIGAP department_id
-        if (! empty($filters['department_id'])) {
+        if (!empty($filters['department_id'])) {
             $query->whereHas('student', function ($q) use ($filters) {
                 $q->where('department_id', $filters['department_id']);
             });
         }
 
         // Filter by SIGAP program_study_id
-        if (! empty($filters['program_study_id'])) {
+        if (!empty($filters['program_study_id'])) {
             $query->whereHas('student', function ($q) use ($filters) {
                 $q->where('program_study_id', $filters['program_study_id']);
             });

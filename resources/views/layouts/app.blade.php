@@ -11,7 +11,7 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard') - Sistem Prestasi UNPATTI</title>
+    <title>@yield('title', 'Dashboard') - SIMAPRES UNPATTI</title>
     <!-- Tailwind CSS CDN - For development only. Consider installing via npm for production -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -137,8 +137,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold text-gray-800 dark:text-white">Prestasi UNPATTI</h1>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">@yield('subtitle', 'Portal Mahasiswa')</p>
+                        <h1 class="text-lg font-bold text-gray-800 dark:text-white">SIMAPRES</h1>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            @yield('subtitle', 'Sistem Manajemen Prestasi')</p>
                     </div>
                 </div>
 
@@ -262,7 +263,7 @@
                 @foreach($errors->all() as $error)
                     showToast('error', '{{ $error }}');
                 @endforeach
-                    });
+                        });
         </script>
     @endif
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Validator;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Validator\SubmitAchievementRequest;
 use App\Models\Achievement;
+use App\Models\AchievementCategory;
 use App\Models\AchievementLevel;
 use App\Models\Student;
 use App\Services\Validator\AchievementSubmissionService;
@@ -13,16 +14,18 @@ class SubmitController extends Controller
 {
     public function __construct(
         protected AchievementSubmissionService $submissionService
-    ) {}
+    ) {
+    }
 
     public function create()
     {
         $students = Student::orderBy('name')->get();
+        $categories = AchievementCategory::active()->get();
         $achievements = Achievement::with('category')->get();
         $levels = AchievementLevel::active()->get();
         $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
 
-        return view('validator.submit', compact('students', 'achievements', 'levels', 'skDocuments'));
+        return view('validator.submit', compact('students', 'achievements', 'categories', 'levels', 'skDocuments'));
     }
 
     public function store(SubmitAchievementRequest $request)
@@ -30,11 +33,11 @@ class SubmitController extends Controller
         $validated = $request->validated();
         $certificate = $request->file('certificate');
         $user = auth()->user();
-        
+
         // Get student IDs (can be single or multiple)
         $studentIds = $validated['student_ids'] ?? [$validated['student_id'] ?? null];
         $studentIds = array_filter($studentIds); // Remove empty values
-        
+
         if (empty($studentIds)) {
             return back()->withErrors(['student_ids' => 'Pilih minimal satu mahasiswa.'])->withInput();
         }
@@ -47,7 +50,7 @@ class SubmitController extends Controller
             try {
                 // Prepare data for this student
                 $studentData = array_merge($validated, ['student_id' => $studentId]);
-                
+
                 // Create achievement
                 $achievement = $this->submissionService->submitAchievement(
                     $studentData,
@@ -78,7 +81,7 @@ class SubmitController extends Controller
             return back()->withErrors(['error' => 'Tidak ada prestasi yang berhasil dibuat. ' . implode(' ', $errors)])->withInput();
         }
 
-        $successMessage = $count === 1 
+        $successMessage = $count === 1
             ? 'Prestasi mahasiswa berhasil diajukan.'
             : "Berhasil mengajukan prestasi untuk {$count} mahasiswa.";
 

@@ -13,7 +13,8 @@ class FacultyValidationController extends Controller
 {
     public function __construct(
         protected FacultyValidationService $facultyValidationService
-    ) {}
+    ) {
+    }
 
     /**
      * Display pending achievements for faculty validation
@@ -21,7 +22,7 @@ class FacultyValidationController extends Controller
     public function index(Request $request)
     {
         $validator = auth()->user();
-        
+
         // Get scope from session (set by middleware)
         $level = session('operator_level') ?? session('pimpinan_level');
         $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
@@ -42,10 +43,10 @@ class FacultyValidationController extends Controller
 
         // Build query based on access level
         $query = StudentAchievement::with(['student', 'achievement.category', 'documents'])
-            ->where(function($q) {
+            ->where(function ($q) {
                 // Support both old and new status systems
                 $q->facultyPending() // New system: submitted, faculty_review
-                  ->orWhere('validation_status', 'Menunggu'); // Old system: Menunggu
+                    ->orWhere('validation_status', 'Menunggu'); // Old system: Menunggu
             });
 
         // Apply scope filtering - SIMPLIFIED: Always use faculty fallback for now
@@ -105,7 +106,7 @@ class FacultyValidationController extends Controller
     public function show(StudentAchievement $achievement)
     {
         $validator = auth()->user();
-        
+
         // Get scope from session
         $level = session('operator_level') ?? session('pimpinan_level');
         $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
@@ -147,7 +148,7 @@ class FacultyValidationController extends Controller
     public function validate(Request $request, StudentAchievement $achievement)
     {
         $validator = auth()->user();
-        
+
         // Get scope from session
         $level = session('operator_level') ?? session('pimpinan_level');
         $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
@@ -229,23 +230,23 @@ class FacultyValidationController extends Controller
         }
 
         // Support both old and new status systems
-        $pending = (clone $query)->where(function($q) {
+        $pending = (clone $query)->where(function ($q) {
             $q->facultyPending() // New system: submitted, faculty_review
-              ->orWhere('validation_status', 'Menunggu'); // Old system: Menunggu
+                ->orWhere('validation_status', 'Menunggu'); // Old system: Menunggu
         })->count();
-        
-        $approvedToday = (clone $query)->where(function($q) {
+
+        $approvedToday = (clone $query)->where(function ($q) {
             $q->where('validation_status', StudentAchievement::STATUS_FACULTY_APPROVED)
-              ->whereDate('faculty_validated_at', today())
-              ->orWhere(function($sq) {
-                  $sq->where('validation_status', 'Disetujui')
-                    ->whereDate('updated_at', today());
-              });
+                ->whereDate('faculty_validated_at', today())
+                ->orWhere(function ($sq) {
+                    $sq->where('validation_status', 'Disetujui')
+                        ->whereDate('updated_at', today());
+                });
         })->count();
-        
-        $revisionRequested = (clone $query)->where(function($q) {
+
+        $revisionRequested = (clone $query)->where(function ($q) {
             $q->where('validation_status', StudentAchievement::STATUS_FACULTY_REVISION)
-              ->orWhere('validation_status', 'Revisi');
+                ->orWhere('validation_status', 'Revisi');
         })->count();
 
         return [
@@ -262,7 +263,7 @@ class FacultyValidationController extends Controller
     public function startReview(StudentAchievement $achievement)
     {
         $validator = auth()->user();
-        
+
         // Get scope from session
         $level = session('operator_level') ?? session('pimpinan_level');
         $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');

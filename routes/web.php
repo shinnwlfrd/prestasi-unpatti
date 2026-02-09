@@ -241,6 +241,8 @@ Route::middleware(['auth', 'multi.role:operator', 'operator.level'])->prefix('va
         Route::get('/', [\App\Http\Controllers\Validator\SKDocumentController::class, 'index'])->name('index');
         Route::get('/{sk}', [\App\Http\Controllers\Validator\SKDocumentController::class, 'show'])->name('show');
         Route::get('/{sk}/preview', [\App\Http\Controllers\Validator\SKDocumentController::class, 'preview'])->name('preview');
+        Route::get('/{sk}/achievements', [\App\Http\Controllers\Validator\SKDocumentController::class, 'getAchievements'])->name('achievements');
+        Route::post('/{sk}/process-assignment', [\App\Http\Controllers\Validator\SKDocumentController::class, 'processAssignment'])->name('process-assignment');
     });
 });
 
@@ -299,7 +301,6 @@ Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->na
     Route::get('/students/{studentId}', [\App\Http\Controllers\Admin\StudentController::class, 'show'])->name('students.show');
 
     // Achievements
-    Route::get('/achievements', [\App\Http\Controllers\Admin\AchievementController::class, 'types'])->name('achievements');
     Route::get('/student-achievements', [\App\Http\Controllers\Admin\AchievementController::class, 'index'])->name('student-achievements');
     Route::get('/student-achievements/{id}', [\App\Http\Controllers\Admin\AchievementController::class, 'show'])->name('student-achievements.show');
 
@@ -338,4 +339,7 @@ Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->na
         Route::post('/{sk}/process-assignment', [\App\Http\Controllers\Admin\SKDocumentController::class, 'processAssignment'])->name('process-assignment');
         Route::get('/{sk}/preview', [\App\Http\Controllers\Admin\SKDocumentController::class, 'preview'])->name('preview');
     });
+
+    // Export Achievements
+    Route::get('/export/achievements', [\App\Http\Controllers\Admin\ExportController::class, 'exportAchievements'])->name('export.achievements');
 });

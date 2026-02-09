@@ -10,7 +10,8 @@ class ValidationService
 {
     public function __construct(
         protected AchievementRepositoryInterface $achievementRepo
-    ) {}
+    ) {
+    }
 
     public function getPendingAchievements(array $filters, ?string $faculty = null, int $perPage = 15): LengthAwarePaginator
     {
@@ -26,7 +27,7 @@ class ValidationService
         }
 
         // Search filter
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('event_name', 'like', "%{$search}%")
@@ -39,27 +40,27 @@ class ValidationService
         }
 
         // Level filter
-        if (! empty($filters['level'])) {
+        if (!empty($filters['level'])) {
             $query->where('level', $filters['level']);
         }
 
         // Category filter
-        if (! empty($filters['category'])) {
+        if (!empty($filters['category'])) {
             $query->whereHas('achievement', function ($q) use ($filters) {
                 $q->where('category_id', $filters['category']);
             });
         }
 
         // Date range filter
-        if (! empty($filters['date_from'])) {
+        if (!empty($filters['date_from'])) {
             $query->whereDate('event_date', '>=', $filters['date_from']);
         }
-        if (! empty($filters['date_to'])) {
+        if (!empty($filters['date_to'])) {
             $query->whereDate('event_date', '<=', $filters['date_to']);
         }
 
         // Submitted by filter
-        if (! empty($filters['submitted_by'])) {
+        if (!empty($filters['submitted_by'])) {
             $query->where('submitted_by', $filters['submitted_by']);
         }
 
@@ -83,7 +84,7 @@ class ValidationService
         }
 
         // Search filter
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->whereHas('studentAchievement', function ($q) use ($search) {
@@ -97,29 +98,29 @@ class ValidationService
         }
 
         // Status filter
-        if (! empty($filters['status'])) {
+        if (!empty($filters['status'])) {
             $query->where('new_status', $filters['status']);
         }
 
         // Category filter
-        if (! empty($filters['category'])) {
+        if (!empty($filters['category'])) {
             $query->whereHas('studentAchievement.achievement', function ($q) use ($filters) {
                 $q->where('category_id', $filters['category']);
             });
         }
 
         // Level filter
-        if (! empty($filters['level'])) {
+        if (!empty($filters['level'])) {
             $query->whereHas('studentAchievement', function ($q) use ($filters) {
                 $q->where('level', $filters['level']);
             });
         }
 
         // Date range filter
-        if (! empty($filters['date_from'])) {
+        if (!empty($filters['date_from'])) {
             $query->whereDate('validated_at', '>=', $filters['date_from']);
         }
-        if (! empty($filters['date_to'])) {
+        if (!empty($filters['date_to'])) {
             $query->whereDate('validated_at', '<=', $filters['date_to']);
         }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\SubmitAchievementRequest;
 use App\Models\Achievement;
+use App\Models\AchievementCategory;
 use App\Models\AchievementLevel;
 use App\Models\StudentAchievement;
 use App\Services\Student\AchievementService;
@@ -13,30 +14,32 @@ class AchievementController extends Controller
 {
     public function __construct(
         protected AchievementService $achievementService
-    ) {}
+    ) {
+    }
 
     public function create()
     {
+        $categories = AchievementCategory::active()->get();
         $achievements = Achievement::with('category')->get();
         $levels = AchievementLevel::active()->get();
 
-        return view('student.achievement.create', compact('achievements', 'levels'));
+        return view('student.achievement.create', compact('categories', 'achievements', 'levels'));
     }
 
     public function store(SubmitAchievementRequest $request)
     {
         $studentId = session('student_id');
 
-        if (! $studentId) {
+        if (!$studentId) {
             return redirect()->route('login')->with('error', 'Session expired. Please login again.');
         }
 
         // Debug: Check if certificate file exists
-        if (! $request->hasFile('certificate')) {
+        if (!$request->hasFile('certificate')) {
             return back()->with('error', 'File sertifikat tidak ditemukan dalam request.')->withInput();
         }
 
-        if (! $request->file('certificate')->isValid()) {
+        if (!$request->file('certificate')->isValid()) {
             return back()->with('error', 'File sertifikat tidak valid atau gagal diupload.')->withInput();
         }
 
@@ -55,11 +58,11 @@ class AchievementController extends Controller
         try {
             // Check if student owns this achievement
             $studentId = session('student_id');
-            
+
             if (!$studentId) {
                 return response()->json(['error' => 'Session expired'], 401);
             }
-            
+
             if ($achievement->student_id !== $studentId) {
                 return response()->json(['error' => 'Unauthorized access'], 403);
             }
@@ -91,7 +94,7 @@ class AchievementController extends Controller
             $canManage = in_array($achievement->validation_status, [
                 StudentAchievement::STATUS_DRAFT,
                 StudentAchievement::STATUS_FACULTY_REVISION,
-                // Legacy statuses
+                    // Legacy statuses
                 StudentAchievement::STATUS_PENDING,
                 StudentAchievement::STATUS_NEED_REVISION,
             ]);

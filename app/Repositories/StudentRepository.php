@@ -60,46 +60,48 @@ class StudentRepository implements StudentRepositoryInterface
         $query = $this->model->withCount('achievements');
 
         // Search by NIM or name
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('student_id', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->where('student_id', 'ilike', "%{$search}%")
+                    ->orWhere('name', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%");
             });
         }
 
         // Filter by SIGAP faculty_id
-        if (! empty($filters['faculty_id'])) {
+        if (!empty($filters['faculty_id'])) {
             $query->where('faculty_id', $filters['faculty_id']);
         }
 
         // Filter by SIGAP department_id
-        if (! empty($filters['department_id'])) {
+        if (!empty($filters['department_id'])) {
             $query->where('department_id', $filters['department_id']);
         }
 
         // Filter by SIGAP program_study_id
-        if (! empty($filters['program_study_id'])) {
+        if (!empty($filters['program_study_id'])) {
             $query->where('program_study_id', $filters['program_study_id']);
         }
 
         // Filter by old faculty field (for backward compatibility)
-        if (! empty($filters['faculty'])) {
+        if (!empty($filters['faculty'])) {
             $query->where('faculty', $filters['faculty']);
         }
 
         // Filter by angkatan
-        if (! empty($filters['angkatan'])) {
+        if (!empty($filters['angkatan'])) {
             $query->where('angkatan', $filters['angkatan']);
         }
 
         // Filter by semester (for backward compatibility)
-        if (! empty($filters['semester'])) {
+        if (!empty($filters['semester'])) {
             $query->where('semester', $filters['semester']);
         }
 
-        return $query->paginate($perPage)->withQueryString();
+        return $query->orderBy('achievements_count', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function findByFaculty(string $faculty): Collection
@@ -166,7 +168,7 @@ class StudentRepository implements StudentRepositoryInterface
 
     public function getFacultiesWithFilters(array $filters)
     {
-        $query = $this->model->select('faculty_id', 'faculty_name')
+        $query = $this->model->select('faculty_id', 'faculty')
             ->distinct()
             ->whereNotNull('faculty_id');
 

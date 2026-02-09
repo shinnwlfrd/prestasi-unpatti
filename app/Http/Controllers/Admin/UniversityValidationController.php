@@ -13,7 +13,8 @@ class UniversityValidationController extends Controller
 {
     public function __construct(
         protected UniversityValidationService $universityValidationService
-    ) {}
+    ) {
+    }
 
     /**
      * Display achievements pending university validation

@@ -33,7 +33,8 @@
     <!-- Form -->
     <form action="{{ route('validator.submit.store') }}" method="POST" enctype="multipart/form-data" 
           class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
-          x-data="{ loading: false, action: 'pending' }" @submit="loading = true">
+          x-data="{ loading: false, action: 'pending' }" 
+          @submit="loading = true">
         @csrf
         
         <div class="space-y-6">
@@ -47,18 +48,22 @@
                 />
             </div>
 
-            <!-- Achievement Category -->
+            <!-- Achievement Type (Grouped by Category) -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Jenis Prestasi <span class="text-red-500">*</span>
+                    Kategori Prestasi <span class="text-red-500">*</span>
                 </label>
                 <select name="achievement_id" required
-                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('achievement_id') border-red-500 @enderror">
-                    <option value="">Pilih Jenis Prestasi</option>
-                    @foreach($achievements as $achievement)
-                        <option value="{{ $achievement->id }}" {{ old('achievement_id') == $achievement->id ? 'selected' : '' }}>
-                            {{ $achievement->name }} ({{ $achievement->category->name ?? 'N/A' }})
-                        </option>
+                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('achievement_id') border-red-500 @enderror focus:ring-emerald-500">
+                    <option value="">Pilih Kategori Prestasi</option>
+                    @foreach($categories as $category)
+                        <optgroup label="{{ $category->name }}">
+                            @foreach($achievements->where('category_id', $category->id) as $achievement)
+                                <option value="{{ $achievement->id }}" {{ old('achievement_id') == $achievement->id ? 'selected' : '' }}>
+                                    {{ $achievement->name }}
+                                </option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
                 @error('achievement_id')

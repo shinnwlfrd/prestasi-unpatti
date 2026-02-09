@@ -13,7 +13,7 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin') - Sistem Prestasi</title>
+    <title>@yield('title', 'Admin') - SIMAPRES</title>
     <!-- Tailwind CSS CDN - For development only. Consider installing via npm for production -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -50,7 +50,7 @@
                                 d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                         </svg>
                     </div>
-                    <span class="font-bold text-gray-800 dark:text-white">Admin Panel</span>
+                    <span class="font-bold text-gray-800 dark:text-white">SIMAPRES Admin</span>
                 </div>
                 <button @click="mobileSidebarOpen = false"
                     class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
@@ -103,14 +103,6 @@
                             d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                     <span>Mahasiswa</span>
-                </a>
-                <a href="{{ route('admin.achievements') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.achievements') && !request()->routeIs('admin.achievements.*') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    <span>Jenis Prestasi</span>
                 </a>
                 <a href="{{ route('admin.student-achievements') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.student-achievements') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">

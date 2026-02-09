@@ -114,13 +114,13 @@ class ExportController extends Controller
                         $achievement->student->name ?? '-',
                         $achievement->student->faculty ?? '-',
                         $achievement->student->program_study ?? '-',
-                        $achievement->achievement->event_name ?? '-',
+                        $achievement->event_name ?? '-',
                         $achievement->achievement->category->name ?? '-',
                         $achievement->level ?? '-',
                         $achievement->ranking ?? '-',
-                        $achievement->achievement->organizer ?? '-',
-                        $achievement->achievement->start_date ? $achievement->achievement->start_date->format('d/m/Y') : '-',
-                        $achievement->achievement->end_date ? $achievement->achievement->end_date->format('d/m/Y') : '-',
+                        $achievement->organizer ?? '-',
+                        $achievement->event_date ? $achievement->event_date->format('d/m/Y') : '-',
+                        $achievement->event_date ? $achievement->event_date->format('d/m/Y') : '-',
                         $this->getStatusLabel($achievement->validation_status),
                         $achievement->validator->name ?? '-',
                         $achievement->submitted_at ? $achievement->submitted_at->format('d/m/Y H:i') : '-',
@@ -168,13 +168,13 @@ class ExportController extends Controller
                     echo '<td>' . ($achievement->student->name ?? '-') . '</td>';
                     echo '<td>' . ($achievement->student->faculty ?? '-') . '</td>';
                     echo '<td>' . ($achievement->student->program_study ?? '-') . '</td>';
-                    echo '<td>' . ($achievement->achievement->event_name ?? '-') . '</td>';
+                    echo '<td>' . ($achievement->event_name ?? '-') . '</td>';
                     echo '<td>' . ($achievement->achievement->category->name ?? '-') . '</td>';
                     echo '<td>' . ($achievement->level ?? '-') . '</td>';
                     echo '<td>' . ($achievement->ranking ?? '-') . '</td>';
-                    echo '<td>' . ($achievement->achievement->organizer ?? '-') . '</td>';
-                    echo '<td>' . ($achievement->achievement->start_date ? $achievement->achievement->start_date->format('d/m/Y') : '-') . '</td>';
-                    echo '<td>' . ($achievement->achievement->end_date ? $achievement->achievement->end_date->format('d/m/Y') : '-') . '</td>';
+                    echo '<td>' . ($achievement->organizer ?? '-') . '</td>';
+                    echo '<td>' . ($achievement->event_date ? $achievement->event_date->format('d/m/Y') : '-') . '</td>';
+                    echo '<td>' . ($achievement->event_date ? $achievement->event_date->format('d/m/Y') : '-') . '</td>';
                     echo '<td>' . $this->getStatusLabel($achievement->validation_status) . '</td>';
                     echo '<td>' . ($achievement->validator->name ?? '-') . '</td>';
                     echo '<td>' . ($achievement->submitted_at ? $achievement->submitted_at->format('d/m/Y H:i') : '-') . '</td>';

@@ -11,18 +11,7 @@ class AchievementController extends Controller
 {
     public function __construct(
         protected AchievementRepositoryInterface $achievementRepo
-    ) {}
-
-    /**
-     * Show achievement types/categories
-     */
-    public function types()
-    {
-        $categories = AchievementCategory::where('is_active', true)
-            ->orderBy('order')
-            ->get();
-
-        return view('admin.achievements.index', compact('categories'));
+    ) {
     }
 
     public function index(IndexAchievementRequest $request)
@@ -37,14 +26,14 @@ class AchievementController extends Controller
 
         // Get SIGAP data for cascade filter
         $sigapService = app(\App\Services\SigapApiService::class);
-        
+
         $sigapFaculties = collect($sigapService->getFaculties());
-        
+
         $sigapDepartments = collect();
         if ($request->filled('faculty_id')) {
             $sigapDepartments = collect($sigapService->getDepartments($request->faculty_id));
         }
-        
+
         $sigapStudyPrograms = collect();
         if ($request->filled('department_id')) {
             $sigapStudyPrograms = collect($sigapService->getStudyPrograms($request->department_id));

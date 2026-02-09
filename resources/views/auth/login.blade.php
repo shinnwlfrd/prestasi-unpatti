@@ -124,7 +124,7 @@
                     </div>
                     <h1
                         class="mt-6 text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-                        Prestasi UNPATTI</h1>
+                        SIMAPRES UNPATTI</h1>
                     <p class="text-gray-500 dark:text-gray-400 mt-2">Sistem Manajemen Prestasi Mahasiswa</p>
                 </div>
 
@@ -262,7 +262,7 @@
                 <!-- Footer -->
                 <div class="mt-8 text-center">
                     <p class="text-sm text-gray-500 dark:text-gray-400">© {{ date('Y') }} Universitas Pattimura</p>
-                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Sistem Prestasi Mahasiswa v2.0</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">SIMAPRES v2.0</p>
                 </div>
             </div>
         </div>

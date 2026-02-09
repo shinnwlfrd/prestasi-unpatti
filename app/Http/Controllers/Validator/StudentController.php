@@ -18,9 +18,11 @@ class StudentController extends Controller
         $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
         $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
 
-        $query = Student::with(['achievements' => function ($q) {
-            $q->whereIn('validation_status', ['faculty_approved', 'university_approved']);
-        }]);
+        $query = Student::with([
+            'achievements' => function ($q) {
+                $q->whereIn('validation_status', ['faculty_approved', 'university_approved']);
+            }
+        ]);
 
         // Apply scope filtering
         if ($level === 'faculty' && $facultyId) {
@@ -36,8 +38,8 @@ class StudentController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('student_id', 'ilike', "%{$search}%")
-                  ->orWhere('email', 'ilike', "%{$search}%");
+                    ->orWhere('student_id', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%");
             });
         }
 
@@ -49,12 +51,18 @@ class StudentController extends Controller
             $query->where('program_study', 'ilike', "%{$request->program_study}%");
         }
 
+        if ($request->filled('department')) {
+            $query->where('department', 'ilike', "%{$request->department}%");
+        }
+
         // Sort by achievements count
-        $students = $query->withCount(['achievements' => function ($q) {
-            $q->whereIn('validation_status', ['faculty_approved', 'university_approved']);
-        }])
-        ->orderBy('achievements_count', 'desc')
-        ->paginate(20);
+        $students = $query->withCount([
+            'achievements' => function ($q) {
+                $q->whereIn('validation_status', ['faculty_approved', 'university_approved']);
+            }
+        ])
+            ->orderBy('achievements_count', 'desc')
+            ->paginate(20);
 
         // Get unique angkatan for filter
         $angkatanList = Student::query()
@@ -65,7 +73,30 @@ class StudentController extends Controller
             ->orderBy('angkatan', 'desc')
             ->pluck('angkatan');
 
-        return view('validator.students.index', compact('students', 'angkatanList'));
+        $departmentList = Student::query()
+            ->when($level === 'faculty' && $facultyId, fn($q) => $q->where('faculty_id', $facultyId))
+            ->whereNotNull('department')
+            ->distinct()
+            ->orderBy('department', 'asc')
+            ->pluck('department');
+
+        // Get mapping of Department to Program Study (already group by dept)
+        $prodiMapping = Student::query()
+            ->when($level === 'faculty' && $facultyId, fn($q) => $q->where('faculty_id', $facultyId))
+            ->select('department', 'program_study')
+            ->whereNotNull('department')
+            ->whereNotNull('program_study')
+            ->distinct()
+            ->get();
+
+        $deptToProdi = $prodiMapping->groupBy('department')
+            ->map(fn($items) => $items->pluck('program_study')->unique()->values());
+
+        $prodiToDept = $prodiMapping->pluck('department', 'program_study');
+
+        $allProdis = $prodiMapping->pluck('program_study')->unique()->sort()->values();
+
+        return view('validator.students.index', compact('students', 'angkatanList', 'departmentList', 'deptToProdi', 'prodiToDept', 'allProdis'));
     }
 
     /**
@@ -132,7 +163,7 @@ class StudentController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('student_id', 'ilike', "%{$search}%");
+                    ->orWhere('student_id', 'ilike', "%{$search}%");
             });
         }
 

@@ -9,18 +9,22 @@
             <form action="{{ route('student.achievement.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 @csrf
 
-                <!-- Achievement Type -->
+                <!-- Achievement Type (Grouped by Category) -->
                 <div>
                     <label for="achievement_id" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Jenis Prestasi <span class="text-red-500">*</span>
+                        Kategori Prestasi <span class="text-red-500">*</span>
                     </label>
                     <select name="achievement_id" id="achievement_id" required
                         class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                        <option value="">Pilih Jenis Prestasi</option>
-                        @foreach($achievements as $achievement)
-                            <option value="{{ $achievement->id }}" {{ old('achievement_id') == $achievement->id ? 'selected' : '' }}>
-                                {{ $achievement->category->name }} - {{ $achievement->name }}
-                            </option>
+                        <option value="">Pilih Kategori Prestasi</option>
+                        @foreach($categories as $category)
+                            <optgroup label="{{ $category->name }}">
+                                @foreach($achievements->where('category_id', $category->id) as $achievement)
+                                    <option value="{{ $achievement->id }}" {{ old('achievement_id') == $achievement->id ? 'selected' : '' }}>
+                                        {{ $achievement->name }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
                         @endforeach
                     </select>
                     @error('achievement_id')
