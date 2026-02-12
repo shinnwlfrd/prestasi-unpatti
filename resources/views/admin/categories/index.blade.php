@@ -77,7 +77,7 @@
                             </svg>
                             <span class="text-gray-600 dark:text-gray-400">
                                 <strong class="text-gray-900 dark:text-white">{{ $category->achievements_count ?? 0 }}</strong>
-                                jenis prestasi
+                                prestasi
                             </span>
                         </div>
                     </div>

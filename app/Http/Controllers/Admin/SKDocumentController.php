@@ -10,12 +10,29 @@ use Illuminate\Support\Facades\Storage;
 
 class SKDocumentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $skDocuments = SKDocument::with('creator')
-            ->withCount('assignments')
-            ->orderBy('issued_date', 'desc')
-            ->paginate(20);
+        $query = SKDocument::with(['creator'])
+            ->withCount('assignments');
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('sk_number', 'like', "%{$search}%")
+                    ->orWhere('title', 'like', "%{$search}%")
+                    ->orWhereHas('assignments.achievement', function ($qa) use ($search) {
+                        $qa->where('event_name', 'like', "%{$search}%")
+                            ->orWhereHas('student', function ($qs) use ($search) {
+                                $qs->where('name', 'like', "%{$search}%")
+                                    ->orWhere('student_id', 'like', "%{$search}%");
+                            });
+                    });
+            });
+        }
+
+        $skDocuments = $query->orderBy('issued_date', 'desc')
+            ->paginate(20)
+            ->withQueryString();
 
         return view('admin.sk.index', compact('skDocuments'));
     }
@@ -67,7 +84,7 @@ class SKDocumentController extends Controller
     public function show(SKDocument $sk)
     {
         $sk->load(['creator', 'assignments.achievement.student', 'assignments.assignedBy']);
-        
+
         return view('admin.sk.show', compact('sk'));
     }
 
@@ -89,13 +106,25 @@ class SKDocumentController extends Controller
             ->with('success', 'SK berhasil dihapus');
     }
 
-    public function getAchievements(SKDocument $sk)
+    public function getAchievements(Request $request, SKDocument $sk)
     {
-        // Get pending achievements for AJAX request
-        $achievements = StudentAchievement::with(['student', 'achievement.category', 'academicPeriod'])
+        $query = StudentAchievement::with(['student', 'achievement.category', 'academicPeriod'])
             ->where('validation_status', StudentAchievement::STATUS_PENDING)
-            ->whereDoesntHave('skAssignment')
-            ->orderBy('submitted_at', 'desc')
+            ->whereDoesntHave('skAssignment');
+
+        if ($request->has('q') && !empty($request->q)) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('event_name', 'like', "%{$search}%")
+                    ->orWhereHas('student', function ($sq) use ($search) {
+                        $sq->where('name', 'like', "%{$search}%")
+                            ->orWhere('student_id', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $achievements = $query->orderBy('submitted_at', 'desc')
+            ->limit(100)
             ->get();
 
         return response()->json([
@@ -116,7 +145,7 @@ class SKDocumentController extends Controller
 
         foreach ($validated['achievement_ids'] as $saId) {
             $achievement = StudentAchievement::find($saId);
-            
+
             // Skip if already has SK or not pending
             if ($achievement->validation_status !== StudentAchievement::STATUS_PENDING) {
                 continue;

@@ -19,7 +19,7 @@ class UploadDocumentsRequest extends FormRequest
             'documents' => 'required|array|min:1',
             'documents.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
             'document_types' => 'required|array|min:1',
-            'document_types.*' => 'required|in:'.implode(',', array_keys(AchievementDocument::DOCUMENT_TYPES)),
+            'document_types.*' => 'required|in:' . implode(',', array_keys(AchievementDocument::DOCUMENT_TYPES)),
             'external_links' => 'nullable|array',
             'external_links.*.url' => 'nullable|url',
             'external_links.*.title' => 'nullable|string|max:255',
@@ -49,6 +49,29 @@ class UploadDocumentsRequest extends FormRequest
 
             if (count($documents) !== count($types)) {
                 $validator->errors()->add('documents', 'Jumlah dokumen dan jenis dokumen harus sama.');
+            }
+
+            // Enforce 2-file limit for supporting documents
+            $achievement = $this->route('achievement');
+            if ($achievement) {
+                $existingCount = $achievement->documents()
+                    ->whereNotIn('document_type', [
+                        AchievementDocument::TYPE_SK_RESMI,
+                        AchievementDocument::TYPE_LINK_PUBLIKASI
+                    ])
+                    ->count();
+
+                $newCount = count($documents);
+                $maxFiles = 2;
+
+                if (($existingCount + $newCount) > $maxFiles) {
+                    $remaining = max(0, $maxFiles - $existingCount);
+                    if ($existingCount >= $maxFiles) {
+                        $validator->errors()->add('documents', "Batas maksimal dokumen pendukung ({$maxFiles}) sudah terpenuhi.");
+                    } else {
+                        $validator->errors()->add('documents', "Batas maksimal dokumen pendukung adalah {$maxFiles} file. Anda hanya dapat menambah {$remaining} file lagi.");
+                    }
+                }
             }
         });
     }

@@ -715,35 +715,81 @@
 
                 <!-- BARIS 5 – AKTIVITAS SISTEM -->
                 <div class="mt-6">
-                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                        <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Log Aktivitas Sistem</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            @foreach($systemActivities->take(3) as $log)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+                        <!-- Header -->
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-gray-900 dark:text-white">Log Aktivitas Sistem</h3>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Aktivitas terbaru dalam sistem</p>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.validation-logs') }}" class="text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 flex items-center gap-1 transition-colors">
+                                    Lihat Semua
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Activity List -->
+                        <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                            @forelse($systemActivities->take(6) as $log)
                                 @php
                                     $rawStatus = null;
                                     if ($log->type === 'validation' && preg_match('/→ (.*)$/', $log->description, $matches)) {
                                         $rawStatus = trim($matches[1]);
                                     }
                                     
-                                    $itemColor = $log->color;
+                                    // Determine colors and icons based on activity type and status
+                                    $itemColor = $log->color ?? 'gray';
+                                    $iconBg = 'bg-gray-100 dark:bg-gray-700';
+                                    $iconColor = 'text-gray-600 dark:text-gray-400';
+                                    $icon = 'info';
+                                    
                                     if ($rawStatus === 'university_rejected' || $rawStatus === 'faculty_rejected' || $rawStatus === 'Ditolak') {
                                         $itemColor = 'red';
+                                        $iconBg = 'bg-red-100 dark:bg-red-900/30';
+                                        $iconColor = 'text-red-600 dark:text-red-400';
+                                        $icon = 'rejected';
                                     } elseif ($rawStatus === 'faculty_approved') {
-                                        $itemColor = 'purple';
+                                        $itemColor = 'indigo';
+                                        $iconBg = 'bg-indigo-100 dark:bg-indigo-900/30';
+                                        $iconColor = 'text-indigo-600 dark:text-indigo-400';
+                                        $icon = 'approved';
                                     } elseif ($rawStatus === 'university_approved' || $rawStatus === 'Disetujui') {
                                         $itemColor = 'emerald';
+                                        $iconBg = 'bg-emerald-100 dark:bg-emerald-900/30';
+                                        $iconColor = 'text-emerald-600 dark:text-emerald-400';
+                                        $icon = 'verified';
+                                    } elseif ($log->type === 'auth') {
+                                        $iconBg = 'bg-blue-100 dark:bg-blue-900/30';
+                                        $iconColor = 'text-blue-600 dark:text-blue-400';
+                                        $icon = 'auth';
+                                    } elseif (str_contains($log->description, 'Revisi') || str_contains($log->description, 'revision')) {
+                                        $iconBg = 'bg-amber-100 dark:bg-amber-900/30';
+                                        $iconColor = 'text-amber-600 dark:text-amber-400';
+                                        $icon = 'revision';
                                     }
                                     
+                                    // Translate status labels
                                     $displayDescription = $log->description;
                                     $statusMap = [
                                         'submitted' => 'Diajukan',
-                                        'faculty_review' => 'Review Fak.',
-                                        'faculty_approved' => 'Disetujui Fak.',
-                                        'faculty_rejected' => 'Ditolak Fak.',
-                                        'faculty_revision' => 'Revisi Fak.',
-                                        'university_review' => 'Review Univ.',
-                                        'university_approved' => 'Disetujui Univ.',
-                                        'university_rejected' => 'Ditolak Univ.',
+                                        'faculty_review' => 'Review Fakultas',
+                                        'faculty_approved' => 'Disetujui Fakultas',
+                                        'faculty_rejected' => 'Ditolak Fakultas',
+                                        'faculty_revision' => 'Revisi Fakultas',
+                                        'university_review' => 'Review Universitas',
+                                        'university_approved' => 'Disetujui Universitas',
+                                        'university_rejected' => 'Ditolak Universitas',
                                         'appeal_submitted' => 'Banding Diajukan',
                                         'appeal_approved' => 'Banding Diterima',
                                         'appeal_rejected' => 'Banding Ditolak',
@@ -752,23 +798,68 @@
                                         $displayDescription = str_replace($raw, $label, $displayDescription);
                                     }
                                 @endphp
-                                <div class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-900/40 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                    <div class="p-2 bg-{{ $itemColor }}-100 dark:bg-{{ $itemColor }}-900/30 text-{{ $itemColor }}-600 dark:text-{{ $itemColor }}-400 rounded-xl">
-                                        @if($log->type === 'auth')
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
-                                        @else
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        @endif
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex justify-between items-center">
-                                            <p class="text-xs font-black text-gray-900 dark:text-white truncate">{{ $log->user }}</p>
-                                            <span class="text-[9px] text-gray-400">{{ $log->timestamp->diffForHumans() }}</span>
+                                <div class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                    <div class="flex items-start gap-4">
+                                        <!-- Icon -->
+                                        <div class="flex-shrink-0 {{ $iconBg }} rounded-lg p-2">
+                                            @if($icon === 'auth')
+                                                <svg class="w-5 h-5 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                                                </svg>
+                                            @elseif($icon === 'rejected')
+                                                <svg class="w-5 h-5 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                                </svg>
+                                            @elseif($icon === 'approved')
+                                                <svg class="w-5 h-5 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                            @elseif($icon === 'verified')
+                                                <svg class="w-5 h-5 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                            @elseif($icon === 'revision')
+                                                <svg class="w-5 h-5 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                                                </svg>
+                                            @else
+                                                <svg class="w-5 h-5 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            @endif
                                         </div>
-                                        <p class="text-[10px] text-gray-500 mt-1 line-clamp-1">{{ $displayDescription }}</p>
+
+                                        <!-- Content -->
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-start justify-between gap-4">
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                                        {{ $log->user }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">
+                                                        {{ $displayDescription }}
+                                                    </p>
+                                                </div>
+                                                <div class="flex-shrink-0 text-right">
+                                                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                        {{ $log->timestamp->format('H:i') }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-400 dark:text-gray-500">
+                                                        {{ $log->timestamp->format('d M') }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <div class="px-6 py-12 text-center">
+                                    <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Belum ada aktivitas sistem</p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>

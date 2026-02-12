@@ -19,18 +19,24 @@ class SubmitAchievementRequest extends FormRequest
             'student_ids' => 'required|array|min:1',
             'student_ids.*' => 'required|exists:students,student_id',
 
-            'achievement_id' => 'required|exists:achievements,id',
+            'category_id' => 'required|exists:achievement_categories,id',
             'event_name' => 'required|string|max:255',
             'level' => 'required|in:Universitas,Nasional,Internasional',
             'organizer' => 'required|string|max:255',
             'event_date' => 'required|date',
             'ranking' => 'nullable|string|max:100',
             'description' => 'nullable|string',
-            'certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+
+            // Per-student attachments
+            'attachments' => 'required|array',
+            'attachments.*.certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'attachments.*.additional_documents' => 'nullable|array|max:2',
+            'attachments.*.additional_documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+
             'submit_action' => 'required|in:pending,approve',
             'skip_sk' => 'nullable|boolean',
-            'sk_id' => 'required_if:submit_action,approve|required_unless:skip_sk,1|nullable|exists:sk_documents,id',
-            'sk_waiver_reason' => 'required_if:skip_sk,1|nullable|in:tingkat_universitas,sk_dalam_proses,dokumen_alternatif,lainnya',
+            'sk_id' => 'nullable|exists:sk_documents,id',
+            'sk_waiver_reason' => 'nullable|in:tingkat_universitas,sk_dalam_proses,dokumen_alternatif,lainnya',
             'sk_waiver_notes' => 'required_if:sk_waiver_reason,lainnya|nullable|string|max:1000',
             'alternative_document' => 'required_if:sk_waiver_reason,dokumen_alternatif|nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
@@ -45,8 +51,8 @@ class SubmitAchievementRequest extends FormRequest
             'student_ids.*.required' => 'ID mahasiswa tidak valid.',
             'student_ids.*.exists' => 'Salah satu mahasiswa tidak ditemukan.',
 
-            'achievement_id.required' => 'Jenis prestasi wajib dipilih.',
-            'achievement_id.exists' => 'Jenis prestasi tidak ditemukan.',
+            'category_id.required' => 'Kategori prestasi wajib dipilih.',
+            'category_id.exists' => 'Kategori prestasi tidak ditemukan.',
             'event_name.required' => 'Nama kegiatan wajib diisi.',
             'level.required' => 'Tingkat wajib dipilih.',
             'organizer.required' => 'Penyelenggara wajib diisi.',
@@ -58,6 +64,7 @@ class SubmitAchievementRequest extends FormRequest
             'sk_id.exists' => 'SK yang dipilih tidak ditemukan.',
             'sk_waiver_reason.required_if' => 'Alasan pengecualian SK wajib dipilih.',
             'alternative_document.required_if' => 'Dokumen alternatif wajib diupload.',
+            'additional_documents.max' => 'Maksimal 2 file pendukung yang diperbolehkan.',
         ];
     }
 

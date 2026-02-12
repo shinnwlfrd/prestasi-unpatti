@@ -133,6 +133,7 @@
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                 <td class="px-6 py-4">
                                     <div class="font-medium text-gray-800 dark:text-white">{{ $item->event_name }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $item->organizer ?? '-' }}</div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400 sm:hidden">{{ $item->achievement->category->name ?? '-' }}</div>
                                 </td>
                                 <td class="px-6 py-4 text-gray-600 dark:text-gray-400 hidden sm:table-cell">
@@ -289,45 +290,48 @@ window.openDocModal = function(saId, eventName, category, level, certificate, do
     // Set event name
     document.getElementById('modalEventName').textContent = eventName;
     
+    const getExt = (path) => path.split('.').pop().toLowerCase();
+    const isImg = (path) => ['jpg', 'jpeg', 'png'].includes(getExt(path));
+    
     // Build content
     let content = `
         <!-- Achievement Info -->
-        <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                <span>${category}</span>
-                <span>•</span>
-                <span>${level}</span>
+        <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-400">
+                <span class="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-md capitalize">${category}</span>
+                <span class="text-gray-300 dark:text-gray-600">•</span>
+                <span class="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md capitalize">${level}</span>
             </div>
         </div>
     `;
     
     // Add certificate if exists
     if (certificate) {
+        const ext = getExt(certificate);
+        const isImage = isImg(certificate);
+        const previewUrl = `/achievements/${saId}/certificate/preview`;
+        
         content += `
-            <div class="mb-6">
-                <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
+            <div class="mb-8">
+                <h5 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2 uppercase tracking-wider">
+                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
                     Sertifikat Utama
                 </h5>
-                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-4">
-                        <div class="w-20 h-20 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-10 h-10 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-semibold text-gray-900 dark:text-white">Sertifikat</p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">File sertifikat prestasi</p>
-                            <a href="/storage/${certificate}" target="_blank" 
-                                class="inline-flex items-center gap-1 mt-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 font-medium">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                <div class="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 group">
+                    <div class="aspect-[16/9] relative overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                        ${isImage 
+                            ? `<img src="${previewUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`
+                            : ext === 'pdf'
+                                ? `<iframe src="${previewUrl}#toolbar=0" class="w-full h-full border-0" scrolling="no"></iframe><div class="absolute inset-0 z-10"></div>`
+                                : `<div class="text-center"><svg class="w-16 h-16 mx-auto text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/></svg><p class="mt-2 text-sm font-medium text-gray-500">Berkas ${ext.toUpperCase()}</p></div>`
+                        }
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
+                            <a href="${previewUrl}" target="_blank" class="p-3 bg-white rounded-full shadow-xl hover:bg-gray-100 transition-all transform hover:scale-110">
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                Lihat/Download
                             </a>
                         </div>
                     </div>
@@ -340,9 +344,9 @@ window.openDocModal = function(saId, eventName, category, level, certificate, do
     if (documents && documents.length > 0) {
         content += `
             <div>
-                <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                <h5 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2 uppercase tracking-wider">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                     </svg>
                     Dokumen Pendukung (${documents.length})
                 </h5>
@@ -350,25 +354,29 @@ window.openDocModal = function(saId, eventName, category, level, certificate, do
         `;
         
         documents.forEach(doc => {
+            const ext = getExt(doc.file_path);
+            const isImage = isImg(doc.file_path);
+            const previewUrl = `/documents/${doc.id}/preview`;
+            
             content += `
-                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">${doc.document_type_label || 'Dokumen'}</p>
-                            <a href="/storage/${doc.file_path}" target="_blank" 
-                                class="inline-flex items-center gap-1 mt-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 group">
+                    <div class="aspect-[4/3] relative overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                        ${isImage 
+                            ? `<img src="${previewUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`
+                            : ext === 'pdf'
+                                ? `<iframe src="${previewUrl}#toolbar=0" class="w-full h-full border-0" scrolling="no"></iframe><div class="absolute inset-0 z-10"></div>`
+                                : `<div class="text-center"><svg class="w-10 h-10 mx-auto text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/></svg></div>`
+                        }
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
+                            <a href="${previewUrl}" target="_blank" class="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-all transform hover:scale-110">
+                                <svg class="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                Lihat
                             </a>
                         </div>
+                    </div>
+                    <div class="p-3 border-t border-gray-200 dark:border-gray-700">
+                        <p class="text-xs font-bold text-gray-900 dark:text-white truncate uppercase tracking-tight">${doc.document_type_label || 'Dokumen'}</p>
                     </div>
                 </div>
             `;
@@ -380,27 +388,27 @@ window.openDocModal = function(saId, eventName, category, level, certificate, do
         `;
     }
     
-    // No documents message
     if (!certificate && (!documents || documents.length === 0)) {
         content += `
-            <div class="text-center py-8">
-                <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <p class="mt-4 text-gray-600 dark:text-gray-400">Belum ada dokumen yang diupload</p>
+            <div class="text-center py-12">
+                <div class="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 font-medium">Belum ada dokumen yang diupload</p>
             </div>
         `;
     }
     
     document.getElementById('modalContent').innerHTML = content;
     
-    // Add manage button if can manage
     if (canManage) {
         document.getElementById('manageButtonContainer').innerHTML = `
             <a href="/achievements/${saId}/documents" 
-                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+                class="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-indigo-500/25 uppercase text-xs tracking-wider">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
                 Kelola Dokumen
             </a>
@@ -409,7 +417,6 @@ window.openDocModal = function(saId, eventName, category, level, certificate, do
         document.getElementById('manageButtonContainer').innerHTML = '';
     }
     
-    // Show modal
     document.getElementById('docModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 };

@@ -10,10 +10,11 @@ use App\Models\AcademicPeriod;
 use App\Models\AchievementCategory;
 use App\Models\Achievement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\UploadedFile;
 
 class SystemWorkflowTest extends TestCase
 {
@@ -42,8 +43,8 @@ class SystemWorkflowTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function test_rektor_login_and_dashboard()
+    #[Test]
+    public function test_rektor_login_and_dashboard(): void
     {
         // Rektor is university level pimpinan
         $user = User::forceCreate([
@@ -75,8 +76,8 @@ class SystemWorkflowTest extends TestCase
         $response->assertSee('Universitas Pattimura');
     }
 
-    /** @test */
-    public function test_multi_role_user_switching()
+    #[Test]
+    public function test_multi_role_user_switching(): void
     {
         $user = User::forceCreate([
             'name' => 'Multi Role User',
@@ -123,8 +124,8 @@ class SystemWorkflowTest extends TestCase
         $response->assertJsonFragment(['redirect_url' => route('pimpinan.dashboard')]);
     }
 
-    /** @test */
-    public function test_faculty_data_filtering()
+    #[Test]
+    public function test_faculty_data_filtering(): void
     {
         // Setup students and achievements for two faculties
         Student::create([
@@ -173,8 +174,8 @@ class SystemWorkflowTest extends TestCase
         $response->assertDontSee('Student Teknik');
     }
 
-    /** @test */
-    public function test_pimpinan_read_only_enforcement()
+    #[Test]
+    public function test_pimpinan_read_only_enforcement(): void
     {
         $user = User::forceCreate([
             'name' => 'Dekan FT',
@@ -216,8 +217,8 @@ class SystemWorkflowTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
-    public function test_batch_submission_by_operator()
+    #[Test]
+    public function test_batch_submission_by_operator(): void
     {
         $user = User::forceCreate([
             'name' => 'Operator FE',
@@ -243,7 +244,7 @@ class SystemWorkflowTest extends TestCase
             ])
             ->post('/validator/submit', [
                 'student_ids' => ['S1', 'S2'],
-                'achievement_id' => 1,
+                'category_id' => 1,
                 'event_name' => 'Batch Achievement',
                 'level' => 'Nasional',
                 'organizer' => 'Puspresnas',
@@ -261,8 +262,8 @@ class SystemWorkflowTest extends TestCase
         $this->assertEquals(2, StudentAchievement::where('event_name', 'Batch Achievement')->count());
     }
 
-    /** @test */
-    public function test_export_achievements_csv()
+    #[Test]
+    public function test_export_achievements_csv(): void
     {
         $user = User::forceCreate([
             'name' => 'Admin Export',

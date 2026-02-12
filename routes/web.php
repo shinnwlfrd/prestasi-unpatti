@@ -77,8 +77,16 @@ Route::middleware(['auth.any'])->group(function () {
         ->name('achievements.documents.upload');
     Route::post('/achievements/{achievement}/documents/submit', [DocumentUploadController::class, 'submit'])
         ->name('achievements.documents.submit');
+    Route::get('/documents/{document}/preview', [DocumentUploadController::class, 'preview'])
+        ->name('achievements.documents.preview');
+    Route::get('/achievements/{achievement}/certificate/preview', [DocumentUploadController::class, 'previewCertificate'])
+        ->name('achievements.certificate.preview');
+    Route::get('/documents/{document}/history', [DocumentUploadController::class, 'history'])
+        ->name('achievements.documents.history');
     Route::post('/documents/{document}/replace', [DocumentUploadController::class, 'replace'])
         ->name('achievements.documents.replace');
+    Route::post('/achievements/{achievement}/certificate/replace', [DocumentUploadController::class, 'replaceCertificate'])
+        ->name('achievements.certificate.replace');
     Route::post('/documents/{document}/submit', [DocumentUploadController::class, 'submitSingle'])
         ->name('achievements.documents.submitSingle');
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])
@@ -112,6 +120,9 @@ Route::prefix('api/sigap')->name('api.sigap.')->group(function () {
 
     // Student search endpoint
     Route::get('/students/search', [\App\Http\Controllers\Api\SigapController::class, 'searchStudents'])->name('students.search');
+
+    // SK search endpoint
+    Route::get('/sk/search', [\App\Http\Controllers\Api\SKSearchController::class, 'search'])->name('sk.search');
 
     // Cache management
     Route::post('/clear-cache', [\App\Http\Controllers\Api\SigapController::class, 'clearCache'])->name('clear-cache');

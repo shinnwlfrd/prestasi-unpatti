@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'Jenis Prestasi')
+@section('title', 'Kategori Prestasi')
 
 @section('content')
     <div class="space-y-6">
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Jenis Prestasi</h2>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Kategori Prestasi</h2>
                 <p class="text-gray-500 dark:text-gray-400 mt-1">Daftar kategori prestasi mahasiswa</p>
             </div>
             <a href="{{ route('admin.categories.create') }}"

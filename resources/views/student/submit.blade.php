@@ -26,21 +26,21 @@
                 class="space-y-5" x-data="formComponent()" @submit="loading = true">
                 @csrf
 
-                <!-- Kategori -->
+                <!-- Kategori Prestasi -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Jenis Prestasi <span class="text-red-500">*</span>
+                        Kategori Prestasi <span class="text-red-500">*</span>
                     </label>
-                    <select name="achievement_id" required
+                    <select name="category_id" required
                         class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                        <option value="">-- Pilih Jenis Prestasi --</option>
-                        @foreach($types as $type)
-                            <option value="{{ $type->id }}" {{ old('achievement_id') == $type->id ? 'selected' : '' }}>
-                                {{ $type->name }} ({{ $type->category->name }})
+                        <option value="">-- Pilih Kategori Prestasi --</option>
+                        @foreach($categories ?? [] as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('achievement_id')
+                    @error('category_id')
                         <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                     @enderror
                 </div>

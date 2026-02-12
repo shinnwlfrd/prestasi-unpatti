@@ -1,7 +1,7 @@
 @php
     $isAdmin = auth()->check() && auth()->user()->role === 'Admin';
     $isValidator = auth()->check() && auth()->user()->role === 'Validator';
-    
+
     // Determine layout based on role
     if ($isAdmin) {
         $layout = 'layouts.admin';
@@ -17,536 +17,644 @@
 @section('title', 'Upload Dokumen')
 
 @section('content')
-<div x-data="documentUploader()" class="max-w-4xl mx-auto space-y-6">
-    <!-- Header with Back Button -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <div class="flex items-center gap-4 mb-4">
-            @php
-                $isAdmin = auth()->check() && auth()->user()->role === 'Admin';
-                $isValidator = auth()->check() && auth()->user()->role === 'Validator';
-                $isStudent = session('auth_role') === 'student';
-                
-                // Determine back route based on role
-                if ($isAdmin) {
-                    $backRoute = route('admin.student-achievements');
-                } elseif ($isValidator) {
-                    $backRoute = route('validator.pending.index');
-                } else {
-                    $backRoute = route('student.dashboard');
-                }
-            @endphp
-            <a href="{{ $backRoute }}" 
-                class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-            </a>
-            <div class="flex-1">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Upload Dokumen Bukti</h2>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $achievement->event_name }}</p>
-            </div>
-        </div>
-        
-        <!-- Info SK Resmi -->
-        @if(!isset($isValidatorOrAdmin) || !$isValidatorOrAdmin)
-        <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <div class="flex gap-3">
-                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                </svg>
-                <div>
-                    <p class="font-medium text-blue-800 dark:text-blue-200">Informasi Upload Dokumen</p>
-                    <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                        Anda dapat mengupload <strong>Sertifikat</strong> dan <strong>Dokumen Pendukung</strong> lainnya. 
-                        <strong>SK Resmi</strong> akan diupload oleh Validator/Admin saat<!--  --> proses approval.
-                    </p>
-                </div>
-            </div>
-        </div>
-        @else
-        <div class="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-            <div class="flex gap-3">
-                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                </svg>
-                <div>
-                    <p class="font-medium text-emerald-800 dark:text-emerald-200">Mode Validator/Admin</p>
-                    <p class="text-sm text-emerald-700 dark:text-emerald-300 mt-1">
-                        Anda dapat mengupload <strong>semua jenis dokumen</strong> termasuk, 
-                        <strong>Sertifikat</strong>, dan <strong>Dokumen Pendukung</strong> lainnya.
-                    </p>
-                </div>
-            </div>
-        </div>
-        @endif
-        
-        @if($isNonAkademik)
-        <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <div class="flex gap-3">
-                <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                <div>
-                    <p class="font-medium text-yellow-800 dark:text-yellow-200">Prestasi Non-Akademik</p>
-                    <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">Minimal 2 jenis dokumen berbeda diperlukan untuk validasi prestasi non-akademik.</p>
-                </div>
-            </div>
-        </div>
-        @endif
-    </div>
+    <div x-data="documentUploader()" class="max-w-4xl mx-auto space-y-6">
+        <!-- Header with Back Button -->
+        <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 -mt-20 -mr-20 rounded-full blur-3xl"></div>
+            <div class="p-6 relative">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    @php
+                        $isAdmin = auth()->check() && auth()->user()->role === 'Admin';
+                        $isValidator = auth()->check() && auth()->user()->role === 'Validator';
+                        $isStudent = session('auth_role') === 'student';
 
-    <!-- Upload Form - Only show if status is Pending or Revision -->
-    @if(!in_array($achievement->validation_status, ['Disetujui', 'Ditolak']))
-    <form id="uploadForm" action="{{ route('achievements.documents.store', $achievement) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6" @submit.prevent="submitForm()">
-        @csrf
-        
-        <!-- Drag & Drop Area -->
-        <div 
-            class="border-2 border-dashed rounded-xl p-8 text-center transition-colors"
-            :class="isDragging ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-300 dark:border-gray-600'"
-            @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
-            @drop.prevent="handleDrop($event)"
-        >
-            <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-            </svg>
-            <p class="mt-4 text-gray-600 dark:text-gray-400">
-                Drag & drop file di sini, atau
-                <label class="text-purple-600 hover:text-purple-700 dark:text-purple-400 cursor-pointer">
-                    <span>pilih file</span>
-                    <input type="file" class="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" @change="handleFileSelect($event)">
-                </label>
-            </p>
-            <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">PDF, JPG, PNG (Maks. 10MB per file)</p>
-        </div>
-
-        <!-- Selected Files -->
-        <div x-show="files.length > 0" class="mt-6 space-y-4">
-            <h4 class="font-medium text-gray-900 dark:text-white">File yang Dipilih</h4>
-            
-            <template x-for="(file, index) in files" :key="index">
-                <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                    <!-- Preview -->
-                    <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <template x-if="file.preview">
-                            <img :src="file.preview" class="w-full h-full object-cover">
-                        </template>
-                        <template x-if="!file.preview">
-                            <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/>
-                            </svg>
-                        </template>
-                    </div>
-                    
-                    <!-- File Info -->
+                        if ($isAdmin) {
+                            $backRoute = route('admin.student-achievements');
+                            $themeColor = 'purple';
+                        } elseif ($isValidator) {
+                            $backRoute = route('validator.pending.index');
+                            $themeColor = 'emerald';
+                        } else {
+                            $backRoute = route('student.dashboard');
+                            $themeColor = 'indigo';
+                        }
+                    @endphp
+                    <a href="{{ $backRoute }}"
+                        class="p-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md rounded-xl transition-all duration-300 group">
+                        <svg class="w-5 h-5 text-gray-500 group-hover:text-{{ $themeColor }}-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </a>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 dark:text-white truncate" x-text="file.name"></p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400" x-text="formatFileSize(file.size)"></p>
-                        
-                        <!-- Document Type Select -->
-                        <select 
-                            :name="'document_types[' + index + ']'" 
-                            x-model="file.type"
-                            class="mt-2 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                        >
-                            <option value="">Pilih Jenis Dokumen</option>
-                            @foreach($documentTypes as $type => $label)
-                            <option value="{{ $type }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
-                    <!-- Upload Progress -->
-                    <div x-show="file.uploading" class="w-24">
-                        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-purple-600 transition-all" :style="'width: ' + file.progress + '%'"></div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 bg-{{ $themeColor }}-100 dark:bg-{{ $themeColor }}-900/30 text-{{ $themeColor }}-600 dark:text-{{ $themeColor }}-400 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                Dokumentasi Prestasi
+                            </span>
+                            @if($achievement->validation_status === 'Perlu Revisi')
+                                <span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                    Butuh Perbaikan
+                                </span>
+                            @endif
                         </div>
-                        <p class="text-xs text-gray-500 text-center mt-1" x-text="file.progress + '%'"></p>
+                        <h2 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight truncate">Upload Bukti Tambahan</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1.5 mt-0.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {{ $achievement->event_name }}
+                        </p>
                     </div>
-                    
-                    <!-- Remove Button -->
-                    <button type="button" @click="removeFile(index)" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                    </button>
                 </div>
-            </template>
-        </div>
 
-        <!-- External Links -->
-        <div class="mt-6">
-            <div class="flex items-center justify-between mb-3">
-                <h4 class="font-medium text-gray-900 dark:text-white">Link Publikasi (Opsional)</h4>
-                <button type="button" @click="addLink()" class="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400">
-                    + Tambah Link
-                </button>
-            </div>
-            
-            <template x-for="(link, index) in externalLinks" :key="index">
-                <div class="flex gap-3 mb-3">
-                    <input 
-                        type="text" 
-                        :name="'external_links[' + index + '][title]'" 
-                        x-model="link.title"
-                        placeholder="Judul (opsional)"
-                        class="w-1/3 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                    >
-                    <input 
-                        type="url" 
-                        :name="'external_links[' + index + '][url]'" 
-                        x-model="link.url"
-                        placeholder="https://..."
-                        class="flex-1 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                    >
-                    <button type="button" @click="removeLink(index)" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+                <!-- Info Alert -->
+                <div class="mt-6 flex flex-col md:flex-row gap-4">
+                    @if(!isset($isValidatorOrAdmin) || !$isValidatorOrAdmin)
+                        <div class="flex-1 p-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl flex gap-3 shadow-sm">
+                            <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wide">Panduan Upload</h4>
+                                <p class="text-[11px] text-indigo-700/80 dark:text-indigo-400/80 mt-1 leading-relaxed">
+                                    Unggah <strong>Sertifikat</strong> atau bukti pendukung lainnya. Maksimal 2 file pendukung diperbolehkan. SK Resmi akan diunggah oleh petugas saat validasi.
+                                </p>
+                            </div>
+                        </div>
+                    @else
+                        <div class="flex-1 p-4 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 rounded-2xl flex gap-3 shadow-sm">
+                            <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wide">Mode Petugas</h4>
+                                <p class="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 mt-1 leading-relaxed">
+                                    Anda dapat mengunggah semua jenis dokumen termasuk <strong>SK Resmi</strong> untuk prestasi ini.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($isNonAkademik)
+                        <div class="flex-1 p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-2xl flex gap-3 shadow-sm">
+                            <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wide">Status Non-Akademik</h4>
+                                <p class="text-[11px] text-amber-700/80 dark:text-amber-400/80 mt-1 leading-relaxed">
+                                    Minimal 2 bukti berbeda diperlukan untuk validasi jenis prestasi non-akademik ini.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
-            </template>
-        </div>
-
-        <!-- Submit Button -->
-        <div class="mt-6 flex justify-end gap-3">
-            <a href="{{ $backRoute }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                Kembali
-            </a>
-            <button 
-                type="submit" 
-                class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="files.length === 0 || !allTypesSelected()"
-            >
-                Upload Dokumen
-            </button>
-        </div>
-    </form>
-    @else
-    <!-- Read-only mode for approved/rejected achievements -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-            <div>
-                <p class="font-medium text-gray-900 dark:text-white">Mode Lihat Dokumen</p>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Prestasi ini sudah {{ $achievement->validation_status === 'Disetujui' ? 'disetujui' : 'ditolak' }}. Upload dokumen tidak diperbolehkan.</p>
             </div>
         </div>
-        <div class="mt-4 flex justify-end">
-            <a href="{{ $backRoute }}" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                Kembali
-            </a>
-        </div>
-    </div>
-    @endif
 
-    <!-- Existing Documents - Always show if there are documents -->
-    @if($achievement->documents->isNotEmpty() || $achievement->certificate)
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Dokumen yang Sudah Diunggah</h3>
-            <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full">
-                {{ ($achievement->documents->count() + ($achievement->certificate ? 1 : 0)) }} Dokumen
-            </span>
-        </div>
-        
-        <!-- Certificate (from student_achievements table) -->
-        @if($achievement->certificate)
-        <div class="mb-6">
-            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"/>
-                    <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-                </svg>
-                Sertifikat Utama
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3">
+        <!-- Upload Form -->
+        @if(!in_array($achievement->validation_status, ['Disetujui', 'Ditolak']))
+            <form id="uploadForm" action="{{ route('achievements.documents.store', $achievement) }}" method="POST"
+                enctype="multipart/form-data"
+                class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-all duration-300"
+                @submit.prevent="submitForm()">
+                @csrf
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left: File Upload Area -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-widest flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
+                                File Dokumen Pendukung
+                            </label>
+                            <span class="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded-lg"
+                                x-text="(existingSupportingDocsCount + files.length) + ' / ' + maxFiles"></span>
+                        </div>
+
+                        <div class="relative group" x-show="existingSupportingDocsCount + files.length < maxFiles">
+                            <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                multiple accept=".pdf,.jpg,.jpeg,.png"
+                                @change="handleFileSelect($event)">
+                            <div class="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl p-8 text-center bg-gray-50/30 dark:bg-gray-900/30 group-hover:bg-white dark:group-hover:bg-gray-900 group-hover:border-indigo-400 dark:group-hover:border-indigo-600 transition-all duration-300">
+                                <div class="w-12 h-12 mx-auto bg-indigo-50 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center text-indigo-500 mb-4 transition-transform duration-300 group-hover:scale-110">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </div>
+                                <p class="text-[11px] font-bold text-gray-700 dark:text-gray-300">Tarik file ke sini atau klik untuk memilih</p>
+                                <p class="text-[10px] text-gray-500 mt-1">PDF, JPG, PNG (Maks. 10MB)</p>
+                            </div>
+                        </div>
+
+                        <!-- Limit Exceeded Banner -->
+                        <div x-show="existingSupportingDocsCount + files.length >= maxFiles" x-cloak
+                            class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-2xl flex items-center gap-3 animate-fade-in">
+                            <div class="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <p class="text-[11px] font-medium text-amber-800 dark:text-amber-400">Kuota dokumen pendukung (2) sudah penuh.</p>
+                        </div>
+
+                        <!-- Selected Files Preview -->
+                        <div class="space-y-3" x-show="files.length > 0">
+                            <template x-for="(file, index) in files" :key="index">
+                                <div class="p-3 bg-white dark:bg-gray-900 border border-indigo-100 dark:border-indigo-800 shadow-sm rounded-xl flex items-center gap-3 animate-fade-in group/item">
+                                    <div class="w-10 h-10 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0 text-indigo-500">
+                                        <template x-if="file.preview">
+                                            <img :src="file.preview" class="w-full h-full object-cover">
+                                        </template>
+                                        <template x-if="!file.preview">
+                                            <svg x-show="file.name.endsWith('.pdf')" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
+                                            </svg>
+                                        </template>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-[11px] font-bold text-gray-800 dark:text-gray-200 truncate" x-text="file.name"></p>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="text-[10px] text-gray-500" x-text="formatFileSize(file.size)"></span>
+                                            <select x-model="file.type"
+                                                class="text-[10px] font-bold bg-transparent border-none p-0 focus:ring-0 text-indigo-600 dark:text-indigo-400 cursor-pointer">
+                                                <option value="">Pilih Jenis...</option>
+                                                @foreach($documentTypes as $type => $label)
+                                                    <option value="{{ $type }}">{{ $label }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button type="button" @click="removeFile(index)"
+                                        class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover/item:opacity-100">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Right: Links & Submit -->
+                    <div class="space-y-6">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-widest flex items-center gap-2">
+                                    <div class="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                                    Link Publikasi <span class="text-gray-400 font-medium normal-case tracking-normal">(opsional)</span>
+                                </label>
+                                <button type="button" @click="addLink()"
+                                    class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                    + Tambah Link
+                                </button>
+                            </div>
+
+                            <div class="space-y-3">
+                                <template x-for="(link, index) in externalLinks" :key="index">
+                                    <div class="flex gap-2 animate-fade-in group/link">
+                                        <input type="text" x-model="link.title" placeholder="Judul"
+                                            class="w-1/3 text-[11px] bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 rounded-xl focus:ring-indigo-500 focus:border-indigo-500">
+                                        <div class="flex-1 relative">
+                                            <input type="url" x-model="link.url" placeholder="https://..."
+                                                class="w-full text-[11px] bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 pr-8">
+                                            <button type="button" @click="removeLink(index)"
+                                                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="externalLinks.length === 0" class="text-center py-6 border border-dashed border-gray-100 dark:border-gray-800 rounded-2xl">
+                                    <p class="text-[10px] text-gray-400 font-medium italic">Tidak ada link tambahan</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="pt-4 flex flex-col gap-3">
+                            <button type="submit"
+                                class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
+                                :disabled="fileCount === 0 && externalLinks.length === 0 || uploading || !allTypesSelected()">
+                                <template x-if="!uploading">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        <span>Mulai Unggah Dokumen</span>
+                                    </div>
+                                </template>
+                                <template x-if="uploading">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span x-text="'Sedang mengunggah... ' + uploadProgress + '%'"></span>
+                                    </div>
+                                </template>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        @else
+            <!-- Read-only mode for approved/rejected achievements -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <div>
+                        <p class="font-medium text-gray-900 dark:text-white">Mode Lihat Dokumen</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Prestasi ini sudah
+                            {{ $achievement->validation_status === 'Disetujui' ? 'disetujui' : 'ditolak' }}. Upload dokumen
+                            tidak diperbolehkan.</p>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <a href="{{ $backRoute }}"
+                        class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        Kembali
+                    </a>
+                </div>
+            </div>
+        @endif
+
+        <!-- Existing Documents - Always show if there are documents -->
+        @if($achievement->documents->isNotEmpty() || $achievement->certificate)
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Dokumen yang Sudah Diunggah</h3>
+                    <span
+                        class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full">
+                        {{ ($achievement->documents->count() + ($achievement->certificate ? 1 : 0)) }} Dokumen
+                    </span>
+                </div>
+
+                <!-- Certificate (from student_achievements table) -->
+                @if($achievement->certificate)
+                    <div class="mb-6">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
+                                <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+                            </svg>
+                            Sertifikat Utama
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
+                <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 group">
+                    <div class="aspect-[16/9] relative overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
                         @php
                             $ext = pathinfo($achievement->certificate, PATHINFO_EXTENSION);
                             $isImage = in_array(strtolower($ext), ['jpg', 'jpeg', 'png']);
                         @endphp
                         
                         @if($isImage)
-                            <img src="{{ asset('storage/' . $achievement->certificate) }}" alt="Sertifikat" class="w-20 h-20 object-cover rounded-lg">
+                            <img src="{{ route('achievements.certificate.preview', $achievement) }}" alt="Sertifikat" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        @elseif(strtolower($ext) === 'pdf')
+                            <iframe src="{{ route('achievements.certificate.preview', $achievement) }}#toolbar=0" class="w-full h-full border-0" scrolling="no"></iframe>
+                            <div class="absolute inset-0 z-10"></div> <!-- Overlay to prevent iframe interaction when not hovered -->
                         @else
-                            <div class="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-                                <svg class="w-10 h-10 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4z"/>
+                            <div class="text-center">
+                                <svg class="w-16 h-16 mx-auto text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM8.5 13h1.5v4H8.5v-4zm3 0h1.5v4H11.5v-4zm3 0h1.5v4H14.5v-4z"/>
                                 </svg>
+                                <p class="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">Berkas {{ strtoupper($ext) }}</p>
                             </div>
                         @endif
-                        
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">Sertifikat</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: {{ strtoupper($ext) }}</p>
-                            <a href="{{ asset('storage/' . $achievement->certificate) }}" target="_blank" 
-                                class="inline-flex items-center gap-1 mt-2 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                        <!-- View Overlay -->
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
+                            <a href="{{ route('achievements.certificate.preview', $achievement) }}" target="_blank" class="p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors">
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                Lihat/Download
                             </a>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white">File Sertifikat Utama</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Format: {{ strtoupper($ext) }}</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            @if(!in_array($achievement->validation_status, ['Disetujui', 'Ditolak']))
+                            <label class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer transition-colors shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                                Ganti Berkas Sertifikat
+                                <input type="file" class="hidden" onchange="replaceCertificate({{ $achievement->sa_id }}, this)" accept=".pdf,.jpg,.jpeg,.png">
+                            </label>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        @endif
-        
-        <!-- Additional Documents (from achievement_documents table) -->
-        @if($achievement->documents->isNotEmpty())
-        <div>
-            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
-                </svg>
-                Dokumen Pendukung
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach($achievement->documents as $document)
-                    <x-document-card :document="$document" :deletable="!in_array($achievement->validation_status, ['Disetujui', 'Ditolak'])" />
-                @endforeach
+                @endif
+
+                <!-- Additional Documents (from achievement_documents table) -->
+                @if($achievement->documents->isNotEmpty())
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Dokumen Pendukung
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($achievement->documents as $document)
+                                <x-document-card :document="$document" :deletable="!in_array($achievement->validation_status, ['Disetujui', 'Ditolak'])" />
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
-        </div>
+        @else
+            <!-- No documents uploaded yet -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div class="text-center py-8">
+                    <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Belum ada dokumen yang diupload</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">Upload dokumen pendukung untuk melengkapi pengajuan
+                        prestasi</p>
+                </div>
+            </div>
         @endif
     </div>
-    @else
-    <!-- No documents uploaded yet -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-        <div class="text-center py-8">
-            <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Belum ada dokumen yang diupload</p>
-            <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">Upload dokumen pendukung untuk melengkapi pengajuan prestasi</p>
-        </div>
-    </div>
-    @endif
-</div>
 
-<script>
-function documentUploader() {
-    return {
-        files: [],
-        externalLinks: [],
-        isDragging: false,
-        
-        handleDrop(event) {
-            this.isDragging = false;
-            const droppedFiles = Array.from(event.dataTransfer.files);
-            this.addFiles(droppedFiles);
-        },
-        
-        handleFileSelect(event) {
-            const selectedFiles = Array.from(event.target.files);
-            this.addFiles(selectedFiles);
-            event.target.value = '';
-        },
-        
-        addFiles(newFiles) {
-            newFiles.forEach(file => {
-                if (this.validateFile(file)) {
-                    const fileObj = {
-                        file: file,
-                        name: file.name,
-                        size: file.size,
-                        type: '',
-                        preview: null,
-                        uploading: false,
-                        progress: 0
-                    };
+    <script>
+        function documentUploader() {
+            return {
+                files: [],
+                externalLinks: [],
+                isDragging: false,
+                uploading: false,
+                uploadProgress: 0,
+                maxFiles: 2,
+                existingSupportingDocsCount: {{ $achievement->documents->whereNotIn('document_type', [App\Models\AchievementDocument::TYPE_SK_RESMI, App\Models\AchievementDocument::TYPE_LINK_PUBLIKASI])->count() }},
+                
+                get fileCount() {
+                    return this.files.length;
+                },
+
+                handleFileSelect(event) {
+                    const selectedFiles = Array.from(event.target.files);
+                    this.addFiles(selectedFiles);
+                    event.target.value = '';
+                },
+
+                handleDrop(event) {
+                    this.isDragging = false;
+                    const droppedFiles = Array.from(event.dataTransfer.files);
+                    this.addFiles(droppedFiles);
+                },
+
+                addFiles(newFiles) {
+                    const remainingSlots = this.maxFiles - this.existingSupportingDocsCount - this.files.length;
                     
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            fileObj.preview = e.target.result;
-                        };
-                        reader.readAsDataURL(file);
+                    if (newFiles.length > remainingSlots) {
+                        alert(`Batas maksimal 2 dokumen pendukung. Sisa slot: ${remainingSlots}`);
+                        newFiles = newFiles.slice(0, remainingSlots);
                     }
-                    
-                    this.files.push(fileObj);
-                }
-            });
-        },
-        
-        validateFile(file) {
-            const maxSize = 10 * 1024 * 1024; // 10MB
-            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-            
-            if (file.size > maxSize) {
-                alert('File ' + file.name + ' terlalu besar. Maksimal 10MB.');
-                return false;
-            }
-            
-            if (!allowedTypes.includes(file.type)) {
-                alert('Format file ' + file.name + ' tidak didukung. Gunakan PDF, JPG, atau PNG.');
-                return false;
-            }
-            
-            return true;
-        },
-        
-        removeFile(index) {
-            this.files.splice(index, 1);
-        },
-        
-        addLink() {
-            this.externalLinks.push({ title: '', url: '' });
-        },
-        
-        removeLink(index) {
-            this.externalLinks.splice(index, 1);
-        },
-        
-        formatFileSize(bytes) {
-            if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
-            if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
-            return bytes + ' bytes';
-        },
-        
-        allTypesSelected() {
-            return this.files.every(f => f.type !== '');
-        },
-        
-        submitForm() {
-            if (this.files.length === 0) {
-                alert('Minimal satu dokumen harus diunggah.');
-                return;
-            }
-            
-            if (!this.allTypesSelected()) {
-                alert('Pilih jenis untuk setiap dokumen.');
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('_token', '{{ csrf_token() }}');
-            
-            // Add files
-            this.files.forEach((fileObj, index) => {
-                formData.append(`documents[${index}]`, fileObj.file);
-                formData.append(`document_types[${index}]`, fileObj.type);
-            });
-            
-            // Add external links
-            this.externalLinks.forEach((link, index) => {
-                if (link.url) {
-                    formData.append(`external_links[${index}][url]`, link.url);
-                    formData.append(`external_links[${index}][title]`, link.title || '');
-                }
-            });
-            
-            // Submit via fetch
-            fetch('{{ route("achievements.documents.store", $achievement) }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Success - redirect to appropriate page based on role
-                    @if($isAdmin)
-                        window.location.href = '{{ route("admin.student-achievements") }}';
-                    @elseif($isValidator)
-                        window.location.href = '{{ route("validator.pending.index") }}';
-                    @else
-                        window.location.href = '{{ route("student.dashboard") }}';
-                    @endif
-                } else {
-                    return response.json().then(data => {
-                        throw new Error(data.message || 'Gagal upload dokumen');
+
+                    newFiles.forEach(file => {
+                        if (this.validateFile(file)) {
+                            const fileObj = {
+                                file: file,
+                                name: file.name,
+                                size: file.size,
+                                type: '',
+                                preview: null
+                            };
+
+                            if (file.type.startsWith('image/')) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => fileObj.preview = e.target.result;
+                                reader.readAsDataURL(file);
+                            }
+
+                            this.files.push(fileObj);
+                        }
                     });
+                },
+
+                validateFile(file) {
+                    const maxSize = 10 * 1024 * 1024; // 10MB
+                    if (file.size > maxSize) {
+                        alert(`File ${file.name} terlalu besar (Maks 10MB)`);
+                        return false;
+                    }
+                    return true;
+                },
+
+                removeFile(index) {
+                    this.files.splice(index, 1);
+                },
+
+                addLink() {
+                    this.externalLinks.push({ title: '', url: '' });
+                },
+
+                removeLink(index) {
+                    this.externalLinks.splice(index, 1);
+                },
+
+                allTypesSelected() {
+                    return this.files.every(f => f.type !== '');
+                },
+
+                formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                },
+
+                submitForm() {
+                    this.uploading = true;
+                    this.uploadProgress = 0;
+
+                    const formData = new FormData();
+                    this.files.forEach((fileObj, index) => {
+                        formData.append(`documents[${index}]`, fileObj.file);
+                        formData.append(`document_types[${index}]`, fileObj.type);
+                    });
+
+                    this.externalLinks.forEach((link, index) => {
+                        if (link.url) {
+                            formData.append(`external_links[${index}][url]`, link.url);
+                            formData.append(`external_links[${index}][title]`, link.title || '');
+                        }
+                    });
+
+                    formData.append('_token', '{{ csrf_token() }}');
+
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '{{ route("achievements.documents.store", $achievement) }}', true);
+                    xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+                    xhr.setRequestHeader('Accept', 'application/json');
+
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable) {
+                            this.uploadProgress = Math.round((e.loaded / e.total) * 100);
+                        }
+                    };
+
+                    xhr.onload = () => {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            window.location.reload();
+                        } else {
+                            const data = JSON.parse(xhr.responseText);
+                            alert(data.message || 'Gagal mengunggah dokumen');
+                            this.uploading = false;
+                        }
+                    };
+
+                    xhr.onerror = () => {
+                        alert('Terjadi kesalahan jaringan');
+                        this.uploading = false;
+                    };
+
+                    xhr.send(formData);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert(error.message || 'Terjadi kesalahan saat upload dokumen');
-            });
+            };
         }
-    }
-}
 
-function deleteDocument(id) {
-    if (confirm('Yakin ingin menghapus dokumen ini?')) {
-        fetch('/documents/' + id, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
+        function deleteDocument(id) {
+            if (confirm('Yakin ingin menghapus dokumen ini?')) {
+                fetch(`/documents/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) window.location.reload();
+                    else alert(data.error || 'Gagal menghapus dokumen');
+                });
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            }
-        });
-    }
-}
+        }
 
-function revertDocument(id) {
-    const reason = prompt('Alasan mengembalikan status dokumen (opsional):');
-    if (reason !== null) { // null means cancelled
-        fetch('/documents/' + id + '/revert', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ reason: reason })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert(data.error || 'Gagal mengembalikan status dokumen');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan');
-        });
-    }
-}
+        function replaceDocument(id, input) {
+            if (input.files && input.files[0]) {
+                const formData = new FormData();
+                formData.append('file', input.files[0]);
+                formData.append('_token', '{{ csrf_token() }}');
 
-function addNoteToDocument(id) {
-    const note = prompt('Masukkan catatan untuk dokumen ini:');
-    if (note && note.trim()) {
-        fetch('/documents/' + id + '/add-note', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ note: note })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert(data.error || 'Gagal menambahkan catatan');
+                fetch(`/documents/${id}/replace`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) window.location.reload();
+                    else {
+                        alert(data.error || 'Gagal mengganti dokumen');
+                        input.value = '';
+                    }
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan');
-        });
-    }
-}
-</script>
+        }
+
+        function replaceCertificate(achievementId, input) {
+            if (input.files && input.files[0]) {
+                const formData = new FormData();
+                formData.append('file', input.files[0]);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                fetch(`/achievements/${achievementId}/certificate/replace`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) window.location.reload();
+                    else {
+                        alert(data.error || 'Gagal mengganti sertifikat');
+                        input.value = '';
+                    }
+                });
+            }
+        }
+
+        function submitDocument(id) {
+            if (confirm('Kirim dokumen ini untuk verifikasi?')) {
+                fetch(`/documents/${id}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) window.location.reload();
+                    else alert(data.error || 'Gagal mengirim dokumen');
+                });
+            }
+        }
+
+        function revertDocument(id) {
+            const reason = prompt('Alasan pembatalan status:');
+            if (reason !== null) {
+                fetch(`/documents/${id}/revert`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) window.location.reload();
+                    else alert(data.error || 'Gagal mengembalikan status');
+                });
+            }
+        }
+
+        function addNoteToDocument(id) {
+            const note = prompt('Masukkan catatan:');
+            if (note && note.trim()) {
+                fetch(`/documents/${id}/add-note`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ note })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) alert('Catatan ditambahkan');
+                });
+            }
+        }
+    </script>
 @endsection

@@ -33,21 +33,21 @@
                 :multiple="true" 
             />
 
-            <!-- Achievement Category -->
+            <!-- Kategori Prestasi -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Jenis Prestasi <span class="text-red-500">*</span>
+                    Kategori Prestasi <span class="text-red-500">*</span>
                 </label>
-                <select name="achievement_id" required
-                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('achievement_id') border-red-500 @enderror">
-                    <option value="">Pilih Jenis Prestasi</option>
-                    @foreach($achievements as $achievement)
-                        <option value="{{ $achievement->id }}" {{ old('achievement_id') == $achievement->id ? 'selected' : '' }}>
-                            {{ $achievement->name }} ({{ $achievement->category->name ?? 'N/A' }})
+                <select name="category_id" required
+                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('category_id') border-red-500 @enderror">
+                    <option value="">Pilih Kategori Prestasi</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
                         </option>
                     @endforeach
                 </select>
-                @error('achievement_id')
+                @error('category_id')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>

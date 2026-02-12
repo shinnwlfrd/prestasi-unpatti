@@ -2,24 +2,30 @@
 
 namespace App\Services\Student;
 
+use App\Models\Achievement;
 use App\Models\StudentAchievement;
 use Illuminate\Http\UploadedFile;
 
 class AchievementService
 {
-    public function submitAchievement(array $data, string $studentId, UploadedFile $certificate): StudentAchievement
+    public function submitAchievement(array $data, string $studentId, UploadedFile $certificate, ?array $additionalDocuments = []): StudentAchievement
     {
+        $achievementId = $this->resolveAchievementIdFromCategory($data['category_id']);
+        if (!$achievementId) {
+            throw new \Exception('Kategori yang dipilih belum memiliki template prestasi. Hubungi admin.');
+        }
+
         // Upload certificate
         $certificatePath = $certificate->store('certificates', 'public');
 
-        if (! $certificatePath) {
+        if (!$certificatePath) {
             throw new \Exception('Gagal menyimpan file sertifikat ke storage.');
         }
 
         // Create achievement with two-stage validation status
         $achievement = StudentAchievement::create([
             'student_id' => $studentId,
-            'achievement_id' => $data['achievement_id'],
+            'achievement_id' => $achievementId,
             'event_name' => $data['event_name'],
             'level' => $data['level'],
             'organizer' => $data['organizer'],
@@ -35,11 +41,30 @@ class AchievementService
             'submitted_at' => now(),
         ]);
 
+        // Process additional documents if any
+        if ($additionalDocuments) {
+            foreach ($additionalDocuments as $file) {
+                if ($file instanceof UploadedFile && $file->isValid()) {
+                    $path = $file->store('documents/achievements', 'public');
+
+                    $achievement->documents()->create([
+                        'document_type' => \App\Models\AchievementDocument::TYPE_FOTO_DOKUMENTASI, // Default to documentation
+                        'file_path' => $path,
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_type' => $file->getMimeType(),
+                        'file_size' => $file->getSize(),
+                        'status' => \App\Models\AchievementDocument::STATUS_PENDING,
+                    ]);
+                }
+            }
+        }
+
         // Log for debugging
         \Log::info('Achievement submitted', [
             'sa_id' => $achievement->sa_id,
             'student_id' => $studentId,
             'certificate_path' => $certificatePath,
+            'additional_docs_count' => count($additionalDocuments ?? []),
             'status' => $achievement->validation_status,
             'stage' => $achievement->current_stage,
             'file_exists' => \Storage::disk('public')->exists($certificatePath),
@@ -79,5 +104,14 @@ class AchievementService
             ])->count(),
             'revision' => (clone $achievements)->where('validation_status', StudentAchievement::STATUS_NEED_REVISION)->count(),
         ];
+    }
+
+    protected function resolveAchievementIdFromCategory(int $categoryId): ?int
+    {
+        $achievement = Achievement::where('category_id', $categoryId)
+            ->where('is_active', true)
+            ->first();
+
+        return $achievement?->id;
     }
 }

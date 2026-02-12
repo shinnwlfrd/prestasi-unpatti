@@ -58,18 +58,18 @@ class DatabaseSeeder extends Seeder
         $this->seedUsers();
 
         // 4. Seed students (banyak mahasiswa per fakultas)
-        $this->seedStudents();
-        $this->seedTestStudent();
+        // $this->seedStudents();
+        // $this->seedTestStudent();
 
         // 5. Seed SK Documents
-        $this->seedSKDocuments();
+        // $this->seedSKDocuments();
 
-        // 6. Seed student achievements dengan 2-stage validation
-        $this->seedStudentAchievements();
+        // // 6. Seed student achievements dengan 2-stage validation
+        // $this->seedStudentAchievements();
 
         $this->command->info('');
         $this->command->info('✅ Complete System Seeder finished successfully!');
-        $this->printSummary();
+        // $this->printSummary();
     }
 
     /**

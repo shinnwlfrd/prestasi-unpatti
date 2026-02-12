@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Validator;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Validator\SubmitAchievementRequest;
-use App\Models\Achievement;
 use App\Models\AchievementCategory;
 use App\Models\AchievementLevel;
 use App\Models\Student;
@@ -21,33 +20,39 @@ class SubmitController extends Controller
     {
         $students = Student::orderBy('name')->get();
         $categories = AchievementCategory::active()->get();
-        $achievements = Achievement::with('category')->get();
         $levels = AchievementLevel::active()->get();
         $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
 
-        return view('validator.submit', compact('students', 'achievements', 'categories', 'levels', 'skDocuments'));
+        return view('validator.submit', compact('students', 'categories', 'levels', 'skDocuments'));
     }
 
     public function store(SubmitAchievementRequest $request)
     {
         $validated = $request->validated();
-        $certificate = $request->file('certificate');
         $user = auth()->user();
 
-        // Get student IDs (can be single or multiple)
-        $studentIds = $validated['student_ids'] ?? [$validated['student_id'] ?? null];
-        $studentIds = array_filter($studentIds); // Remove empty values
-
-        if (empty($studentIds)) {
-            return back()->withErrors(['student_ids' => 'Pilih minimal satu mahasiswa.'])->withInput();
-        }
+        // Get student IDs
+        $studentIds = $validated['student_ids'];
 
         $createdAchievements = [];
         $errors = [];
 
+        // Attachments from request
+        $attachments = $request->file('attachments', []);
+
         // Create achievement for each student
         foreach ($studentIds as $studentId) {
             try {
+                // Get files for this specific student
+                $studentFiles = $attachments[$studentId] ?? null;
+
+                if (!$studentFiles || !isset($studentFiles['certificate'])) {
+                    throw new \Exception("Sertifikat untuk mahasiswa ID {$studentId} tidak ditemukan.");
+                }
+
+                $certificate = $studentFiles['certificate'];
+                $additionalDocs = $studentFiles['additional_documents'] ?? [];
+
                 // Prepare data for this student
                 $studentData = array_merge($validated, ['student_id' => $studentId]);
 
@@ -55,7 +60,8 @@ class SubmitController extends Controller
                 $achievement = $this->submissionService->submitAchievement(
                     $studentData,
                     $certificate,
-                    $user->id
+                    $user->id,
+                    $additionalDocs
                 );
 
                 $createdAchievements[] = $achievement;

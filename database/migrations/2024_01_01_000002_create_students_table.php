@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('students', function (Blueprint $table) {
@@ -20,16 +19,16 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
             $table->string('photo')->nullable();
-            
+
             // Public profile fields
             $table->boolean('is_public_profile')->default(false);
             $table->string('profile_slug')->nullable()->unique();
             $table->text('bio')->nullable();
             $table->json('social_links')->nullable();
             $table->string('motto')->nullable();
-            
+
             $table->timestamps();
-            
+
             $table->index('faculty');
             $table->index('program');
             $table->index(['faculty', 'semester']);

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\SubmitAchievementRequest;
-use App\Models\Achievement;
 use App\Models\AchievementCategory;
 use App\Models\AchievementLevel;
 use App\Models\StudentAchievement;
@@ -20,10 +19,9 @@ class AchievementController extends Controller
     public function create()
     {
         $categories = AchievementCategory::active()->get();
-        $achievements = Achievement::with('category')->get();
         $levels = AchievementLevel::active()->get();
 
-        return view('student.achievement.create', compact('categories', 'achievements', 'levels'));
+        return view('student.achievement.create', compact('categories', 'levels'));
     }
 
     public function store(SubmitAchievementRequest $request)
@@ -46,7 +44,8 @@ class AchievementController extends Controller
         $achievement = $this->achievementService->submitAchievement(
             $request->validated(),
             $studentId,
-            $request->file('certificate')
+            $request->file('certificate'),
+            $request->file('additional_documents') ?? []
         );
 
         return redirect()->route('student.dashboard')

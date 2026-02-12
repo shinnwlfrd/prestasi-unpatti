@@ -21,7 +21,7 @@ class SigapController extends Controller
     public function faculties()
     {
         $faculties = $this->sigapService->getFaculties();
-        
+
         return response()->json([
             'success' => true,
             'data' => $faculties,
@@ -36,7 +36,7 @@ class SigapController extends Controller
     {
         $facultyId = $request->query('faculty_id');
         $departments = $this->sigapService->getDepartments($facultyId);
-        
+
         return response()->json([
             'success' => true,
             'data' => $departments,
@@ -52,7 +52,7 @@ class SigapController extends Controller
     {
         $departmentId = $request->query('department_id');
         $studyPrograms = $this->sigapService->getStudyPrograms($departmentId);
-        
+
         return response()->json([
             'success' => true,
             'data' => $studyPrograms,
@@ -67,7 +67,7 @@ class SigapController extends Controller
     public function hierarchy()
     {
         $structure = $this->sigapService->getHierarchicalStructure();
-        
+
         return response()->json([
             'success' => true,
             'data' => $structure,
@@ -81,7 +81,7 @@ class SigapController extends Controller
     public function clearCache()
     {
         $this->sigapService->clearCache();
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Cache cleared successfully'
@@ -94,7 +94,7 @@ class SigapController extends Controller
     public function searchStudents(Request $request)
     {
         $query = $request->query('q', '');
-        
+
         // Minimum 2 characters
         if (strlen($query) < 2) {
             return response()->json([
@@ -106,15 +106,11 @@ class SigapController extends Controller
 
         try {
             $students = \App\Models\Student::query()
-                ->where(function($q) use ($query) {
-                    // If query is numeric, search student_id starting with the query
-                    if (is_numeric($query)) {
-                        $q->where('student_id', 'LIKE', "{$query}%");
-                    } else {
-                        // If query contains text, search in name (anywhere) or student_id (starting with)
-                        $q->where('name', 'ILIKE', "%{$query}%")
-                          ->orWhere('student_id', 'LIKE', "{$query}%");
-                    }
+                ->where(function ($q) use ($query) {
+                    // Search in name or student_id (NIM) anywhere in the string
+                    // Using ILIKE for case-insensitive search in PostgreSQL
+                    $q->where('name', 'ILIKE', "%{$query}%")
+                        ->orWhere('student_id', 'ILIKE', "%{$query}%");
                 })
                 ->select('student_id', 'name', 'faculty', 'department', 'program', 'angkatan')
                 ->orderBy('student_id')

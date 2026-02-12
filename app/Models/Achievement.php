@@ -11,16 +11,19 @@ class Achievement extends Model
 
     protected $fillable = [
         'category_id',
+        'name',
+        'description',
+        'is_active',
         'level_id',
         'event_name',
         'organizer',
         'start_date',
         'end_date',
         'location',
-        'description',
     ];
 
     protected $casts = [
+        'is_active' => 'boolean',
         'start_date' => 'date',
         'end_date' => 'date',
     ];
