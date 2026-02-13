@@ -82,7 +82,7 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cari</label>
                     <input type="text" name="search" value="{{ request('search') }}" 
                         placeholder="Nama mahasiswa, NIM, atau prestasi..."
-                        class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        class="w-full py-3 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                 </div>
 
                 <!-- Status Filter -->

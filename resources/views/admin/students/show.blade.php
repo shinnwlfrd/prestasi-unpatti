@@ -141,14 +141,8 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Program Studi</p>
-                        <p class="text-base text-gray-900 dark:text-white mt-1">{{ $student->program_study ?? $student->program ?? '-' }}</p>
+                        <p class="text-base text-gray-900 dark:text-white mt-1">{{ $student->program_study ?? '-' }}</p>
                     </div>
-                    @if($student->program_study_code)
-                    <div>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Kode Prodi</p>
-                        <p class="text-base text-gray-900 dark:text-white mt-1">{{ $student->program_study_code }}</p>
-                    </div>
-                    @endif
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">IPK</p>
                         <p class="text-base font-semibold text-gray-900 dark:text-white mt-1">{{ number_format($student->gpa, 2) }}</p>

@@ -61,6 +61,7 @@
                             :required="true" 
                             :error="$errors->first('student_ids')" 
                             :multiple="true"
+                            :faculty-id="session('operator_faculty_id')"
                         />
                     </div>
 

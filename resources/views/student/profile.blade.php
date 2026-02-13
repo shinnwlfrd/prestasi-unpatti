@@ -98,9 +98,6 @@
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{{ $student->name ?? '-' }}</h2>
                 <p class="text-indigo-600 dark:text-indigo-400 font-semibold">{{ $student->student_id ?? '-' }}</p>
                 <div class="flex flex-wrap items-center gap-2 mt-2">
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
-                        Semester {{ $student->semester ?? '-' }}
-                    </span>
                     <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
                         Aktif
                     </span>
@@ -145,11 +142,6 @@
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Program Studi</p>
                         <p class="font-semibold text-gray-800 dark:text-white">{{ $student->program_study ?? '-' }}</p>
-                        @if($student->program_study_code)
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                Kode: {{ $student->program_study_code }}
-                            </p>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -196,19 +188,6 @@
                     <p class="font-medium text-gray-800 dark:text-white">{{ $student->email ?? '-' }}</p>
                 </div>
             </div>
-            @if($student->phone ?? false)
-            <div class="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                <div class="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Telepon</p>
-                    <p class="font-medium text-gray-800 dark:text-white">{{ $student->phone }}</p>
-                </div>
-            </div>
-            @endif
         </div>
     </x-card>
 

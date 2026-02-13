@@ -58,18 +58,18 @@ class DatabaseSeeder extends Seeder
         $this->seedUsers();
 
         // 4. Seed students (banyak mahasiswa per fakultas)
-        // $this->seedStudents();
-        // $this->seedTestStudent();
+        $this->seedStudents();
+        $this->seedTestStudent();
 
         // 5. Seed SK Documents
-        // $this->seedSKDocuments();
+        $this->seedSKDocuments();
 
-        // // 6. Seed student achievements dengan 2-stage validation
-        // $this->seedStudentAchievements();
+        // 6. Seed student achievements dengan 2-stage validation
+        $this->seedStudentAchievements();
 
         $this->command->info('');
         $this->command->info('✅ Complete System Seeder finished successfully!');
-        // $this->printSummary();
+        $this->printSummary();
     }
 
     /**
@@ -250,18 +250,21 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Seed users (admin, operators, pimpinan)
+     * Seed users (admin, operators, pimpinan) - OPTIMIZED
      */
     private function seedUsers(): void
     {
-        $this->command->info('👥 Seeding users...');
+        $this->command->info('👥 Seeding users (optimized)...');
+
+        // Pre-hash password once for all users (huge performance boost!)
+        $passwordHash = Hash::make('password');
 
         // Super Admin
         $superAdmin = User::updateOrCreate(
             ['email' => 'superadmin@unpatti.ac.id'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => 'Admin',
             ]
         );
@@ -279,7 +282,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@unpatti.ac.id'],
             [
                 'name' => 'Admin Universitas',
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => 'Admin',
             ]
         );
@@ -297,7 +300,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'rektor@unpatti.ac.id'],
             [
                 'name' => 'Prof. Dr. Rektor Unpatti',
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => 'Pimpinan',
             ]
         );
@@ -316,7 +319,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'warek1@unpatti.ac.id'],
             [
                 'name' => 'Prof. Dr. Wakil Rektor I',
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => 'Pimpinan',
             ]
         );
@@ -336,7 +339,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Dr. Wakil Rektor II',
                 'email' => 'warek2@unpatti.ac.id',
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => 'Pimpinan',
             ]
         );
@@ -355,7 +358,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'warek3@unpatti.ac.id'],
             [
                 'name' => 'Dr. Wakil Rektor III',
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => 'Pimpinan',
             ]
         );
@@ -374,7 +377,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'direktur.pps@unpatti.ac.id'],
             [
                 'name' => 'Prof. Dr. Direktur Pascasarjana',
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => 'Pimpinan',
             ]
         );
@@ -393,7 +396,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'kabiro.kemahasiswaan@unpatti.ac.id'],
             [
                 'name' => 'Kepala Biro Kemahasiswaan',
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'role' => 'Pimpinan',
             ]
         );
@@ -408,7 +411,7 @@ class DatabaseSeeder extends Seeder
         $this->users['kabiro_kemahasiswaan'] = $kabiro;
 
         // Create operators and pimpinan for each faculty
-        $globalProgCounter = 1; // Global counter for all programs across faculties
+        $globalProgCounter = 1;
         foreach ($this->faculties as $facultyName => $facultyData) {
             $facultyCode = $this->getFacultyCode($facultyName);
 
@@ -417,7 +420,7 @@ class DatabaseSeeder extends Seeder
                 ['email' => "operator.{$facultyCode}@unpatti.ac.id"],
                 [
                     'name' => "Operator {$facultyName}",
-                    'password' => Hash::make('password'),
+                    'password' => $passwordHash,
                     'role' => 'Validator',
                     'faculty' => $facultyName,
                     'faculty_id' => $facultyData['id'],
@@ -439,7 +442,7 @@ class DatabaseSeeder extends Seeder
                 ['email' => "dekan.{$facultyCode}@unpatti.ac.id"],
                 [
                     'name' => "Dekan {$facultyName}",
-                    'password' => Hash::make('password'),
+                    'password' => $passwordHash,
                     'role' => 'Pimpinan',
                     'faculty' => $facultyName,
                     'faculty_id' => $facultyData['id'],
@@ -469,7 +472,7 @@ class DatabaseSeeder extends Seeder
                         ['email' => "kajur.{$uniqueDeptCode}.{$facultyCode}@unpatti.ac.id"],
                         [
                             'name' => "Ketua Jurusan {$deptName}",
-                            'password' => Hash::make('password'),
+                            'password' => $passwordHash,
                             'role' => 'Pimpinan',
                             'faculty' => $facultyName,
                             'faculty_id' => $facultyData['id'],
@@ -496,8 +499,8 @@ class DatabaseSeeder extends Seeder
                             $kaprodi = User::updateOrCreate(
                                 ['email' => "kaprodi.{$progCode}{$globalProgCounter}@unpatti.ac.id"],
                                 [
-                                    'name' => "Kaprodi {$program['name']}",
-                                    'password' => Hash::make('password'),
+                                    'name' => "Kepala {$program['name']}",
+                                    'password' => $passwordHash,
                                     'role' => 'Pimpinan',
                                     'faculty' => $facultyName,
                                     'faculty_id' => $facultyData['id'],
@@ -529,25 +532,32 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Seed students (banyak mahasiswa per fakultas)
+     * Seed students (banyak mahasiswa per fakultas) - OPTIMIZED
      */
     private function seedStudents(): void
     {
-        $this->command->info('🎓 Seeding students (this may take a while)...');
+        $this->command->info('🎓 Seeding students (optimized batch insert)...');
 
         $studentsPerFaculty = 50; // 50 mahasiswa per fakultas
         $angkatanRange = [2021, 2022, 2023, 2024, 2025];
         $studentCount = 0;
-        $facultyCounter = 1; // Start from 1 for consistent faculty codes
+        $facultyCounter = 1;
+
+        // Pre-hash password once (huge performance boost!)
+        $passwordHash = Hash::make('password');
+        
+        // Batch arrays
+        $studentsBatch = [];
+        $credentialsBatch = [];
+        $batchSize = 100; // Insert every 100 records
 
         foreach ($this->faculties as $facultyName => $facultyData) {
-            // Skip if faculty has no departments
             if (!isset($this->departments[$facultyName]) || empty($this->departments[$facultyName])) {
                 continue;
             }
 
             $facultyCode = str_pad($facultyCounter, 2, '0', STR_PAD_LEFT);
-            $deptCounter = 1; // Reset department counter for each faculty
+            $deptCounter = 1;
 
             foreach ($this->departments[$facultyName] as $deptName => $deptData) {
                 if (!isset($this->programs[$facultyName][$deptName])) {
@@ -555,61 +565,95 @@ class DatabaseSeeder extends Seeder
                 }
 
                 $deptCode = str_pad($deptCounter, 2, '0', STR_PAD_LEFT);
-                $progCounter = 1; // Reset program counter for each department
+                $progCounter = 1;
 
                 foreach ($this->programs[$facultyName][$deptName] as $program) {
                     $progCode = str_pad($progCounter, 2, '0', STR_PAD_LEFT);
-
-                    // Create students for this program
                     $studentsInProgram = (int) ($studentsPerFaculty / count($this->programs[$facultyName][$deptName]));
 
                     for ($i = 1; $i <= $studentsInProgram; $i++) {
                         $angkatan = $angkatanRange[array_rand($angkatanRange)];
                         $studentNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
                         $studentId = "{$facultyCode}{$deptCode}{$progCode}{$studentNumber}";
+                        $now = now();
 
-                        $student = Student::updateOrCreate(
-                            ['student_id' => $studentId],
-                            [
-                                'name' => "Mahasiswa {$program['name']} {$i}",
-                                'email' => "student.{$studentId}@students.unpatti.ac.id",
-                                'faculty' => $facultyName,
-                                'faculty_id' => $facultyData['id'],
-                                'department' => $deptName,
-                                'department_id' => $deptData['id'],
-                                'program' => $program['name'],
-                                'program_study' => $program['name'],
-                                'program_study_id' => $program['id'],
-                                'program_study_code' => $program['code'],
-                                'angkatan' => $angkatan,
-                                'semester' => rand(1, 8),
-                                'gpa' => number_format(rand(250, 400) / 100, 2),
-                            ]
-                        );
+                        // Prepare student data
+                        $studentsBatch[] = [
+                            'student_id' => $studentId,
+                            'name' => "Mahasiswa {$program['name']} {$i}",
+                            'email' => "student.{$studentId}@students.unpatti.ac.id",
+                            'faculty' => $facultyName,
+                            'faculty_id' => $facultyData['id'],
+                            'department' => $deptName,
+                            'department_id' => $deptData['id'],
+                            'program_study' => $program['name'],
+                            'program_study_id' => $program['id'],
+                            'angkatan' => $angkatan,
+                            'gpa' => number_format(rand(250, 400) / 100, 2),
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
 
-                        // Also create SIKAD credentials for login
-                        SikadCredential::updateOrCreate(
-                            ['student_id' => $studentId],
-                            [
-                                'password_hash' => Hash::make('password'),
-                                'is_active' => true
-                            ]
-                        );
+                        // Prepare credentials data
+                        $credentialsBatch[] = [
+                            'student_id' => $studentId,
+                            'password_hash' => $passwordHash,
+                            'is_active' => true,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
 
-                        $this->students[] = $student;
                         $studentCount++;
+
+                        // Insert in batches
+                        if (count($studentsBatch) >= $batchSize) {
+                            $this->insertStudentBatch($studentsBatch, $credentialsBatch);
+                            $studentsBatch = [];
+                            $credentialsBatch = [];
+                        }
                     }
 
-                    $progCounter++; // Increment program counter
+                    $progCounter++;
                 }
 
-                $deptCounter++; // Increment department counter
+                $deptCounter++;
             }
 
-            $facultyCounter++; // Increment faculty counter only for faculties with departments
+            $facultyCounter++;
+        }
+
+        // Insert remaining records
+        if (!empty($studentsBatch)) {
+            $this->insertStudentBatch($studentsBatch, $credentialsBatch);
         }
 
         $this->command->info("   ✓ Created {$studentCount} students");
+    }
+
+    /**
+     * Insert student batch with upsert to handle duplicates
+     */
+    private function insertStudentBatch(array $students, array $credentials): void
+    {
+        // Use upsert for students (update if exists, insert if not)
+        Student::upsert(
+            $students,
+            ['student_id'], // Unique key
+            ['name', 'email', 'faculty', 'faculty_id', 'department', 'department_id', 
+             'program_study', 'program_study_id', 'angkatan', 'gpa', 'updated_at']
+        );
+
+        // Use upsert for credentials
+        SikadCredential::upsert(
+            $credentials,
+            ['student_id'], // Unique key
+            ['password_hash', 'is_active', 'updated_at']
+        );
+
+        // Store student IDs for later use
+        foreach ($students as $studentData) {
+            $this->students[] = (object) $studentData;
+        }
     }
 
     /**
@@ -629,12 +673,9 @@ class DatabaseSeeder extends Seeder
                 'faculty_id' => 'a4ed52fa-8dba-4f0b-a2d5-a93557e2ac62',
                 'department' => 'Jurusan Ilmu Hukum',
                 'department_id' => '7c40db5c-0765-49d5-9147-f57c16f8cfa2',
-                'program' => 'Program Studi Ilmu Hukum',
                 'program_study' => 'Program Studi Ilmu Hukum',
                 'program_study_id' => 'c8fa82ea-ce38-47f9-be29-c9ecca2e6ae0',
-                'program_study_code' => '020201',
                 'angkatan' => 2024,
-                'semester' => 2,
                 'gpa' => 3.75,
             ]
         );
@@ -685,73 +726,134 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Seed student achievements dengan 2-stage validation
+     * Seed student achievements dengan 2-stage validation - OPTIMIZED
      */
     private function seedStudentAchievements(): void
     {
-        $this->command->info('🏅 Seeding student achievements with 2-stage validation...');
+        $this->command->info('🏅 Seeding student achievements (optimized batch insert)...');
 
-        $achievements = Achievement::all();
+        $achievements = Achievement::all()->toArray();
         $levels = ['Universitas', 'Nasional', 'Internasional'];
         $statuses = [
-            'Menunggu' => 30,              // 30% pending
-            'faculty_approved' => 25,      // 25% approved by faculty
-            'faculty_rejected' => 10,      // 10% rejected by faculty
-            'university_approved' => 25,   // 25% fully approved
-            'university_rejected' => 10,   // 10% rejected by university
+            'Menunggu' => 30,
+            'faculty_approved' => 25,
+            'faculty_rejected' => 10,
+            'university_approved' => 25,
+            'university_rejected' => 10,
         ];
 
+        // Get all periods (not just active)
+        $periods = AcademicPeriod::orderBy('start_date', 'desc')->get();
+        if ($periods->isEmpty()) {
+            $this->command->warn('   ⚠ No academic periods found. Skipping achievements.');
+            return;
+        }
+
         $achievementCount = 0;
-        $studentsToProcess = array_slice($this->students, 0, 200); // Process 200 students
+        $studentsToProcess = array_slice($this->students, 0, 200);
+        
+        // Batch arrays
+        $achievementsBatch = [];
+        $batchSize = 50;
+
+        // Distribute achievements across periods
+        // 60% to active period, 40% to other periods
+        $activePeriod = $periods->firstWhere('is_active', true);
+        $inactivePeriods = $periods->where('is_active', false);
 
         foreach ($studentsToProcess as $student) {
-            // Each student gets 1-3 achievements
             $numAchievements = rand(1, 3);
 
             for ($i = 0; $i < $numAchievements; $i++) {
-                $achievement = $achievements->random();
+                $achievement = $achievements[array_rand($achievements)];
                 $level = $levels[array_rand($levels)];
                 $status = $this->getRandomStatus($statuses);
-
-                // Get faculty operator and pimpinan
-                $facultyCode = $this->getFacultyCode($student->faculty);
-                $operator = $this->users["operator_{$facultyCode}"] ?? null;
-                $pimpinan = $this->users["pimpinan_{$facultyCode}"] ?? null;
-
-                // Create student achievement
-                $sa = StudentAchievement::updateOrCreate(
-                    [
-                        'student_id' => $student->student_id,
-                        'achievement_id' => $achievement->id,
-                        'event_name' => $achievement->name . ' ' . date('Y'),
-                    ],
-                    [
-                        'level' => $level,
-                        'organizer' => $this->getRandomOrganizer($level),
-                        'event_date' => now()->subDays(rand(30, 365)),
-                        'ranking' => $this->getRandomRanking(),
-                        'description' => "Prestasi {$achievement->name} tingkat {$level}",
-                        'certificate' => "certificates/cert_{$student->student_id}_{$i}.pdf",
-                        'validation_status' => $status,
-                        'submitted_by' => rand(0, 1) ? 'student' : 'validator',
-                        'submitted_at' => now()->subDays(rand(1, 60)),
-                        'sk_required' => $level !== 'Universitas',
-                    ]
-                );
-
-                // Add validation logs based on status
-                $this->addValidationLogs($sa, $status, $operator, $pimpinan);
-
-                // Assign SK if fully approved
-                if ($status === 'university_approved' && $sa->sk_required) {
-                    $this->assignSK($sa, $student->faculty);
+                
+                // Distribute to periods: 60% active, 40% inactive
+                $selectedPeriod = null;
+                if ($activePeriod && rand(1, 100) <= 60) {
+                    $selectedPeriod = $activePeriod;
+                } elseif ($inactivePeriods->isNotEmpty()) {
+                    $selectedPeriod = $inactivePeriods->random();
+                } else {
+                    $selectedPeriod = $periods->first();
                 }
 
+                $now = now();
+                
+                // Adjust dates based on period
+                if ($selectedPeriod) {
+                    $periodStart = \Carbon\Carbon::parse($selectedPeriod->start_date);
+                    $periodEnd = \Carbon\Carbon::parse($selectedPeriod->end_date);
+                    
+                    // Event date within period
+                    $eventDate = $periodStart->copy()->addDays(rand(0, $periodStart->diffInDays($periodEnd)));
+                    
+                    // Submitted date after event date
+                    $submittedAt = $eventDate->copy()->addDays(rand(1, 30));
+                    
+                    // For inactive periods, use historical dates
+                    if (!$selectedPeriod->is_active) {
+                        $now = $submittedAt->copy()->addDays(rand(1, 7));
+                    }
+                } else {
+                    $eventDate = $now->copy()->subDays(rand(30, 365));
+                    $submittedAt = $now->copy()->subDays(rand(1, 60));
+                }
+
+                // Prepare achievement data
+                $achievementData = [
+                    'student_id' => is_object($student) ? $student->student_id : $student['student_id'],
+                    'achievement_id' => $achievement['id'],
+                    'academic_period_id' => $selectedPeriod ? $selectedPeriod->id : null,
+                    'event_name' => $achievement['name'] . ' ' . $eventDate->format('Y'),
+                    'level' => $level,
+                    'organizer' => $this->getRandomOrganizer($level),
+                    'event_date' => $eventDate,
+                    'ranking' => $this->getRandomRanking(),
+                    'description' => "Prestasi {$achievement['name']} tingkat {$level}",
+                    'certificate' => "certificates/cert_" . (is_object($student) ? $student->student_id : $student['student_id']) . "_{$i}.pdf",
+                    'validation_status' => $status,
+                    'submitted_by' => rand(0, 1) ? 'student' : 'validator',
+                    'submitted_at' => $submittedAt,
+                    'sk_required' => $level !== 'Universitas',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                $achievementsBatch[] = $achievementData;
                 $achievementCount++;
+
+                // Insert in batches
+                if (count($achievementsBatch) >= $batchSize) {
+                    $this->insertAchievementBatch($achievementsBatch);
+                    $achievementsBatch = [];
+                }
             }
         }
 
+        // Insert remaining records
+        if (!empty($achievementsBatch)) {
+            $this->insertAchievementBatch($achievementsBatch);
+        }
+
+        // Show distribution
         $this->command->info("   ✓ Created {$achievementCount} student achievements");
+        foreach ($periods as $period) {
+            $count = \DB::table('student_achievements')
+                ->where('academic_period_id', $period->id)
+                ->count();
+            $this->command->info("      - {$period->name}: {$count} achievements");
+        }
+    }
+
+    /**
+     * Insert achievement batch
+     */
+    private function insertAchievementBatch(array $achievements): void
+    {
+        // Use insert instead of upsert for new records (faster)
+        StudentAchievement::insert($achievements);
     }
 
     /**

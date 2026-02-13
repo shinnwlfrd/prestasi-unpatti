@@ -25,7 +25,7 @@ class SKSearchController extends Controller
                 })
                 ->select('id', 'sk_number', 'title', 'issued_date')
                 ->orderBy('issued_date', 'desc')
-                ->limit(50)
+                ->limit(20)
                 ->get();
 
             return response()->json($skDocuments);

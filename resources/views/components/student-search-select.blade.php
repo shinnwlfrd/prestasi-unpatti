@@ -1,4 +1,4 @@
-@props(['name' => 'student_ids', 'required' => true, 'error' => null, 'multiple' => true])
+@props(['name' => 'student_ids', 'required' => true, 'error' => null, 'multiple' => true, 'facultyId' => null])
 
 <div x-data="studentMultiSearch()">
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -184,6 +184,7 @@
                     selectedStudents: [],
                     showDropdown: false,
                     loading: false,
+                    facultyId: '{{ $facultyId ?? '' }}',
 
                     async searchStudents() {
                         const query = this.searchQuery.trim();
@@ -198,7 +199,11 @@
                         this.showDropdown = true;
 
                         try {
-                            const response = await fetch(`/api/sigap/students/search?q=${encodeURIComponent(query)}`, {
+                            let searchUrl = `/api/sigap/students/search?q=${encodeURIComponent(query)}`;
+                            if (this.facultyId) {
+                                searchUrl += `&faculty_id=${encodeURIComponent(this.facultyId)}`;
+                            }
+                            const response = await fetch(searchUrl, {
                                 headers: {
                                     'X-Requested-With': 'XMLHttpRequest',
                                     'Accept': 'application/json'

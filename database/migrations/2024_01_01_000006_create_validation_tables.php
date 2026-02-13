@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Validation Logs
+        // Validation Logs with two-stage validation support
         Schema::create('validation_logs', function (Blueprint $table) {
             $table->id('log_id'); // Changed from id() to match model
             $table->foreignId('sa_id')->constrained('student_achievements', 'sa_id')->onDelete('cascade');
@@ -18,6 +18,11 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->string('sk_document')->nullable();
             $table->string('validation_type')->nullable(); // manual, auto, appeal, etc
+            
+            // Two-stage validation fields
+            $table->string('validation_stage', 20)->default('faculty');
+            $table->string('stage_action', 50)->nullable();
+            $table->boolean('is_stage_transition')->default(false);
             
             // Multi-role system fields
             $table->foreignId('uploaded_by')->nullable()->constrained('users')->onDelete('set null'); // Who uploaded the achievement
@@ -33,6 +38,8 @@ return new class extends Migration
             $table->index('validation_type');
             $table->index('uploaded_by');
             $table->index('validation_level');
+            $table->index('validation_stage');
+            $table->index('is_stage_transition');
         });
 
         // Validation Checklists

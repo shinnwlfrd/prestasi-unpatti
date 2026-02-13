@@ -105,7 +105,6 @@ class SikadService
                     'name' => $sikadData['name'] ?? null,
                     'faculty' => $sikadData['faculty'] ?? null,
                     'program_study' => $sikadData['program_study'] ?? null,
-                    'semester' => $sikadData['semester'] ?? null,
                     'gpa' => $sikadData['gpa'] ?? null,
                     'email' => $sikadData['email'] ?? null,
                     'photo' => $sikadData['photo'] ?? null,

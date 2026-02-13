@@ -22,10 +22,17 @@ class AchievementService
             throw new \Exception('Gagal menyimpan file sertifikat ke storage.');
         }
 
+        // Get active academic period
+        $activePeriod = \App\Models\AcademicPeriod::where('is_active', true)->first();
+        if (!$activePeriod) {
+            throw new \Exception('Tidak ada periode akademik aktif. Hubungi admin.');
+        }
+
         // Create achievement with two-stage validation status
         $achievement = StudentAchievement::create([
             'student_id' => $studentId,
             'achievement_id' => $achievementId,
+            'academic_period_id' => $activePeriod->id,
             'event_name' => $data['event_name'],
             'level' => $data['level'],
             'organizer' => $data['organizer'],
@@ -63,6 +70,7 @@ class AchievementService
         \Log::info('Achievement submitted', [
             'sa_id' => $achievement->sa_id,
             'student_id' => $studentId,
+            'academic_period_id' => $activePeriod->id,
             'certificate_path' => $certificatePath,
             'additional_docs_count' => count($additionalDocuments ?? []),
             'status' => $achievement->validation_status,
@@ -75,15 +83,19 @@ class AchievementService
 
     public function getStudentAchievements(string $studentId)
     {
+        // Exclude soft-deleted achievements for students
         return StudentAchievement::with(['achievement.category', 'validator', 'documents'])
             ->where('student_id', $studentId)
+            ->whereNull('deleted_at')
             ->latest()
             ->get();
     }
 
     public function getAchievementStatistics(string $studentId): array
     {
-        $achievements = StudentAchievement::where('student_id', $studentId);
+        // Exclude soft-deleted achievements for students
+        $achievements = StudentAchievement::where('student_id', $studentId)
+            ->whereNull('deleted_at');
 
         return [
             'total' => $achievements->count(),

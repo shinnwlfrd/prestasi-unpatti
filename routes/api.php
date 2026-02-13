@@ -25,6 +25,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/achievements', [StudentAchievementController::class, 'store']);
         Route::get('/achievements', [StudentAchievementController::class, 'index']);
     });
+
+    // SK Search
+    Route::get('/sk-documents/search', [\App\Http\Controllers\Api\SKSearchController::class, 'search']);
 });
 
 // SIKAD Integration API (akan diimplementasikan)

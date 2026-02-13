@@ -94,6 +94,7 @@ class SigapController extends Controller
     public function searchStudents(Request $request)
     {
         $query = $request->query('q', '');
+        $facultyId = $request->query('faculty_id');
 
         // Minimum 2 characters
         if (strlen($query) < 2) {
@@ -112,7 +113,11 @@ class SigapController extends Controller
                     $q->where('name', 'ILIKE', "%{$query}%")
                         ->orWhere('student_id', 'ILIKE', "%{$query}%");
                 })
-                ->select('student_id', 'name', 'faculty', 'department', 'program', 'angkatan')
+                ->when($facultyId, function ($q) use ($facultyId) {
+                    // Filter by faculty_id when provided (for operator/validator scope)
+                    $q->where('faculty_id', $facultyId);
+                })
+                ->select('student_id', 'name', 'faculty', 'department', 'program_study', 'angkatan')
                 ->orderBy('student_id')
                 ->limit(50)
                 ->get();

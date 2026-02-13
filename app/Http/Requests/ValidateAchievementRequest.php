@@ -16,8 +16,8 @@ class ValidateAchievementRequest extends FormRequest
         return [
             'action' => 'required|in:approve,reject,request_revision',
             'notes' => 'nullable|string|max:1000',
-            'rejection_reason' => 'required_if:action,reject|string|max:1000',
-            'revision_reason' => 'required_if:action,request_revision|string|max:1000',
+            'rejection_reason' => 'required_if:action,reject|nullable|string|max:1000',
+            'revision_reason' => 'required_if:action,request_revision|nullable|string|max:1000',
             'required_documents' => 'nullable|array',
             'required_documents.*' => 'string|in:sk_resmi,sertifikat,foto_dokumentasi,surat_keterangan,link_publikasi',
             'sk_id' => 'required_if:action,approve|exists:sk_documents,id',

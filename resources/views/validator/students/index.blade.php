@@ -60,7 +60,7 @@
                 </label>
                 <input type="text" name="search" value="{{ request('search') }}" 
                     placeholder="Nama atau NIM..."
-                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                    class="w-full py-3 text-base rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
             </div>
 
             <!-- Angkatan -->

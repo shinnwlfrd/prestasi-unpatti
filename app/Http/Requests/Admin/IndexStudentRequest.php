@@ -16,7 +16,6 @@ class IndexStudentRequest extends FormRequest
         return [
             'search' => 'nullable|string|max:255',
             'faculty' => 'nullable|string',
-            'semester' => 'nullable|integer|min:1|max:14',
             'angkatan' => 'nullable|integer|min:2000|max:2030',
             'faculty_id' => 'nullable|string',
             'department_id' => 'nullable|string',

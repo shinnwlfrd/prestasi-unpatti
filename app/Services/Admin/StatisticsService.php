@@ -163,7 +163,8 @@ class StatisticsService
     protected function getAchievementCount(array $filters): int
     {
         $query = DB::table('student_achievements')
-            ->join('students', 'student_achievements.student_id', '=', 'students.student_id');
+            ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+            ->whereNull('student_achievements.deleted_at'); // Include soft-deleted check
 
         if (!empty($filters['faculty_id'])) {
             $query->where('students.faculty_id', $filters['faculty_id']);
@@ -184,7 +185,8 @@ class StatisticsService
     {
         $query = DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-            ->where('student_achievements.validation_status', 'Menunggu');
+            ->where('student_achievements.validation_status', 'Menunggu')
+            ->whereNull('student_achievements.deleted_at'); // Exclude soft-deleted
 
         if (!empty($filters['faculty_id'])) {
             $query->where('students.faculty_id', $filters['faculty_id']);
@@ -205,7 +207,8 @@ class StatisticsService
     {
         $query = DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-            ->where('student_achievements.validation_status', 'Disetujui');
+            ->where('student_achievements.validation_status', 'Disetujui')
+            ->whereNull('student_achievements.deleted_at'); // Exclude soft-deleted
 
         if (!empty($filters['faculty_id'])) {
             $query->where('students.faculty_id', $filters['faculty_id']);
@@ -268,7 +271,8 @@ class StatisticsService
         $query = DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
             ->where('student_achievements.academic_period_id', $activePeriod->id)
-            ->whereIn('student_achievements.validation_status', ['Disetujui', 'Ditolak', 'Revisi']);
+            ->whereIn('student_achievements.validation_status', ['Disetujui', 'Ditolak', 'Revisi'])
+            ->whereNull('student_achievements.deleted_at'); // Exclude soft-deleted
 
         // Apply scope filters
         if (!empty($scopeFilters['faculty_id'])) {

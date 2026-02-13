@@ -87,7 +87,7 @@
                         </div>
                         <input type="text" name="search" value="{{ request('search') }}" 
                             placeholder="Cari NIM, nama, atau email mahasiswa..." 
-                            class="pl-10 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                            class="pl-10 w-full py-3 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
                     </div>
                 </div>
                 
@@ -189,10 +189,7 @@
                         @endif
                         @if($showProgramStudy)
                         <td class="px-4 py-3">
-                            <div class="text-gray-700 dark:text-gray-300 text-sm">{{ Str::limit($s->program_study ?? $s->program ?? '-', 25) }}</div>
-                            @if($s->program_study_code)
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $s->program_study_code }}</div>
-                            @endif
+                            <div class="text-gray-700 dark:text-gray-300 text-sm">{{ Str::limit($s->program_study ?? '-', 25) }}</div>
                         </td>
                         @endif
                         <td class="px-4 py-3">
@@ -225,7 +222,7 @@
                     </tr>
                     @empty
                     <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                        @if(request()->hasAny(['search', 'faculty', 'semester']))
+                        @if(request()->hasAny(['search', 'faculty', 'angkatan']))
                             Tidak ada mahasiswa yang sesuai dengan filter.
                         @else
                             Belum ada data mahasiswa.

@@ -60,11 +60,13 @@ Route::middleware(['auth.student'])->group(function () {
     Route::get('/submit', [\App\Http\Controllers\Student\AchievementController::class, 'create'])->name('student.achievement.create');
     Route::post('/submit', [\App\Http\Controllers\Student\AchievementController::class, 'store'])->name('student.achievement.store');
 
-    // Appeals - using new controller
-    Route::get('/achievements/{achievement}/appeal', [\App\Http\Controllers\Student\AppealController::class, 'create'])
-        ->name('achievements.appeal.create');
-    Route::post('/achievements/{achievement}/appeal', [\App\Http\Controllers\Student\AppealController::class, 'store'])
-        ->name('achievements.appeal.store');
+    // Request Review Ulang (menggantikan fitur banding)
+    Route::post('/achievements/{achievement}/request-review', [\App\Http\Controllers\Student\AchievementController::class, 'requestReview'])
+        ->name('student.achievement.request-review');
+    
+    // Delete Achievement (soft delete for rejected achievements)
+    Route::delete('/achievements/{achievement}', [\App\Http\Controllers\Student\AchievementController::class, 'destroy'])
+        ->name('student.achievement.destroy');
 });
 
 // Achievement documents - accessible by students, validators, and admins
@@ -297,14 +299,6 @@ Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->na
         Route::post('/achievements/{achievement}/validate', [\App\Http\Controllers\Admin\UniversityValidationController::class, 'validate'])->name('validate');
         Route::post('/achievements/{achievement}/start-review', [\App\Http\Controllers\Admin\UniversityValidationController::class, 'startReview'])->name('start-review');
         Route::post('/bulk-assign', [\App\Http\Controllers\Admin\UniversityValidationController::class, 'bulkAssign'])->name('bulk-assign');
-    });
-
-    // Appeal Management (Two-Stage System)
-    Route::prefix('appeals')->name('appeals.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\AppealManagementController::class, 'index'])->name('index');
-        Route::get('/{appeal}', [\App\Http\Controllers\Admin\AppealManagementController::class, 'show'])->name('show');
-        Route::post('/{appeal}/review', [\App\Http\Controllers\Admin\AppealManagementController::class, 'review'])->name('review');
-        Route::get('/statistics', [\App\Http\Controllers\Admin\AppealManagementController::class, 'statistics'])->name('statistics');
     });
 
     // Students - using new controller

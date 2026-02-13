@@ -57,16 +57,20 @@ class FacultyValidationService
      */
     public function approve(StudentAchievement $achievement, User $validator, ?string $notes = null): bool
     {
-        // Validate: must be in correct status
-        if (!in_array($achievement->validation_status, [
+        // Validate: must be in correct status (support legacy status)
+        $validStatuses = [
             StudentAchievement::STATUS_SUBMITTED,
-            StudentAchievement::STATUS_FACULTY_REVIEW
-        ])) {
-            throw new \Exception('Status prestasi tidak valid untuk approval fakultas.');
+            StudentAchievement::STATUS_FACULTY_REVIEW,
+            StudentAchievement::STATUS_PENDING, // Legacy: 'Menunggu'
+            'Menunggu', // Legacy string
+        ];
+        
+        if (!in_array($achievement->validation_status, $validStatuses)) {
+            throw new \Exception('Status prestasi tidak valid untuk approval fakultas. Status saat ini: ' . $achievement->validation_status);
         }
 
-        // Validate: validator must be from same faculty
-        if ($validator->faculty !== $achievement->student->faculty) {
+        // Validate: validator must be from same faculty (if faculty is set)
+        if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
             throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
         }
 
@@ -110,16 +114,20 @@ class FacultyValidationService
      */
     public function reject(StudentAchievement $achievement, User $validator, string $reason): bool
     {
-        // Validate: must be in correct status
-        if (!in_array($achievement->validation_status, [
+        // Validate: must be in correct status (support legacy status)
+        $validStatuses = [
             StudentAchievement::STATUS_SUBMITTED,
-            StudentAchievement::STATUS_FACULTY_REVIEW
-        ])) {
-            throw new \Exception('Status prestasi tidak valid untuk rejection fakultas.');
+            StudentAchievement::STATUS_FACULTY_REVIEW,
+            StudentAchievement::STATUS_PENDING, // Legacy: 'Menunggu'
+            'Menunggu', // Legacy string
+        ];
+        
+        if (!in_array($achievement->validation_status, $validStatuses)) {
+            throw new \Exception('Status prestasi tidak valid untuk rejection fakultas. Status saat ini: ' . $achievement->validation_status);
         }
 
-        // Validate: validator must be from same faculty
-        if ($validator->faculty !== $achievement->student->faculty) {
+        // Validate: validator must be from same faculty (if faculty is set)
+        if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
             throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
         }
 
@@ -165,16 +173,20 @@ class FacultyValidationService
      */
     public function requestRevision(StudentAchievement $achievement, User $validator, string $reason, array $requiredDocuments = []): bool
     {
-        // Validate: must be in correct status
-        if (!in_array($achievement->validation_status, [
+        // Validate: must be in correct status (support legacy status)
+        $validStatuses = [
             StudentAchievement::STATUS_SUBMITTED,
-            StudentAchievement::STATUS_FACULTY_REVIEW
-        ])) {
-            throw new \Exception('Status prestasi tidak valid untuk request revision.');
+            StudentAchievement::STATUS_FACULTY_REVIEW,
+            StudentAchievement::STATUS_PENDING, // Legacy: 'Menunggu'
+            'Menunggu', // Legacy string
+        ];
+        
+        if (!in_array($achievement->validation_status, $validStatuses)) {
+            throw new \Exception('Status prestasi tidak valid untuk request revision. Status saat ini: ' . $achievement->validation_status);
         }
 
-        // Validate: validator must be from same faculty
-        if ($validator->faculty !== $achievement->student->faculty) {
+        // Validate: validator must be from same faculty (if faculty is set)
+        if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
             throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
         }
 
@@ -225,7 +237,8 @@ class FacultyValidationService
     {
         $faculty = $validator->faculty;
 
-        $query = StudentAchievement::byFaculty($faculty);
+        $query = StudentAchievement::byFaculty($faculty)
+            ->whereNull('deleted_at'); // Exclude soft-deleted
         if ($periodId) {
             $query->where('academic_period_id', $periodId);
         }

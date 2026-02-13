@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'student_id';
 
@@ -22,27 +23,16 @@ class Student extends Model
         'faculty_id',
         'department',
         'department_id',
-        'program',
         'program_study',
         'program_study_id',
-        'program_study_code',
         'angkatan',
-        'semester',
         'gpa',
         'email',
         'photo',
-        'is_public_profile',
-        'profile_slug',
-        'bio',
-        'social_links',
-        'motto',
     ];
 
     protected $casts = [
         'gpa' => 'float',
-        'semester' => 'integer',
-        'is_public_profile' => 'boolean',
-        'social_links' => 'array',
     ];
 
     // Relasi
@@ -96,6 +86,22 @@ class Student extends Model
             
             return null;
         });
+    }
+    
+    /**
+     * Get faculty name (alias for faculty field)
+     */
+    public function getFacultyNameAttribute()
+    {
+        return $this->faculty;
+    }
+    
+    /**
+     * Get program study name (alias for program_study field)
+     */
+    public function getProgramStudyNameAttribute()
+    {
+        return $this->program_study;
     }
     
     /**

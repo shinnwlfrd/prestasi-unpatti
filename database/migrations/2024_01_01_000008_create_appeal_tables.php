@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Create achievement_appeals table with submitted_at field.
+     */
     public function up(): void
     {
         Schema::create('achievement_appeals', function (Blueprint $table) {
@@ -20,6 +23,7 @@ return new class extends Migration
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->onDelete('set null');
             $table->text('review_notes')->nullable();
             $table->timestamp('reviewed_at')->nullable();
+            $table->timestamp('submitted_at')->nullable(); // Added directly
             $table->timestamps();
             
             $table->index(['sa_id', 'status']);

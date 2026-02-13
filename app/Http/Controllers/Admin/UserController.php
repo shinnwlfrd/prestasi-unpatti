@@ -17,9 +17,10 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = $this->userService->getUsers(15);
+        $search = request('search');
+        $users = $this->userService->getUsers(15, $search);
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'search'));
     }
 
     public function store(StoreUserRequest $request)

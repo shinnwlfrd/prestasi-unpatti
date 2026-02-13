@@ -673,7 +673,7 @@
                                 </div>
                                 <input type="text" name="search" value="{{ request('search') }}"
                                     placeholder="Cari nama mahasiswa, NIM, atau event..."
-                                    class="pl-10 w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500">
+                                    class="pl-10 w-full py-3 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500">
                             </div>
                         </div>
 

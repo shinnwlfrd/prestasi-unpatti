@@ -214,10 +214,22 @@ class UserManagementService
         return $this->userRepo->getValidators();
     }
 
-    public function getUsers(int $perPage = 15)
+    public function getUsers(int $perPage = 15, ?string $search = null)
     {
-        return User::with('activeRoles')
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = User::with('activeRoles');
+
+        // Apply search filter
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'ILIKE', "%{$search}%")
+                  ->orWhere('email', 'ILIKE', "%{$search}%")
+                  ->orWhere('role', 'ILIKE', "%{$search}%")
+                  ->orWhere('faculty', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        return $query->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->appends(['search' => $search]);
     }
 }

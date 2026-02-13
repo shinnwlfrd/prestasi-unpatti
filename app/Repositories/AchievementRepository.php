@@ -47,7 +47,8 @@ class AchievementRepository implements AchievementRepositoryInterface
 
     public function getWithFilters(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->model->with(['student', 'achievement.category', 'validator', 'latestAppeal']);
+        // Admin can see ALL achievements including soft-deleted ones
+        $query = $this->model->withTrashed()->with(['student', 'achievement.category', 'validator', 'latestAppeal']);
 
         // Search by student name, NIM, or event name
         if (!empty($filters['search'])) {
@@ -107,8 +108,10 @@ class AchievementRepository implements AchievementRepositoryInterface
 
     public function getPendingForValidator(?string $faculty = null): Collection
     {
+        // Validators should not see soft-deleted achievements
         $query = $this->model->with(['student', 'achievement.category', 'documents'])
             ->whereIn('validation_status', ['pending', 'Menunggu'])
+            ->whereNull('deleted_at')
             ->orderByDesc('created_at');
 
         if ($faculty) {
@@ -132,7 +135,9 @@ class AchievementRepository implements AchievementRepositoryInterface
 
     public function getRecentAchievements(int $limit = 10): Collection
     {
+        // Admin dashboard should exclude soft-deleted for recent achievements
         return $this->model->with(['student', 'achievement.category'])
+            ->whereNull('deleted_at')
             ->latest()
             ->take($limit)
             ->get();
@@ -140,8 +145,10 @@ class AchievementRepository implements AchievementRepositoryInterface
 
     public function getUrgentPending(int $days = 7, int $limit = 5): Collection
     {
+        // Urgent pending should exclude soft-deleted
         return $this->model->with(['student', 'achievement.category'])
             ->where('validation_status', 'Menunggu')
+            ->whereNull('deleted_at')
             ->where('submitted_at', '<', now()->subDays($days))
             ->orderBy('submitted_at', 'asc')
             ->take($limit)
@@ -150,7 +157,10 @@ class AchievementRepository implements AchievementRepositoryInterface
 
     public function countByStatus(string $status): int
     {
-        return $this->model->where('validation_status', $status)->count();
+        // Status counts should exclude soft-deleted
+        return $this->model->where('validation_status', $status)
+            ->whereNull('deleted_at')
+            ->count();
     }
 
     public function getStatusStatistics(): array

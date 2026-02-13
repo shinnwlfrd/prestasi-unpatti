@@ -21,6 +21,11 @@ class FacultyValidationController extends Controller
      */
     public function index(Request $request)
     {
+        // Prevent browser caching to ensure fresh data after approval
+        header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        
         $validator = auth()->user();
 
         // Get scope from session (set by middleware)
@@ -43,6 +48,7 @@ class FacultyValidationController extends Controller
 
         // Build query based on access level
         $query = StudentAchievement::with(['student', 'achievement.category', 'documents'])
+            ->whereNull('deleted_at') // Exclude soft-deleted achievements
             ->where(function ($q) {
                 // Support both old and new status systems
                 $q->facultyPending() // New system: submitted, faculty_review
@@ -62,6 +68,7 @@ class FacultyValidationController extends Controller
             'category' => $request->input('category'),
             'date_from' => $request->input('date_from'),
             'date_to' => $request->input('date_to'),
+            'sort_date' => $request->input('sort_date', 'oldest'), // Default to oldest
         ];
 
         // Apply filters
@@ -81,9 +88,14 @@ class FacultyValidationController extends Controller
             })
             ->when($filters['date_from'], fn($q) => $q->whereDate('submitted_at', '>=', $filters['date_from']))
             ->when($filters['date_to'], fn($q) => $q->whereDate('submitted_at', '<=', $filters['date_to']))
-            ->orderBy('submitted_at', 'asc')
+            ->when($filters['sort_date'] === 'newest', function ($q) {
+                $q->orderBy('submitted_at', 'desc');
+            }, function ($q) {
+                $q->orderBy('submitted_at', 'asc'); // Default to oldest
+            })
             ->paginate(20)
-            ->withQueryString();
+            ->withQueryString()
+            ->appends(['_t' => time()]); // Cache busting: prevent browser from caching pagination
 
         // Get categories for filter
         $categories = AchievementCategory::where('is_active', true)->orderBy('order')->get();
@@ -116,15 +128,15 @@ class FacultyValidationController extends Controller
         // Check access based on level
         if ($level === 'university') {
             // University level can access all
-        } elseif ($level === 'faculty' && $achievement->student->faculty_id !== $facultyId) {
+        } elseif ($level === 'faculty' && $facultyId && $achievement->student->faculty_id !== $facultyId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
-        } elseif ($level === 'department' && $achievement->student->department_id !== $departmentId) {
+        } elseif ($level === 'department' && $departmentId && $achievement->student->department_id !== $departmentId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari jurusan lain.');
-        } elseif ($level === 'program_study' && $achievement->student->program_study_id !== $programStudyId) {
+        } elseif ($level === 'program_study' && $programStudyId && $achievement->student->program_study_id !== $programStudyId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari prodi lain.');
         } elseif (!$level) {
-            // Fallback to old method
-            if ($achievement->student->faculty !== $validator->faculty) {
+            // Fallback to old method - check faculty string
+            if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
             }
         }
@@ -158,15 +170,15 @@ class FacultyValidationController extends Controller
         // Check access based on level
         if ($level === 'university') {
             // University level can access all
-        } elseif ($level === 'faculty' && $achievement->student->faculty_id !== $facultyId) {
+        } elseif ($level === 'faculty' && $facultyId && $achievement->student->faculty_id !== $facultyId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
-        } elseif ($level === 'department' && $achievement->student->department_id !== $departmentId) {
+        } elseif ($level === 'department' && $departmentId && $achievement->student->department_id !== $departmentId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari jurusan lain.');
-        } elseif ($level === 'program_study' && $achievement->student->program_study_id !== $programStudyId) {
+        } elseif ($level === 'program_study' && $programStudyId && $achievement->student->program_study_id !== $programStudyId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari prodi lain.');
         } elseif (!$level) {
-            // Fallback to old method
-            if ($achievement->student->faculty !== $validator->faculty) {
+            // Fallback to old method - check faculty string
+            if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
             }
         }
@@ -175,8 +187,8 @@ class FacultyValidationController extends Controller
         $request->validate([
             'action' => 'required|in:approve,reject,request_revision',
             'notes' => 'nullable|string|max:1000',
-            'rejection_reason' => 'required_if:action,reject|string|max:1000',
-            'revision_reason' => 'required_if:action,request_revision|string|max:1000',
+            'rejection_reason' => 'required_if:action,reject|nullable|string|max:1000',
+            'revision_reason' => 'required_if:action,request_revision|nullable|string|max:1000',
         ]);
 
         try {

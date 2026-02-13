@@ -79,7 +79,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cari</label>
                 <input type="text" name="search" value="{{ request('search') }}" 
                        placeholder="Nama, NIM, atau Event..."
-                       class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                       class="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
             </div>
 
             <!-- Status -->

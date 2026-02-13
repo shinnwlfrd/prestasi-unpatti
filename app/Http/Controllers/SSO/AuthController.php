@@ -154,7 +154,6 @@ class AuthController extends Controller
                 'email' => $email,
                 'faculty' => $userInfo['faculty'] ?? null,
                 'program_study' => $userInfo['program_study'] ?? $userInfo['prodi'] ?? null,
-                'semester' => $userInfo['semester'] ?? null,
             ]
         );
 

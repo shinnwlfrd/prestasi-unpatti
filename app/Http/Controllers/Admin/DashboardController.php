@@ -132,13 +132,12 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Appeal Pending Queue (top 5 oldest)
-        $appealPending = \App\Models\AchievementAppeal::with(['studentAchievement.student', 'studentAchievement.achievement.category'])
-            ->where('status', 'pending')
-            ->when($periodId, function ($q) use ($periodId) {
-                $q->whereHas('studentAchievement', fn($sq) => $sq->where('academic_period_id', $periodId));
-            })
-            ->orderBy('submitted_at', 'asc')
+        // Resubmission Queue (top 5 oldest) - replaces appeal queue
+        $resubmissionQueue = StudentAchievement::with(['student', 'achievement.category'])
+            ->where('is_resubmission', true)
+            ->whereIn('validation_status', ['submitted', 'faculty_review'])
+            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->orderBy('last_resubmitted_at', 'asc')
             ->take(5)
             ->get();
 
@@ -234,7 +233,7 @@ class DashboardController extends Controller
             'stats',
             'recentAchievements',
             'universityPending',
-            'appealPending',
+            'resubmissionQueue',
             'urgentPending',
             'recentValidations',
             'statusStats',

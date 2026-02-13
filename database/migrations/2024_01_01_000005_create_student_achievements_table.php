@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Create student_achievements table with two-stage validation support.
+     */
     public function up(): void
     {
         Schema::create('student_achievements', function (Blueprint $table) {
@@ -24,8 +27,22 @@ return new class extends Migration
             $table->string('certificate')->nullable();
             $table->string('publication_link')->nullable();
             
-            // Validation
+            // Two-Stage Validation System
             $table->enum('validation_status', ['Menunggu', 'Disetujui', 'Ditolak', 'Revisi'])->default('Menunggu');
+            $table->string('validation_stage', 20)->default('faculty');
+            $table->string('current_stage', 20)->default('faculty');
+            
+            // Faculty validation tracking
+            $table->unsignedBigInteger('faculty_validator_id')->nullable();
+            $table->timestamp('faculty_validated_at')->nullable();
+            $table->text('faculty_notes')->nullable();
+            
+            // University validation tracking
+            $table->unsignedBigInteger('university_validator_id')->nullable();
+            $table->timestamp('university_validated_at')->nullable();
+            $table->text('university_notes')->nullable();
+            
+            // Legacy validator field (for backward compatibility)
             $table->foreignId('validator_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('validated_at')->nullable();
             
@@ -46,14 +63,22 @@ return new class extends Migration
             
             $table->timestamps();
             
+            // Foreign keys
             $table->foreign('student_id')->references('student_id')->on('students')->onDelete('cascade');
+            $table->foreign('faculty_validator_id')->references('id')->on('users')->onDelete('set null');
+            $table->foreign('university_validator_id')->references('id')->on('users')->onDelete('set null');
             
+            // Indexes for performance
             $table->index(['student_id', 'validation_status']);
             $table->index(['validation_status', 'submitted_at']);
             $table->index(['validator_id', 'validation_status']);
             $table->index('academic_period_id');
             $table->index('is_appeal');
             $table->index('level');
+            $table->index('validation_stage');
+            $table->index('current_stage');
+            $table->index('faculty_validator_id');
+            $table->index('university_validator_id');
         });
     }
 

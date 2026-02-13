@@ -94,11 +94,6 @@ class StudentRepository implements StudentRepositoryInterface
             $query->where('angkatan', $filters['angkatan']);
         }
 
-        // Filter by semester (for backward compatibility)
-        if (!empty($filters['semester'])) {
-            $query->where('semester', $filters['semester']);
-        }
-
         return $query->orderBy('achievements_count', 'desc')
             ->paginate($perPage)
             ->withQueryString();

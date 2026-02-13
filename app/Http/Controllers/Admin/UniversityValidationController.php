@@ -21,6 +21,11 @@ class UniversityValidationController extends Controller
      */
     public function index(Request $request)
     {
+        // Prevent browser caching to ensure fresh data
+        header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        
         // Get filters
         $filters = [
             'search' => $request->input('search'),
@@ -29,6 +34,7 @@ class UniversityValidationController extends Controller
             'category' => $request->input('category'),
             'date_from' => $request->input('date_from'),
             'date_to' => $request->input('date_to'),
+            'sort_date' => $request->input('sort_date', 'oldest'), // Default to oldest
         ];
 
         // Get achievements pending university review
@@ -38,6 +44,7 @@ class UniversityValidationController extends Controller
             'facultyValidator',
             'documents'
         ])
+            ->whereNull('deleted_at') // Exclude soft-deleted achievements
             ->universityPending()
             ->when($filters['search'], function ($q) use ($filters) {
                 $q->where(function ($query) use ($filters) {
@@ -49,7 +56,9 @@ class UniversityValidationController extends Controller
                 });
             })
             ->when($filters['faculty'], function ($q) use ($filters) {
-                $q->byFaculty($filters['faculty']);
+                $q->whereHas('facultyValidator', function ($sq) use ($filters) {
+                    $sq->where('faculty', $filters['faculty']);
+                });
             })
             ->when($filters['level'], fn($q) => $q->where('level', $filters['level']))
             ->when($filters['category'], function ($q) use ($filters) {
@@ -57,24 +66,37 @@ class UniversityValidationController extends Controller
             })
             ->when($filters['date_from'], fn($q) => $q->whereDate('faculty_validated_at', '>=', $filters['date_from']))
             ->when($filters['date_to'], fn($q) => $q->whereDate('faculty_validated_at', '<=', $filters['date_to']))
-            ->orderBy('faculty_validated_at', 'asc')
+            ->when($filters['sort_date'] === 'newest', function ($q) {
+                $q->orderBy('faculty_validated_at', 'desc');
+            }, function ($q) {
+                $q->orderBy('faculty_validated_at', 'asc'); // Default to oldest
+            })
             ->paginate(20)
-            ->withQueryString();
+            ->withQueryString()
+            ->appends(['_t' => time()]); // Cache busting
 
         // Get categories for filter
         $categories = AchievementCategory::where('is_active', true)->orderBy('order')->get();
 
         // Get unique faculties for filter
-        $faculties = \App\Models\Student::select('faculty')
+        // Get unique faculties from faculty validators
+        $faculties = \App\Models\User::whereHas('facultyValidatedAchievements', function ($q) {
+            // Filter only those that are in university pending status
+            $q->whereIn('validation_status', [
+                StudentAchievement::STATUS_FACULTY_APPROVED,
+                StudentAchievement::STATUS_UNIVERSITY_REVIEW,
+            ]);
+        })
+            ->select('faculty')
             ->distinct()
             ->whereNotNull('faculty')
             ->orderBy('faculty')
             ->pluck('faculty');
 
         // Get statistics
-        $stats = $this->universityValidationService->getStatistics();
+        $statistics = $this->universityValidationService->getStatistics();
 
-        return view('admin.university.index', compact('achievements', 'categories', 'faculties', 'filters', 'stats'));
+        return view('admin.university.index', compact('achievements', 'categories', 'faculties', 'filters', 'statistics'));
     }
 
     /**
@@ -106,7 +128,7 @@ class UniversityValidationController extends Controller
         // Validate request
         $request->validate([
             'action' => 'required|in:approve,reject',
-            'sk_id' => 'required_if:action,approve|exists:sk_documents,id',
+            'sk_id' => 'nullable|exists:sk_documents,id',
             'notes' => 'nullable|string|max:1000',
             'rejection_reason' => 'required_if:action,reject|string|max:1000',
         ]);

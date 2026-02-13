@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StudentAchievement extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'sa_id';
 
@@ -43,6 +44,11 @@ class StudentAchievement extends Model
         'university_validator_id',
         'university_validated_at',
         'university_notes',
+        // Resubmission fields
+        'is_resubmission',
+        'resubmission_count',
+        'last_resubmitted_at',
+        'resubmission_reason',
     ];
 
     protected $casts = [
@@ -53,6 +59,8 @@ class StudentAchievement extends Model
         'sk_required' => 'boolean',
         'faculty_validated_at' => 'datetime',
         'university_validated_at' => 'datetime',
+        'is_resubmission' => 'boolean',
+        'last_resubmitted_at' => 'datetime',
     ];
 
     // Status constants - Two-Stage Validation System

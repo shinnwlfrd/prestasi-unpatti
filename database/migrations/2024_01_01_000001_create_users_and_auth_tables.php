@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
-            $table->enum('role', ['Admin', 'Validator'])->default('Validator');
+            $table->enum('role', ['Admin', 'Validator', 'Pimpinan'])->default('Validator');
             $table->string('faculty')->nullable();
+            $table->string('faculty_id')->nullable(); // SIGAP integration
             $table->boolean('is_active')->default(true);
             $table->string('photo')->nullable();
             
@@ -72,7 +73,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('email')->nullable();
-            $table->enum('role', ['Admin', 'Validator', 'Student'])->nullable();
+            $table->enum('role', ['Admin', 'Validator', 'Student', 'Pimpinan'])->nullable();
             $table->string('action'); // login, logout, failed_login, sso_link, register, password_reset
             $table->string('method')->nullable(); // local, google, microsoft, etc
             $table->string('ip_address')->nullable();

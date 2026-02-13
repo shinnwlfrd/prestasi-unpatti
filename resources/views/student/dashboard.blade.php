@@ -40,9 +40,6 @@
                             <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{{ $student->name ?? '-' }}</h2>
                             <p class="text-indigo-600 dark:text-indigo-400 font-semibold">{{ $student->student_id ?? '-' }}</p>
                         </div>
-                        <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
-                            Semester {{ $student->semester ?? '-' }}
-                        </span>
                     </div>
 
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -192,14 +189,35 @@
                                                 Lihat Dokumen
                                             </button>
                                         @elseif(in_array($item->validation_status, ['Revisi', 'faculty_revision']))
-                                            <!-- Revision: Show Appeal button -->
-                                            <a href="{{ route('achievements.appeal.create', $item) }}" 
-                                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors text-sm font-medium">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                </svg>
-                                                Ajukan Banding
-                                            </a>
+                                            <!-- Revision: Show Request Review button -->
+                                            <form action="{{ route('student.achievement.request-review', $item) }}" method="POST" class="inline-block">
+                                                @csrf
+                                                <button type="submit" 
+                                                    onclick="return confirm('Apakah Anda yakin ingin mengajukan review ulang untuk prestasi ini? Prestasi akan dikembalikan ke antrian validasi.')"
+                                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors text-sm font-medium">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                    </svg>
+                                                    Ajukan Review Ulang
+                                                    @if($item->resubmission_count > 0)
+                                                        <span class="text-xs">(ke-{{ $item->resubmission_count + 1 }})</span>
+                                                    @endif
+                                                </button>
+                                            </form>
+                                        @elseif(in_array($item->validation_status, ['Ditolak', 'faculty_rejected', 'university_rejected']))
+                                            <!-- Rejected: Show Delete button -->
+                                            <form action="{{ route('student.achievement.destroy', $item) }}" method="POST" class="inline-block" 
+                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus prestasi ini? Riwayat akan tetap tercatat untuk admin.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors text-sm font-medium">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    Hapus Prestasi
+                                                </button>
+                                            </form>
                                         @endif
                                     </div>
                                 </td>
@@ -239,7 +257,7 @@
                     <h4 class="font-semibold text-blue-800 dark:text-blue-300">Perhatian: Ada {{ $needRevision }} prestasi yang perlu revisi</h4>
                     <p class="text-sm text-blue-600 dark:text-blue-400 mt-1">
                         Silakan periksa catatan dari validator dan upload dokumen yang diperlukan melalui menu "Kelola Dokumen". 
-                        Atau jika Anda merasa sudah memenuhi persyaratan, Anda dapat mengajukan banding melalui tombol banding.
+                        Atau jika Anda merasa sudah memenuhi persyaratan, Anda dapat mengajukan review ulang melalui tombol "Ajukan Review Ulang".
                     </p>
                 </div>
             </div>

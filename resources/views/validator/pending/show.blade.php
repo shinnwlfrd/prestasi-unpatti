@@ -171,20 +171,46 @@
                             <option value="">Pilih Keputusan</option>
                             <option value="approve">✓ Setujui</option>
                             <option value="reject">✗ Tolak</option>
-                            <option value="revision">↻ Minta Revisi</option>
+                            <option value="request_revision">↻ Minta Revisi</option>
                         </select>
                     </div>
 
-                    <!-- Notes -->
-                    <div>
+                    <!-- Notes (for approve) -->
+                    <div id="notes-field">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Catatan <span class="text-red-500">*</span>
+                            Catatan
                         </label>
-                        <textarea name="notes" rows="4" required
+                        <textarea name="notes" id="notes-textarea" rows="4"
                                   placeholder="Berikan catatan untuk mahasiswa..."
                                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"></textarea>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             Catatan akan dilihat oleh mahasiswa dan admin universitas
+                        </p>
+                    </div>
+
+                    <!-- Rejection Reason (for reject) -->
+                    <div id="rejection-field" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Alasan Penolakan <span class="text-red-500">*</span>
+                        </label>
+                        <textarea name="rejection_reason" id="rejection-textarea" rows="4"
+                                  placeholder="Jelaskan alasan penolakan..."
+                                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"></textarea>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Alasan penolakan wajib diisi dan akan dilihat oleh mahasiswa
+                        </p>
+                    </div>
+
+                    <!-- Revision Reason (for request_revision) -->
+                    <div id="revision-field" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Alasan Revisi <span class="text-red-500">*</span>
+                        </label>
+                        <textarea name="revision_reason" id="revision-textarea" rows="4"
+                                  placeholder="Jelaskan apa yang perlu diperbaiki..."
+                                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"></textarea>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Jelaskan dengan detail apa yang perlu diperbaiki oleh mahasiswa
                         </p>
                     </div>
 
@@ -254,18 +280,39 @@
 <script>
 document.getElementById('validation-action')?.addEventListener('change', function() {
     const action = this.value;
-    const notesLabel = document.querySelector('label[for="notes"]');
-    const notesTextarea = document.querySelector('textarea[name="notes"]');
+    const notesField = document.getElementById('notes-field');
+    const rejectionField = document.getElementById('rejection-field');
+    const revisionField = document.getElementById('revision-field');
     
+    const notesTextarea = document.getElementById('notes-textarea');
+    const rejectionTextarea = document.getElementById('rejection-textarea');
+    const revisionTextarea = document.getElementById('revision-textarea');
+    
+    // Hide all fields first
+    notesField.style.display = 'none';
+    rejectionField.style.display = 'none';
+    revisionField.style.display = 'none';
+    
+    // Remove required from all and clear values
+    notesTextarea.required = false;
+    rejectionTextarea.required = false;
+    revisionTextarea.required = false;
+    
+    // Clear values of hidden fields to avoid validation issues
+    if (action !== 'approve') notesTextarea.value = '';
+    if (action !== 'reject') rejectionTextarea.value = '';
+    if (action !== 'request_revision') revisionTextarea.value = '';
+    
+    // Show appropriate field based on action
     if (action === 'approve') {
-        notesTextarea.placeholder = 'Catatan approval (opsional)...';
-        notesTextarea.required = false;
+        notesField.style.display = 'block';
+        notesTextarea.required = false; // Optional for approve
     } else if (action === 'reject') {
-        notesTextarea.placeholder = 'Jelaskan alasan penolakan...';
-        notesTextarea.required = true;
-    } else if (action === 'revision') {
-        notesTextarea.placeholder = 'Jelaskan apa yang perlu diperbaiki...';
-        notesTextarea.required = true;
+        rejectionField.style.display = 'block';
+        rejectionTextarea.required = true;
+    } else if (action === 'request_revision') {
+        revisionField.style.display = 'block';
+        revisionTextarea.required = true;
     }
 });
 </script>
