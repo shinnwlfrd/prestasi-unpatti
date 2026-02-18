@@ -149,7 +149,7 @@
             {{ auth()->user()->name }}</p>
     </div>
 
-    <div class="space-y-6">
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
         <!-- Header with Period Filter -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>

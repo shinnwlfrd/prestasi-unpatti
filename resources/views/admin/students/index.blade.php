@@ -1,17 +1,15 @@
 @extends('layouts.admin')
 @section('title', 'Daftar Mahasiswa')
 @section('content')
-    <div class="space-y-6">
-        <!-- Header with Stats -->
-        <!-- Header with Stats -->
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Daftar Mahasiswa</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola data mahasiswa dan prestasi mereka</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola data mahasiswa dan pantau capaian prestasi mereka.</p>
             </div>
-            
             <a href="{{ route('admin.submit.create') }}"
-                class="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors shadow-sm">
+                class="w-full md:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -20,7 +18,7 @@
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -130,10 +128,8 @@
         </div>
 
         <!-- Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    @php
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                @php
                         $user = auth()->user();
                         $showDepartment = true;
                         $showProgramStudy = true;
@@ -157,6 +153,96 @@
                             }
                         }
                     @endphp
+            <div class="lg:hidden space-y-4 p-4">
+            @forelse($students as $s)
+        <div class="bg-gray-50 dark:bg-gray-900/40 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-800">
+
+            <!-- Header -->
+            <div class="flex items-start gap-3">
+                <div class="w-11 h-11 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center shrink-0">
+                    <span class="text-purple-600 dark:text-purple-400 font-semibold text-sm">
+                        {{ strtoupper(substr($s->name, 0, 1)) }}
+                    </span>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                        {{ $s->name }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        NIM: {{ $s->student_id }}
+                    </p>
+                </div>
+
+                <span class="px-3 py-1 text-xs rounded-full font-medium
+                    bg-purple-100 text-purple-700
+                    dark:bg-purple-900/30 dark:text-purple-400">
+                    {{ $s->achievements_count }} Prestasi
+                </span>
+            </div>
+
+            <!-- Divider -->
+            <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
+
+            <!-- Detail Akademik -->
+            <div class="space-y-2 text-xs text-gray-600 dark:text-gray-300">
+
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Fakultas</span>
+                    <span class="text-right font-medium truncate max-w-[60%]">
+                        {{ $s->faculty ?? '-' }}
+                    </span>
+                </div>
+
+                @if($showDepartment)
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Jurusan</span>
+                    <span class="text-right font-medium truncate max-w-[60%]">
+                        {{ $s->department ?? '-' }}
+                    </span>
+                </div>
+                @endif
+
+                @if($showProgramStudy)
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Prodi</span>
+                    <span class="text-right font-medium truncate max-w-[60%]">
+                        {{ $s->program_study ?? '-' }}
+                    </span>
+                </div>
+                @endif
+
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Angkatan</span>
+                    <span class="font-medium">
+                        {{ $s->angkatan ?? '-' }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Action -->
+            <div class="mt-4">
+                <a href="{{ route('admin.students.show', $s->student_id) }}"
+                    class="block w-full text-center text-sm font-medium py-2 rounded-lg
+                    bg-purple-600 text-white
+                    hover:bg-purple-700 transition">
+                    Lihat Detail
+                </a>
+            </div>
+
+        </div>
+    @empty
+        <div class="text-center text-sm text-gray-500 dark:text-gray-400 py-6">
+            Tidak ada mahasiswa ditemukan.
+        </div>
+    @endforelse
+</div>
+
+
+            <div class="hidden lg:block w-full">
+                <div class="w-full overflow-x-auto">
+
+                <table class="min-w-full text-sm table-auto">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
                             <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">NIM</th>
@@ -240,7 +326,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="{{ 6 + ($showDepartment ? 1 : 0) + ($showProgramStudy ? 1 : 0) }}">
                                     @if(request()->hasAny(['search', 'faculty', 'angkatan']))
                                         Tidak ada mahasiswa yang sesuai dengan filter.
                                     @else
@@ -252,6 +338,8 @@
                     </tbody>
                 </table>
             </div>
+                    </div>
+                    </div>
             <div class="p-4 border-t border-gray-200 dark:border-gray-700">{{ $students->links() }}</div>
         </div>
     </div>

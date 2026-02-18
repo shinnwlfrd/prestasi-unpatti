@@ -4,13 +4,15 @@
 
 @section('content')
     <div class="space-y-6">
+        <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Periode Akademik</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola data periode akademik</p>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Periode Akademik</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola jendela waktu pendaftaran dan validasi
+                    prestasi mahasiswa.</p>
             </div>
             <button onclick="openCreateModal()"
-                class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm font-medium">
+                class="w-full md:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>

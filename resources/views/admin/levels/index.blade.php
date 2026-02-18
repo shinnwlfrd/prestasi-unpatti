@@ -5,14 +5,15 @@
 @section('content')
     <div class="space-y-6"
         x-data="{ showModal: false, editMode: false, levelId: null, levelName: '', levelDescription: '', levelPoints: '' }">
-        <!-- Header -->
+        <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Level Prestasi</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola level prestasi mahasiswa</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola tingkatan prestasi dan bobot poin untuk
+                    sistem pemeringkatan.</p>
             </div>
             <button @click="showModal = true; editMode = false; levelName = ''; levelDescription = ''; levelPoints = ''"
-                class="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors shadow-sm">
+                class="w-full md:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>

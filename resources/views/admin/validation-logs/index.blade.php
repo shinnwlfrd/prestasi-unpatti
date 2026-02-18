@@ -4,11 +4,11 @@
 
 @section('content')
     <div class="space-y-6">
-        <!-- Header -->
-        <div class="flex items-center justify-between">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Log Validasi</h2>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">Riwayat validasi prestasi mahasiswa</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Riwayat lengkap aktivitas validasi prestasi mahasiswa oleh validator dan admin.</p>
             </div>
         </div>
 
