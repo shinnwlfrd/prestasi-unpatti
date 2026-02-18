@@ -1,15 +1,15 @@
 @extends('layouts.admin')
 @section('title', 'Daftar Mahasiswa')
 @section('content')
-    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8 max-w-screen-2xl mx-auto">
         <!-- Header Section -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Daftar Mahasiswa</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola data mahasiswa dan pantau capaian prestasi mereka.</p>
             </div>
             <a href="{{ route('admin.submit.create') }}"
-                class="w-full md:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
+                class="w-full sm:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -18,7 +18,7 @@
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
@@ -76,7 +76,7 @@
                     :selectedDepartment="$selectedDepartment" :selectedStudyProgram="$selectedStudyProgram" />
 
                 <!-- Search & Additional Filters -->
-                <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex flex-col lg:flex-row gap-4">
                     <!-- Search -->
                     <div class="flex-1">
                         <div class="relative">
@@ -94,7 +94,7 @@
 
                     <!-- Filter Angkatan -->
                     <select name="angkatan" onchange="this.form.submit()"
-                        class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                        class="w-full lg:w-auto border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
                         <option value="">Semua Angkatan</option>
                         @for($year = 2025; $year >= 2020; $year--)
                             <option value="{{ $year }}" {{ request('angkatan') == $year ? 'selected' : '' }}>Angkatan {{ $year }}
@@ -103,7 +103,7 @@
                     </select>
 
                     <!-- Buttons -->
-                    <div class="flex gap-2">
+                    <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                         @if(request()->hasAny(['search', 'faculty_id', 'department_id', 'program_study_id', 'angkatan']))
                             <a href="{{ route('admin.students') }}"
                                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center gap-2">
@@ -240,9 +240,9 @@
 
 
             <div class="hidden lg:block w-full">
-                <div class="w-full overflow-x-auto">
+                <div class="w-full overflow-x-auto rounded-xl">
 
-                <table class="min-w-full text-sm table-auto">
+                <table class="min-w-[900px] w-full text-sm table-auto">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
                             <th class="px-4 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">NIM</th>
@@ -340,7 +340,7 @@
             </div>
                     </div>
                     </div>
-            <div class="p-4 border-t border-gray-200 dark:border-gray-700">{{ $students->links() }}</div>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 overflow-x-auto">{{ $students->links() }}</div>
         </div>
     </div>
 @endsection

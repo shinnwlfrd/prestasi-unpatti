@@ -40,8 +40,8 @@
 
         <!-- Sidebar -->
         <aside :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-            class="fixed h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 z-50 w-64 lg:w-64">
-            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            class="fixed top-0 left-0 h-screen w-64 flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 z-50">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-3">
                     <div
                         class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -61,7 +61,7 @@
                     </svg>
                 </button>
             </div>
-            <nav class="p-4 space-y-2 overflow-y-auto h-[calc(100vh-73px)]">
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
                 <a href="{{ route('admin.dashboard') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.dashboard') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,7 +186,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 lg:ml-64">
+        <main class="flex-1 lg:ml-64 min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
             <!-- Top Bar -->
             <header
                 class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 flex justify-between items-center sticky top-0 z-30">
@@ -240,7 +240,7 @@
                                 </svg>
                             </button>
                             <div x-show="open" @click.away="open = false" x-transition
-                                class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                                class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-[60]">
                                 <div class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
                                     <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Beralih Role
                                     </p>
@@ -308,7 +308,7 @@
             </header>
 
             <!-- Page Content -->
-            <div class="p-4 sm:p-6">
+            <div class="p-4 sm:p-6 flex-1">
                 @yield('content')
             </div>
         </main>
