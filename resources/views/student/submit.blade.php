@@ -63,7 +63,7 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Level <span class="text-red-500">*</span>
                     </label>
-                    <div class="grid grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         @foreach(['Universitas', 'Nasional', 'Internasional'] as $lvl)
                             <label class="relative">
                                 <input type="radio" name="level" value="{{ $lvl }}" {{ old('level') == $lvl ? 'checked' : '' }}
@@ -95,7 +95,7 @@
                 </div>
 
                 <!-- Tanggal & Peringkat -->
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Tanggal Event <span class="text-red-500">*</span>
@@ -394,19 +394,19 @@
                     if (fileItem.preview) {
                         const win = window.open('', '_blank');
                         const html = `
-                        <html>
-                            <head>
-                                <title>${fileItem.fileName}</title>
-                                <style>
-                                    body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; }
-                                    img { max-width: 100%; max-height: 100vh; }
-                                </style>
-                            </head>
-                            <body>
-                                <img src="${fileItem.preview}" />
-                            </body>
-                        </html>
-                    `;
+                            <html>
+                                <head>
+                                    <title>${fileItem.fileName}</title>
+                                    <style>
+                                        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000; }
+                                        img { max-width: 100%; max-height: 100vh; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <img src="${fileItem.preview}" />
+                                </body>
+                            </html>
+                        `;
                         win.document.write(html);
                     } else if (fileItem.file) {
                         const url = URL.createObjectURL(fileItem.file);

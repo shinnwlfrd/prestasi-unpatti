@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }"
+<html lang="id" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', mobileSidebarOpen: false }"
     x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
 
 <head>
@@ -37,8 +37,16 @@
             $isPimpinan = $currentRole && $currentRole->role === 'pimpinan';
             $routePrefix = $isPimpinan ? 'pimpinan' : 'validator';
         @endphp
-        <aside
-            class="fixed h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-64 overflow-y-auto">
+
+        <!-- Mobile Sidebar Backdrop -->
+        <div x-show="mobileSidebarOpen" x-cloak @click="mobileSidebarOpen = false"
+            class="fixed inset-0 bg-black/50 z-40 lg:hidden" x-transition:enter="transition-opacity ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity ease-in duration-200"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
+
+        <aside :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+            class="fixed h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-64 overflow-y-auto transition-transform duration-300 z-50">
             <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div
@@ -56,6 +64,14 @@
                         @endif
                     </span>
                 </div>
+                <button @click="mobileSidebarOpen = false"
+                    class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
             <nav class="p-4 space-y-2 overflow-y-auto" style="height: calc(100vh - 73px);">
 
@@ -149,11 +165,19 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 ml-64 min-h-screen">
+        <main class="flex-1 lg:ml-64 min-h-screen">
             <!-- Top Bar -->
             <header
                 class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 flex justify-between items-center sticky top-0 z-30">
                 <div class="flex items-center gap-4">
+                    <button @click="mobileSidebarOpen = !mobileSidebarOpen"
+                        class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
                     <h1 class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">
                         @yield('title', 'Dashboard')</h1>
                 </div>

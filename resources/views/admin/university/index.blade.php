@@ -5,10 +5,10 @@
 @section('content')
     <div class="space-y-6">
         <!-- Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Validasi Universitas</h2>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">Prestasi yang telah disetujui fakultas</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Prestasi yang telah disetujui fakultas</p>
             </div>
         </div>
 

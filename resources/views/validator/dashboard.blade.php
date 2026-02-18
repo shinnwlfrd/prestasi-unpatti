@@ -78,85 +78,85 @@
         </div>
 
         <!-- @if($isPimpinan && !empty($positionLabel))
-                                                                    <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg p-1">
-                                                                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-                                                                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                                                                <div class="flex items-center gap-4">
-                                                                                    <div
-                                                                                        class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                                                                                        @if($level === 'university')
-                                                                                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                                                            </svg>
-                                                                                        @elseif($level === 'faculty')
-                                                                                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                    d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-                                                                                            </svg>
-                                                                                        @elseif($level === 'department')
-                                                                                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                                                                            </svg>
-                                                                                        @elseif($level === 'program_study')
-                                                                                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                                                                            </svg>
-                                                                                        @else
-                                                                                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                                                            </svg>
-                                                                                        @endif
+                                                                            <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg p-1">
+                                                                                <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                                                                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                                                                        <div class="flex items-center gap-4">
+                                                                                            <div
+                                                                                                class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                                                                                                @if($level === 'university')
+                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                                                                    </svg>
+                                                                                                @elseif($level === 'faculty')
+                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                                            d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                                                                                    </svg>
+                                                                                                @elseif($level === 'department')
+                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                                                                                    </svg>
+                                                                                                @elseif($level === 'program_study')
+                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                                                                    </svg>
+                                                                                                @else
+                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                                                                    </svg>
+                                                                                                @endif
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                                                                    Tingkat Pimpinan</p>
+                                                                                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ $positionLabel }}</h3>
+                                                                                                @if(!empty($scopeName))
+                                                                                                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{{ $scopeName }}</p>
+                                                                                                @endif
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="flex flex-wrap items-center gap-2">
+                                                                                            @php
+                                                                                                $levelColors = [
+                                                                                                    'university' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
+                                                                                                    'faculty' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+                                                                                                    'department' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+                                                                                                    'program_study' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+                                                                                                    'graduate_program' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+                                                                                                ];
+                                                                                                $levelLabels = [
+                                                                                                    'university' => 'Tingkat Universitas',
+                                                                                                    'faculty' => 'Tingkat Fakultas',
+                                                                                                    'department' => 'Tingkat Jurusan',
+                                                                                                    'program_study' => 'Tingkat Program Studi',
+                                                                                                    'graduate_program' => 'Program Pascasarjana',
+                                                                                                ];
+                                                                                                $levelColor = $levelColors[$level] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600';
+                                                                                                $levelLabel = $levelLabels[$level] ?? ucfirst(str_replace('_', ' ', $level ?? 'Unknown'));
+                                                                                            @endphp
+                                                                                            <span
+                                                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border {{ $levelColor }}">
+                                                                                                <span class="w-2 h-2 rounded-full bg-current opacity-60"></span>
+                                                                                                {{ $levelLabel }}
+                                                                                            </span>
+                                                                                            <span
+                                                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                                                </svg>
+                                                                                                {{ number_format($totalStudents) }} Mahasiswa
+                                                                                            </span>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div>
-                                                                                        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                                                            Tingkat Pimpinan</p>
-                                                                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ $positionLabel }}</h3>
-                                                                                        @if(!empty($scopeName))
-                                                                                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{{ $scopeName }}</p>
-                                                                                        @endif
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="flex flex-wrap items-center gap-2">
-                                                                                    @php
-                                                                                        $levelColors = [
-                                                                                            'university' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
-                                                                                            'faculty' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-                                                                                            'department' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-                                                                                            'program_study' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
-                                                                                            'graduate_program' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800',
-                                                                                        ];
-                                                                                        $levelLabels = [
-                                                                                            'university' => 'Tingkat Universitas',
-                                                                                            'faculty' => 'Tingkat Fakultas',
-                                                                                            'department' => 'Tingkat Jurusan',
-                                                                                            'program_study' => 'Tingkat Program Studi',
-                                                                                            'graduate_program' => 'Program Pascasarjana',
-                                                                                        ];
-                                                                                        $levelColor = $levelColors[$level] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600';
-                                                                                        $levelLabel = $levelLabels[$level] ?? ucfirst(str_replace('_', ' ', $level ?? 'Unknown'));
-                                                                                    @endphp
-                                                                                    <span
-                                                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border {{ $levelColor }}">
-                                                                                        <span class="w-2 h-2 rounded-full bg-current opacity-60"></span>
-                                                                                        {{ $levelLabel }}
-                                                                                    </span>
-                                                                                    <span
-                                                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
-                                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                                        </svg>
-                                                                                        {{ number_format($totalStudents) }} Mahasiswa
-                                                                                    </span>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                    </div>
-                                                                @endif -->
+                                                                        @endif -->
 
 
         <!-- Period Filter Bar -->
@@ -602,7 +602,7 @@
                                                     <div class="flex items-center gap-3 flex-shrink-0">
                                                         <span
                                                             class="px-3.5 py-2 rounded-lg text-base font-bold shadow-sm
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                {{ $student->gpa >= 3.5 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {{ $student->gpa >= 3.5 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
                                                     ($student->gpa >= 3.0 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
                                                         'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300') }}">
                                                             {{ number_format($student->gpa, 2) }}
@@ -777,7 +777,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $achievement->level === 'Internasional' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    {{ $achievement->level === 'Internasional' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
                             ($achievement->level === 'Nasional' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
                                 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400') }}">
                                             {{ $achievement->level }}
@@ -1045,7 +1045,7 @@
                     <div
                         class="sticky bottom-0 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 px-6 py-4 space-y-3">
                         <!-- Tombol Pilih Aksi (tampil jika belum ada aksi dipilih) -->
-                        <div x-show="!validationAction" class="grid grid-cols-3 gap-3">
+                        <div x-show="!validationAction" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <button type="button" @click="validationAction = 'approve'"
                                 class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1073,837 +1073,837 @@
 
                         <!-- Tombol Submit & Kembali (tampil setelah aksi dipilih) -->
                         <div x-show="validationAction" class="space-y-3">
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button" @click="validationAction = ''"
-                                    class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
-                                    ← Kembali
-                                </button>
-                                <button type="button" @click="submitValidation()"
-                                    class="px-4 py-2.5 text-white rounded-lg font-medium transition-colors"
-                                    :class="{
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            'bg-emerald-600 hover:bg-emerald-700': validationAction === 'approve',
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            'bg-red-600 hover:bg-red-700': validationAction === 'reject',
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            'bg-blue-600 hover:bg-blue-700': validationAction === 'request_revision'
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        }">
-                                    <span x-show="validationAction === 'approve'">✓ Kirim Persetujuan</span>
-                                    <span x-show="validationAction === 'reject'">✗ Kirim Penolakan</span>
-                                    <span x-show="validationAction === 'request_revision'">↻ Kirim Permintaan Revisi</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <button type="button" @click="validationAction = ''"
+                                            class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
+                                            ← Kembali
+                                        </button>
+                                        <button type="button" @click="submitValidation()"
+                                            class="px-4 py-2.5 text-white rounded-lg font-medium transition-colors"
+                                            :class="{
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            'bg-emerald-600 hover:bg-emerald-700': validationAction === 'approve',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            'bg-red-600 hover:bg-red-700': validationAction === 'reject',
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            'bg-blue-600 hover:bg-blue-700': validationAction === 'request_revision'
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        }">
+                                            <span x-show="validationAction === 'approve'">✓ Kirim Persetujuan</span>
+                                            <span x-show="validationAction === 'reject'">✗ Kirim Penolakan</span>
+                                            <span x-show="validationAction === 'request_revision'">↻ Kirim Permintaan Revisi</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Tombol Tutup -->
+                                <button type="button" @click="closeModal()"
+                                    class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
+                                    Tutup
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Tombol Tutup -->
-                        <button type="button" @click="closeModal()"
-                            class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
-                            Tutup
-                        </button>
                     </div>
                 </div>
-            </div>
-        </div>
     @endunless
-    <!-- End Modal Validasi -->
+        <!-- End Modal Validasi -->
 
-    <!-- Modal Peserta Event (Pop-up Rincian Peserta Lomba) -->
-    <div x-show="showEventModal" x-cloak @click.self="closeEventModal()"
-        class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 p-4">
-        <div @click.away="closeEventModal()"
-            class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <!-- Modal Peserta Event (Pop-up Rincian Peserta Lomba) -->
+        <div x-show="showEventModal" x-cloak @click.self="closeEventModal()"
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div @click.away="closeEventModal()"
+                class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
 
-            <!-- Modal Header -->
-            <div
-                class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-900/50">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <!-- Modal Header -->
+                <div
+                    class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-900/50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white" x-text="eventInfo.name"></h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400"
+                                x-text="eventInfo.organizer + ' • ' + eventInfo.level"></p>
+                        </div>
+                    </div>
+                    <button @click="closeEventModal()"
+                        class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white" x-text="eventInfo.name"></h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400"
-                            x-text="eventInfo.organizer + ' • ' + eventInfo.level"></p>
-                    </div>
-                </div>
-                <button @click="closeEventModal()"
-                    class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="p-6 overflow-y-auto">
-                <!-- Loading State -->
-                <div x-show="eventLoading" class="py-12 text-center">
-                    <svg class="animate-spin h-10 w-10 mx-auto text-blue-600" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                        </circle>
-                        <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                        </path>
-                    </svg>
-                    <p class="mt-4 text-gray-600 dark:text-gray-400">Memuat rincian peserta...</p>
+                    </button>
                 </div>
 
-                <!-- Participants List -->
-                <div x-show="!eventLoading" class="space-y-4">
-                    <div class="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-xl">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900/50">
-                                <tr>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Mahasiswa</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Prodi / Fakultas</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Tgl Submit</th>
-                                    <th
-                                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <template x-for="participant in eventParticipants" :key="participant.student_id">
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div
-                                                    class="flex-shrink-0 h-9 w-9 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                                                    <span class="text-blue-600 dark:text-blue-400 font-bold text-sm"
-                                                        x-text="participant.student_name.charAt(0)"></span>
-                                                </div>
-                                                <div class="ml-3">
-                                                    <div class="text-sm font-semibold text-gray-900 dark:text-white"
-                                                        x-text="participant.student_name"></div>
-                                                    <div class="text-xs text-gray-500 dark:text-gray-400"
-                                                        x-text="participant.student_id"></div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm text-gray-900 dark:text-white"
-                                                x-text="participant.program_study"></div>
-                                            <div class="text-xs text-gray-500 dark:text-gray-400"
-                                                x-text="participant.faculty"></div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                                            x-text="participant.submitted_at"></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                                            <a :href="participant.details_url"
-                                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40">
-                                                Profil
-                                            </a>
-                                        </td>
+                <!-- Modal Body -->
+                <div class="p-6 overflow-y-auto">
+                    <!-- Loading State -->
+                    <div x-show="eventLoading" class="py-12 text-center">
+                        <svg class="animate-spin h-10 w-10 mx-auto text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <p class="mt-4 text-gray-600 dark:text-gray-400">Memuat rincian peserta...</p>
+                    </div>
+
+                    <!-- Participants List -->
+                    <div x-show="!eventLoading" class="space-y-4">
+                        <div class="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-xl">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                    <tr>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Mahasiswa</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Prodi / Fakultas</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Tgl Submit</th>
+                                        <th
+                                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Aksi</th>
                                     </tr>
-                                </template>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <template x-for="participant in eventParticipants" :key="participant.student_id">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div
+                                                        class="flex-shrink-0 h-9 w-9 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                                                        <span class="text-blue-600 dark:text-blue-400 font-bold text-sm"
+                                                            x-text="participant.student_name.charAt(0)"></span>
+                                                    </div>
+                                                    <div class="ml-3">
+                                                        <div class="text-sm font-semibold text-gray-900 dark:text-white"
+                                                            x-text="participant.student_name"></div>
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400"
+                                                            x-text="participant.student_id"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="text-sm text-gray-900 dark:text-white"
+                                                    x-text="participant.program_study"></div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400"
+                                                    x-text="participant.faculty"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                                                x-text="participant.submitted_at"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                <a :href="participant.details_url"
+                                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40">
+                                                    Profil
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Modal Footer -->
-            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
-                <button @click="closeEventModal()"
-                    class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
-                    Tutup
-                </button>
+                <!-- Modal Footer -->
+                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+                    <button @click="closeEventModal()"
+                        class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-colors">
+                        Tutup
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-    <!-- End Modal Peserta Event -->
-    </div>
+        <!-- End Modal Peserta Event -->
+        </div>
 
-    <script>
-        function validatorDashboard() {
-            return {
-                showModal: false,
-                loading: false,
-                achievement: null,
-                validationAction: '',
-                showCategoryHierarchy: false,
-                showLevelHierarchy: false,
+        <script>
+            function validatorDashboard() {
+                return {
+                    showModal: false,
+                    loading: false,
+                    achievement: null,
+                    validationAction: '',
+                    showCategoryHierarchy: false,
+                    showLevelHierarchy: false,
 
-                // Event Modal State
-                showEventModal: false,
-                eventLoading: false,
-                eventParticipants: [],
-                eventInfo: { name: '', organizer: '', level: '' },
+                    // Event Modal State
+                    showEventModal: false,
+                    eventLoading: false,
+                    eventParticipants: [],
+                    eventInfo: { name: '', organizer: '', level: '' },
 
-                async openEventModal(eventName, organizer, level) {
-                    this.showEventModal = true;
-                    this.eventLoading = true;
-                    this.eventInfo = { name: eventName, organizer: organizer, level: level };
-                    this.eventParticipants = [];
+                    async openEventModal(eventName, organizer, level) {
+                        this.showEventModal = true;
+                        this.eventLoading = true;
+                        this.eventInfo = { name: eventName, organizer: organizer, level: level };
+                        this.eventParticipants = [];
 
-                    // Add state to history so back button closes modal
-                    if (!window.location.hash.includes('event-modal')) {
-                        window.history.pushState({ modal: 'event' }, '', window.location.pathname + window.location.search + '#event-modal');
-                    }
-
-                    try {
-                        const params = new URLSearchParams({
-                            event_name: eventName,
-                            organizer: organizer,
-                            level: level
-                        });
-                        const response = await fetch("{{ route($routePrefix . '.api.event-participants') }}?" + params);
-                        const data = await response.json();
-                        this.eventParticipants = data.participants;
-                    } catch (error) {
-                        console.error('Error loading participants:', error);
-                        alert('Gagal memuat rincian peserta');
-                    } finally {
-                        this.eventLoading = false;
-                    }
-                },
-
-                closeEventModal() {
-                    this.showEventModal = false;
-                    if (window.location.hash.includes('event-modal')) {
-                        window.history.back();
-                    }
-                },
-
-                init() {
-                    // Handle browser back button for modal and chart
-                    window.addEventListener('popstate', (event) => {
-                        if (this.showEventModal && !window.location.hash.includes('event-modal')) {
-                            this.showEventModal = false;
-                        }
-                    });
-                },
-
-                async openModal(achievementId) {
-                    this.showModal = true;
-                    this.loading = true;
-                    this.validationAction = '';
-
-                    try {
-                        const response = await fetch(`/api/validator/achievements/${achievementId}`, {
-                            method: 'GET',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            credentials: 'same-origin'
-                        });
-
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            console.error('Response error:', errorText);
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                        // Add state to history so back button closes modal
+                        if (!window.location.hash.includes('event-modal')) {
+                            window.history.pushState({ modal: 'event' }, '', window.location.pathname + window.location.search + '#event-modal');
                         }
 
-                        const data = await response.json();
-
-                        if (data.error) {
-                            throw new Error(data.error);
+                        try {
+                            const params = new URLSearchParams({
+                                event_name: eventName,
+                                organizer: organizer,
+                                level: level
+                            });
+                            const response = await fetch("{{ route($routePrefix . '.api.event-participants') }}?" + params);
+                            const data = await response.json();
+                            this.eventParticipants = data.participants;
+                        } catch (error) {
+                            console.error('Error loading participants:', error);
+                            alert('Gagal memuat rincian peserta');
+                        } finally {
+                            this.eventLoading = false;
                         }
+                    },
 
-                        this.achievement = data;
-                    } catch (error) {
-                        console.error('Error loading achievement:', error);
-                        alert('Gagal memuat data prestasi: ' + error.message);
-                        this.closeModal();
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-
-                closeModal() {
-                    this.showModal = false;
-                    this.achievement = null;
-                    this.validationAction = '';
-                },
-
-                submitValidation() {
-                    const form = document.getElementById('validationForm');
-                    const action = this.validationAction;
-
-                    // Validasi berdasarkan aksi
-                    if (action === 'reject') {
-                        const rejectReason = form.querySelector('[name="rejection_reason"]');
-                        if (!rejectReason || !rejectReason.value.trim()) {
-                            // Scroll ke field alasan penolakan
-                            rejectReason.focus();
-                            rejectReason.classList.add('border-red-500');
-                            setTimeout(() => rejectReason.classList.remove('border-red-500'), 2000);
-                            return;
+                    closeEventModal() {
+                        this.showEventModal = false;
+                        if (window.location.hash.includes('event-modal')) {
+                            window.history.back();
                         }
-                    } else if (action === 'request_revision') {
-                        const revisionReason = form.querySelector('[name="revision_reason"]');
-                        if (!revisionReason || !revisionReason.value.trim()) {
-                            // Scroll ke field alasan revisi
-                            revisionReason.focus();
-                            revisionReason.classList.add('border-red-500');
-                            setTimeout(() => revisionReason.classList.remove('border-red-500'), 2000);
-                            return;
-                        }
-                    }
+                    },
 
-                    // Tambahkan action ke form
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = action;
-                    form.appendChild(actionInput);
-
-                    // Submit form
-                    form.submit();
-                }
-            }
-        }
-
-        // Initialize Charts for Pimpinan Dashboard
-        @if($isPimpinan)
-            document.addEventListener('DOMContentLoaded', function () {
-                // Helper to get dynamic colors based on current theme
-                const getChartColors = () => {
-                    const isDark = document.documentElement.classList.contains('dark');
-                    return {
-                        textColor: isDark ? '#f3f4f6' : '#374151',
-                        gridColor: isDark ? '#374151' : '#e5e7eb',
-                        tooltipBg: isDark ? '#1f2937' : '#ffffff',
-                        tooltipTitle: isDark ? '#f9fafb' : '#111827',
-                        tooltipBody: isDark ? '#d1d5db' : '#374151',
-                        tooltipBorder: isDark ? '#374151' : '#e5e7eb'
-                    };
-                };
-
-                let colors = getChartColors();
-                const chartInstances = [];
-
-                // Achievement Trend Chart
-                const trendData = @json($achievementTrend);
-                const trendCanvas = document.getElementById('achievementTrendChart');
-                if (trendCanvas && trendData && trendData.length > 0) {
-                    const trendChart = new Chart(trendCanvas, {
-                        type: 'line',
-                        data: {
-                            labels: trendData.map(d => d.label),
-                            datasets: [
-                                {
-                                    label: 'Bidang Akademik',
-                                    data: trendData.map(d => d.academic),
-                                    borderColor: '#3b82f6',
-                                    backgroundColor: '#3b82f620',
-                                    fill: true,
-                                    tension: 0.4,
-                                    borderWidth: 2,
-                                    pointRadius: 3,
-                                    pointBackgroundColor: '#3b82f6'
-                                },
-                                {
-                                    label: 'Bidang Non-Akademik',
-                                    data: trendData.map(d => d.non_academic),
-                                    borderColor: '#10b981',
-                                    backgroundColor: '#10b98120',
-                                    fill: true,
-                                    tension: 0.4,
-                                    borderWidth: 2,
-                                    pointRadius: 3,
-                                    pointBackgroundColor: '#10b981'
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        color: colors.textColor,
-                                        boxWidth: 8,
-                                        usePointStyle: true,
-                                        pointStyle: 'circle',
-                                        font: { size: 10 }
-                                    }
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false,
-                                    backgroundColor: colors.tooltipBg,
-                                    titleColor: colors.tooltipTitle,
-                                    bodyColor: colors.tooltipBody,
-                                    borderColor: colors.tooltipBorder,
-                                    borderWidth: 1
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    grid: { display: false },
-                                    ticks: { color: colors.textColor, font: { size: 10 } }
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    grid: { color: colors.gridColor },
-                                    ticks: { color: colors.textColor, font: { size: 10 }, stepSize: 1 }
-                                }
+                    init() {
+                        // Handle browser back button for modal and chart
+                        window.addEventListener('popstate', (event) => {
+                            if (this.showEventModal && !window.location.hash.includes('event-modal')) {
+                                this.showEventModal = false;
                             }
-                        }
-                    });
-                    chartInstances.push(trendChart);
-                }
-
-                // Level Distribution Donut Chart
-                const levelData = @json($levelDistribution);
-                const levelCanvas = document.getElementById('levelDistributionChart');
-                if (levelCanvas && levelData && levelData.length > 0 && levelData.some(d => d.total > 0)) {
-                    const levelChart = new Chart(levelCanvas, {
-                        type: 'doughnut',
-                        data: {
-                            labels: levelData.map(d => d.name),
-                            datasets: [{
-                                data: levelData.map(d => d.total),
-                                backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
-                                borderWidth: 2,
-                                borderColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                                hoverOffset: 15
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        color: colors.textColor,
-                                        padding: 15,
-                                        font: { size: 10 },
-                                        usePointStyle: true,
-                                        boxWidth: 8
-                                    }
-                                },
-                                tooltip: {
-                                    backgroundColor: colors.tooltipBg,
-                                    titleColor: colors.tooltipTitle,
-                                    bodyColor: colors.tooltipBody,
-                                    borderColor: colors.tooltipBorder,
-                                    borderWidth: 1,
-                                    callbacks: {
-                                        label: function (context) {
-                                            const label = context.label || '';
-                                            const value = context.parsed || 0;
-                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                            const percentage = ((value / total) * 100).toFixed(1);
-                                            return ` ${label}: ${value} Capaian (${percentage}%)`;
-                                        }
-                                    }
-                                }
-                            },
-                            cutout: '65%'
-                        }
-                    });
-                    chartInstances.push(levelChart);
-                } else if (levelCanvas) {
-                    levelCanvas.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">Tidak ada data distribusi tingkat</div>';
-                }
-
-                // Category Distribution Donut Chart
-                const categoryData = @json($categoryDistribution);
-                const categoryCanvas = document.getElementById('categoryDistributionChart');
-                if (categoryCanvas && categoryData && categoryData.length > 0 && categoryData.some(d => d.total > 0)) {
-                    const categoryColors = [
-                        '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
-                        '#ec4899', '#06b6d4', '#f97316', '#84cc16', '#6366f1'
-                    ];
-
-                    const categoryChart = new Chart(categoryCanvas, {
-                        type: 'doughnut',
-                        data: {
-                            labels: categoryData.map(d => d.name),
-                            datasets: [{
-                                data: categoryData.map(d => d.total),
-                                backgroundColor: categoryColors,
-                                borderWidth: 2,
-                                borderColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
-                                hoverOffset: 15
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        color: colors.textColor,
-                                        padding: 15,
-                                        font: { size: 10 },
-                                        usePointStyle: true,
-                                        boxWidth: 8
-                                    }
-                                },
-                                tooltip: {
-                                    backgroundColor: colors.tooltipBg,
-                                    titleColor: colors.tooltipTitle,
-                                    bodyColor: colors.tooltipBody,
-                                    borderColor: colors.tooltipBorder,
-                                    borderWidth: 1,
-                                    callbacks: {
-                                        label: function (context) {
-                                            const label = context.label || '';
-                                            const value = context.parsed || 0;
-                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                            const percentage = ((value / total) * 100).toFixed(1);
-                                            return ` ${label}: ${value} Capaian (${percentage}%)`;
-                                        }
-                                    }
-                                }
-                            },
-                            cutout: '65%'
-                        }
-                    });
-                    chartInstances.push(categoryChart);
-                } else if (categoryCanvas) {
-                    categoryCanvas.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">Tidak ada data distribusi kategori</div>';
-                }
-
-                // Hierarchical Chart functionality
-                let hierarchicalChart = null;
-                let currentDrillLevel = 'main';
-                let drillHistory = [];
-                let currentPeriods = @json($selectedPeriods);
-
-                // Initialize hierarchical chart
-                function initHierarchicalChart() {
-                    const canvas = document.getElementById('hierarchicalChart');
-                    if (!canvas) {
-                        return;
-                    }
-
-                    loadHierarchicalData('main');
-                }
-
-                // Load hierarchical data via AJAX
-                function loadHierarchicalData(drillLevel, parentId = null, grandparentId = null) {
-                    const loading = document.getElementById('chartLoading');
-                    const backBtn = document.getElementById('backBtn');
-
-                    if (loading) loading.classList.remove('hidden');
-
-                    const params = new URLSearchParams({
-                        drill_level: drillLevel
-                    });
-
-                    // Add periods as separate parameters
-                    if (currentPeriods && currentPeriods.length > 0) {
-                        currentPeriods.forEach(period => {
-                            params.append('periods[]', period);
                         });
-                    }
+                    },
 
-                    if (parentId) params.append('parent_id', parentId);
-                    if (grandparentId) params.append('grandparent_id', grandparentId);
+                    async openModal(achievementId) {
+                        this.showModal = true;
+                        this.loading = true;
+                        this.validationAction = '';
 
-                    fetch(`{{ route($routePrefix . '.api.hierarchical-chart-data') }}?${params}`)
-                        .then(response => {
+                        try {
+                            const response = await fetch(`/api/validator/achievements/${achievementId}`, {
+                                method: 'GET',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                credentials: 'same-origin'
+                            });
+
                             if (!response.ok) {
+                                const errorText = await response.text();
+                                console.error('Response error:', errorText);
                                 throw new Error(`HTTP error! status: ${response.status}`);
                             }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (loading) loading.classList.add('hidden');
-                            updateHierarchicalChart(data);
-                            updateBreadcrumb(data.title);
 
-                            // Show/hide back button
-                            if (backBtn) {
-                                if (drillLevel !== 'main') {
-                                    backBtn.classList.remove('hidden');
-                                    backBtn.classList.add('flex');
+                            const data = await response.json();
+
+                            if (data.error) {
+                                throw new Error(data.error);
+                            }
+
+                            this.achievement = data;
+                        } catch (error) {
+                            console.error('Error loading achievement:', error);
+                            alert('Gagal memuat data prestasi: ' + error.message);
+                            this.closeModal();
+                        } finally {
+                            this.loading = false;
+                        }
+                    },
+
+                    closeModal() {
+                        this.showModal = false;
+                        this.achievement = null;
+                        this.validationAction = '';
+                    },
+
+                    submitValidation() {
+                        const form = document.getElementById('validationForm');
+                        const action = this.validationAction;
+
+                        // Validasi berdasarkan aksi
+                        if (action === 'reject') {
+                            const rejectReason = form.querySelector('[name="rejection_reason"]');
+                            if (!rejectReason || !rejectReason.value.trim()) {
+                                // Scroll ke field alasan penolakan
+                                rejectReason.focus();
+                                rejectReason.classList.add('border-red-500');
+                                setTimeout(() => rejectReason.classList.remove('border-red-500'), 2000);
+                                return;
+                            }
+                        } else if (action === 'request_revision') {
+                            const revisionReason = form.querySelector('[name="revision_reason"]');
+                            if (!revisionReason || !revisionReason.value.trim()) {
+                                // Scroll ke field alasan revisi
+                                revisionReason.focus();
+                                revisionReason.classList.add('border-red-500');
+                                setTimeout(() => revisionReason.classList.remove('border-red-500'), 2000);
+                                return;
+                            }
+                        }
+
+                        // Tambahkan action ke form
+                        const actionInput = document.createElement('input');
+                        actionInput.type = 'hidden';
+                        actionInput.name = 'action';
+                        actionInput.value = action;
+                        form.appendChild(actionInput);
+
+                        // Submit form
+                        form.submit();
+                    }
+                }
+            }
+
+            // Initialize Charts for Pimpinan Dashboard
+            @if($isPimpinan)
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Helper to get dynamic colors based on current theme
+                    const getChartColors = () => {
+                        const isDark = document.documentElement.classList.contains('dark');
+                        return {
+                            textColor: isDark ? '#f3f4f6' : '#374151',
+                            gridColor: isDark ? '#374151' : '#e5e7eb',
+                            tooltipBg: isDark ? '#1f2937' : '#ffffff',
+                            tooltipTitle: isDark ? '#f9fafb' : '#111827',
+                            tooltipBody: isDark ? '#d1d5db' : '#374151',
+                            tooltipBorder: isDark ? '#374151' : '#e5e7eb'
+                        };
+                    };
+
+                    let colors = getChartColors();
+                    const chartInstances = [];
+
+                    // Achievement Trend Chart
+                    const trendData = @json($achievementTrend);
+                    const trendCanvas = document.getElementById('achievementTrendChart');
+                    if (trendCanvas && trendData && trendData.length > 0) {
+                        const trendChart = new Chart(trendCanvas, {
+                            type: 'line',
+                            data: {
+                                labels: trendData.map(d => d.label),
+                                datasets: [
+                                    {
+                                        label: 'Bidang Akademik',
+                                        data: trendData.map(d => d.academic),
+                                        borderColor: '#3b82f6',
+                                        backgroundColor: '#3b82f620',
+                                        fill: true,
+                                        tension: 0.4,
+                                        borderWidth: 2,
+                                        pointRadius: 3,
+                                        pointBackgroundColor: '#3b82f6'
+                                    },
+                                    {
+                                        label: 'Bidang Non-Akademik',
+                                        data: trendData.map(d => d.non_academic),
+                                        borderColor: '#10b981',
+                                        backgroundColor: '#10b98120',
+                                        fill: true,
+                                        tension: 0.4,
+                                        borderWidth: 2,
+                                        pointRadius: 3,
+                                        pointBackgroundColor: '#10b981'
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            color: colors.textColor,
+                                            boxWidth: 8,
+                                            usePointStyle: true,
+                                            pointStyle: 'circle',
+                                            font: { size: 10 }
+                                        }
+                                    },
+                                    tooltip: {
+                                        mode: 'index',
+                                        intersect: false,
+                                        backgroundColor: colors.tooltipBg,
+                                        titleColor: colors.tooltipTitle,
+                                        bodyColor: colors.tooltipBody,
+                                        borderColor: colors.tooltipBorder,
+                                        borderWidth: 1
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        grid: { display: false },
+                                        ticks: { color: colors.textColor, font: { size: 10 } }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: colors.gridColor },
+                                        ticks: { color: colors.textColor, font: { size: 10 }, stepSize: 1 }
+                                    }
+                                }
+                            }
+                        });
+                        chartInstances.push(trendChart);
+                    }
+
+                    // Level Distribution Donut Chart
+                    const levelData = @json($levelDistribution);
+                    const levelCanvas = document.getElementById('levelDistributionChart');
+                    if (levelCanvas && levelData && levelData.length > 0 && levelData.some(d => d.total > 0)) {
+                        const levelChart = new Chart(levelCanvas, {
+                            type: 'doughnut',
+                            data: {
+                                labels: levelData.map(d => d.name),
+                                datasets: [{
+                                    data: levelData.map(d => d.total),
+                                    backgroundColor: ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
+                                    borderWidth: 2,
+                                    borderColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                    hoverOffset: 15
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            color: colors.textColor,
+                                            padding: 15,
+                                            font: { size: 10 },
+                                            usePointStyle: true,
+                                            boxWidth: 8
+                                        }
+                                    },
+                                    tooltip: {
+                                        backgroundColor: colors.tooltipBg,
+                                        titleColor: colors.tooltipTitle,
+                                        bodyColor: colors.tooltipBody,
+                                        borderColor: colors.tooltipBorder,
+                                        borderWidth: 1,
+                                        callbacks: {
+                                            label: function (context) {
+                                                const label = context.label || '';
+                                                const value = context.parsed || 0;
+                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                const percentage = ((value / total) * 100).toFixed(1);
+                                                return ` ${label}: ${value} Capaian (${percentage}%)`;
+                                            }
+                                        }
+                                    }
+                                },
+                                cutout: '65%'
+                            }
+                        });
+                        chartInstances.push(levelChart);
+                    } else if (levelCanvas) {
+                        levelCanvas.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">Tidak ada data distribusi tingkat</div>';
+                    }
+
+                    // Category Distribution Donut Chart
+                    const categoryData = @json($categoryDistribution);
+                    const categoryCanvas = document.getElementById('categoryDistributionChart');
+                    if (categoryCanvas && categoryData && categoryData.length > 0 && categoryData.some(d => d.total > 0)) {
+                        const categoryColors = [
+                            '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+                            '#ec4899', '#06b6d4', '#f97316', '#84cc16', '#6366f1'
+                        ];
+
+                        const categoryChart = new Chart(categoryCanvas, {
+                            type: 'doughnut',
+                            data: {
+                                labels: categoryData.map(d => d.name),
+                                datasets: [{
+                                    data: categoryData.map(d => d.total),
+                                    backgroundColor: categoryColors,
+                                    borderWidth: 2,
+                                    borderColor: document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff',
+                                    hoverOffset: 15
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            color: colors.textColor,
+                                            padding: 15,
+                                            font: { size: 10 },
+                                            usePointStyle: true,
+                                            boxWidth: 8
+                                        }
+                                    },
+                                    tooltip: {
+                                        backgroundColor: colors.tooltipBg,
+                                        titleColor: colors.tooltipTitle,
+                                        bodyColor: colors.tooltipBody,
+                                        borderColor: colors.tooltipBorder,
+                                        borderWidth: 1,
+                                        callbacks: {
+                                            label: function (context) {
+                                                const label = context.label || '';
+                                                const value = context.parsed || 0;
+                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                const percentage = ((value / total) * 100).toFixed(1);
+                                                return ` ${label}: ${value} Capaian (${percentage}%)`;
+                                            }
+                                        }
+                                    }
+                                },
+                                cutout: '65%'
+                            }
+                        });
+                        chartInstances.push(categoryChart);
+                    } else if (categoryCanvas) {
+                        categoryCanvas.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">Tidak ada data distribusi kategori</div>';
+                    }
+
+                    // Hierarchical Chart functionality
+                    let hierarchicalChart = null;
+                    let currentDrillLevel = 'main';
+                    let drillHistory = [];
+                    let currentPeriods = @json($selectedPeriods);
+
+                    // Initialize hierarchical chart
+                    function initHierarchicalChart() {
+                        const canvas = document.getElementById('hierarchicalChart');
+                        if (!canvas) {
+                            return;
+                        }
+
+                        loadHierarchicalData('main');
+                    }
+
+                    // Load hierarchical data via AJAX
+                    function loadHierarchicalData(drillLevel, parentId = null, grandparentId = null) {
+                        const loading = document.getElementById('chartLoading');
+                        const backBtn = document.getElementById('backBtn');
+
+                        if (loading) loading.classList.remove('hidden');
+
+                        const params = new URLSearchParams({
+                            drill_level: drillLevel
+                        });
+
+                        // Add periods as separate parameters
+                        if (currentPeriods && currentPeriods.length > 0) {
+                            currentPeriods.forEach(period => {
+                                params.append('periods[]', period);
+                            });
+                        }
+
+                        if (parentId) params.append('parent_id', parentId);
+                        if (grandparentId) params.append('grandparent_id', grandparentId);
+
+                        fetch(`{{ route($routePrefix . '.api.hierarchical-chart-data') }}?${params}`)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (loading) loading.classList.add('hidden');
+                                updateHierarchicalChart(data);
+                                updateBreadcrumb(data.title);
+
+                                // Show/hide back button
+                                if (backBtn) {
+                                    if (drillLevel !== 'main') {
+                                        backBtn.classList.remove('hidden');
+                                        backBtn.classList.add('flex');
+                                    } else {
+                                        backBtn.classList.add('hidden');
+                                        backBtn.classList.remove('flex');
+                                    }
+                                }
+
+                                currentDrillLevel = drillLevel;
+                            })
+                            .catch(error => {
+                                console.error('Error loading hierarchical data:', error);
+                                if (loading) loading.classList.add('hidden');
+
+                                // Fallback: create static chart with existing data
+                                @php
+                                    $hasItems = !empty($hierarchicalComparison) && isset($hierarchicalComparison['items']) && $hierarchicalComparison['items']->count() > 0;
+                                    $labelField = ($hierarchicalComparison['type'] ?? '') === 'faculty' ? 'faculty' :
+                                        (($hierarchicalComparison['type'] ?? '') === 'department' ? 'department' :
+                                            (($hierarchicalComparison['type'] ?? '') === 'angkatan' ? 'angkatan_label' : 'program_study'));
+                                @endphp
+                                const fallbackData = {
+                                    labels: @json($hasItems ? $hierarchicalComparison['items']->pluck($labelField) : []),
+                                    values: @json($hasItems ? $hierarchicalComparison['items']->pluck('achievements_count') : []),
+                                    title: @json($hierarchicalComparison['label'] ?? 'Perbandingan Prestasi'),
+                                    canDrillDown: false,
+                                    drillData: @json($hasItems ? $hierarchicalComparison['items']->values()->map(function ($item) {
+                                        return [
+                                            'id' => $item->faculty_id ?? $item->department_id ?? $item->program_study_id ?? $item->angkatan,
+                                            'name' => $item->faculty ?? $item->department ?? $item->program_study ?? $item->angkatan_label,
+                                            'students_count' => $item->students_count ?? 0
+                                        ];
+                                    }) : [])
+                                };
+
+                                if (fallbackData.labels.length > 0) {
+                                    updateHierarchicalChart(fallbackData);
+                                    updateBreadcrumb(fallbackData.title);
                                 } else {
+                                    // Show error message
+                                    const canvas = document.getElementById('hierarchicalChart');
+                                    if (canvas) {
+                                        canvas.parentElement.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">Tidak ada data untuk ditampilkan</p>';
+                                    }
+                                }
+                            });
+                    }
+
+                    // Update hierarchical chart
+                    function updateHierarchicalChart(data) {
+                        const canvas = document.getElementById('hierarchicalChart');
+                        if (!canvas) return;
+
+                        const ctx = canvas.getContext('2d');
+                        const colors = getChartColors(); // Get latest colors
+
+                        // Destroy existing chart
+                        if (hierarchicalChart) {
+                            hierarchicalChart.destroy();
+                            // Also remove from chartInstances if it exists there
+                            const idx = chartInstances.indexOf(hierarchicalChart);
+                            if (idx > -1) chartInstances.splice(idx, 1);
+                        }
+
+                        // Generate colors
+                        const chartBarColors = [
+                            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+                            '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
+                            '#14b8a6', '#eab308'
+                        ];
+
+                        hierarchicalChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: data.labels,
+                                datasets: [{
+                                    label: 'Akumulasi Prestasi',
+                                    data: data.values,
+                                    backgroundColor: chartBarColors.slice(0, data.labels.length),
+                                    borderColor: chartBarColors.slice(0, data.labels.length),
+                                    borderWidth: 1,
+                                    borderRadius: 6,
+                                    borderSkipped: false
+                                }]
+                            },
+                            options: {
+                                indexAxis: 'y', // Better for long labels
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        backgroundColor: colors.tooltipBg,
+                                        titleColor: colors.tooltipTitle,
+                                        bodyColor: colors.tooltipBody,
+                                        borderColor: colors.tooltipBorder,
+                                        borderWidth: 1,
+                                        padding: 12,
+                                        callbacks: {
+                                            label: function (context) {
+                                                const value = context.parsed.x; // Use x for indexAxis: y
+                                                const total = data.values.reduce((a, b) => a + b, 0);
+                                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                return `Total Capaian: ${value} (${percentage}%)`;
+                                            },
+                                            afterLabel: function (context) {
+                                                const index = context.dataIndex;
+                                                const students = (data.drillData && data.drillData[index]) ?
+                                                    data.drillData[index].students_count : 0;
+                                                let label = `Basis Populasi: ${students.toLocaleString()} Mahasiswa`;
+                                                if (data.canDrillDown) {
+                                                    label += '\n\nKlik untuk drill down';
+                                                }
+                                                return label;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            color: colors.textColor,
+                                            font: { size: 11 }
+                                        },
+                                        grid: {
+                                            color: colors.gridColor
+                                        }
+                                    },
+                                    y: {
+                                        ticks: {
+                                            color: colors.textColor,
+                                            font: { size: 11, weight: '500' }
+                                        },
+                                        grid: {
+                                            display: false
+                                        }
+                                    }
+                                },
+                                onClick: (event, elements) => {
+                                    if (elements.length > 0 && data.canDrillDown) {
+                                        const index = elements[0].index;
+                                        const drillItem = data.drillData[index];
+
+                                        // Save current state to history
+                                        drillHistory.push({
+                                            level: currentDrillLevel,
+                                            data: data,
+                                            title: data.title
+                                        });
+
+                                        // Determine next drill level
+                                        let nextLevel = 'level1';
+                                        if (currentDrillLevel === 'level1') {
+                                            nextLevel = 'level2';
+                                        }
+
+                                        // Save state to browser history
+                                        window.history.pushState({
+                                            type: 'chart-drill',
+                                            level: nextLevel,
+                                            parentId: drillItem.id,
+                                            title: drillItem.name
+                                        }, '', window.location.pathname + window.location.search);
+
+                                        // Load next level data
+                                        loadHierarchicalData(nextLevel, drillItem.id);
+                                    }
+                                }
+                            }
+                        });
+                        chartInstances.push(hierarchicalChart);
+                    }
+
+                    // Update breadcrumb
+                    function updateBreadcrumb(title) {
+                        const breadcrumb = document.getElementById('breadcrumb');
+                        if (breadcrumb) {
+                            breadcrumb.textContent = title;
+                        }
+                    }
+
+                    // Back button functionality
+                    const backBtn = document.getElementById('backBtn');
+                    if (backBtn) {
+                        backBtn.addEventListener('click', function () {
+                            window.history.back();
+                        });
+                    }
+
+                    // Change charts theme dynamically
+                    function updateChartsTheme() {
+                        const newColors = getChartColors();
+                        const isDark = document.documentElement.classList.contains('dark');
+
+                        chartInstances.forEach(chart => {
+                            // Update global plugin options
+                            if (chart.options.plugins.legend) {
+                                chart.options.plugins.legend.labels.color = newColors.textColor;
+                            }
+
+                            // Update tooltips
+                            if (chart.options.plugins.tooltip) {
+                                chart.options.plugins.tooltip.backgroundColor = newColors.tooltipBg;
+                                chart.options.plugins.tooltip.titleColor = newColors.tooltipTitle;
+                                chart.options.plugins.tooltip.bodyColor = newColors.tooltipBody;
+                                chart.options.plugins.tooltip.borderColor = newColors.tooltipBorder;
+                            }
+
+                            // Update scales for line/bar charts
+                            if (chart.options.scales) {
+                                if (chart.options.scales.x) {
+                                    chart.options.scales.x.ticks.color = newColors.textColor;
+                                    if (chart.options.scales.x.grid) {
+                                        chart.options.scales.x.grid.color = newColors.gridColor;
+                                    }
+                                }
+                                if (chart.options.scales.y) {
+                                    chart.options.scales.y.ticks.color = newColors.textColor;
+                                    if (chart.options.scales.y.grid) {
+                                        chart.options.scales.y.grid.color = newColors.gridColor;
+                                    }
+                                }
+                            }
+
+                            // Update doughnut specific options
+                            if (chart.config.type === 'doughnut') {
+                                chart.data.datasets.forEach(dataset => {
+                                    dataset.borderColor = isDark ? '#1f2937' : '#ffffff';
+                                });
+                            }
+
+                            chart.update();
+                        });
+                    }
+
+                    // Monitor class changes on html tag to detect dark mode toggle
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.attributeName === 'class') {
+                                updateChartsTheme();
+                            }
+                        });
+                    });
+
+                    observer.observe(document.documentElement, { attributes: true });
+
+                    // Handle drill-back via popstate
+                    window.addEventListener('popstate', function (event) {
+                        if (event.state && event.state.type === 'chart-drill') {
+                            if (drillHistory.length > 0) {
+                                const previousState = drillHistory.pop();
+                                currentDrillLevel = previousState.level;
+                                updateHierarchicalChart(previousState.data);
+                                updateBreadcrumb(previousState.title);
+
+                                if (drillHistory.length === 0 && backBtn) {
                                     backBtn.classList.add('hidden');
                                     backBtn.classList.remove('flex');
                                 }
                             }
+                        } else if (!event.state || event.state.type !== 'chart-drill') {
+                            if (drillHistory.length > 0) {
+                                const previousState = drillHistory.pop();
+                                currentDrillLevel = previousState.level;
+                                updateHierarchicalChart(previousState.data);
+                                updateBreadcrumb(previousState.title);
 
-                            currentDrillLevel = drillLevel;
-                        })
-                        .catch(error => {
-                            console.error('Error loading hierarchical data:', error);
-                            if (loading) loading.classList.add('hidden');
-
-                            // Fallback: create static chart with existing data
-                            @php
-                                $hasItems = !empty($hierarchicalComparison) && isset($hierarchicalComparison['items']) && $hierarchicalComparison['items']->count() > 0;
-                                $labelField = ($hierarchicalComparison['type'] ?? '') === 'faculty' ? 'faculty' :
-                                    (($hierarchicalComparison['type'] ?? '') === 'department' ? 'department' :
-                                        (($hierarchicalComparison['type'] ?? '') === 'angkatan' ? 'angkatan_label' : 'program_study'));
-                            @endphp
-                            const fallbackData = {
-                                labels: @json($hasItems ? $hierarchicalComparison['items']->pluck($labelField) : []),
-                                values: @json($hasItems ? $hierarchicalComparison['items']->pluck('achievements_count') : []),
-                                title: @json($hierarchicalComparison['label'] ?? 'Perbandingan Prestasi'),
-                                canDrillDown: false,
-                                drillData: @json($hasItems ? $hierarchicalComparison['items']->values()->map(function ($item) {
-                                    return [
-                                        'id' => $item->faculty_id ?? $item->department_id ?? $item->program_study_id ?? $item->angkatan,
-                                        'name' => $item->faculty ?? $item->department ?? $item->program_study ?? $item->angkatan_label,
-                                        'students_count' => $item->students_count ?? 0
-                                    ];
-                                }) : [])
-                            };
-
-                            if (fallbackData.labels.length > 0) {
-                                updateHierarchicalChart(fallbackData);
-                                updateBreadcrumb(fallbackData.title);
-                            } else {
-                                // Show error message
-                                const canvas = document.getElementById('hierarchicalChart');
-                                if (canvas) {
-                                    canvas.parentElement.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">Tidak ada data untuk ditampilkan</p>';
-                                }
-                            }
-                        });
-                }
-
-                // Update hierarchical chart
-                function updateHierarchicalChart(data) {
-                    const canvas = document.getElementById('hierarchicalChart');
-                    if (!canvas) return;
-
-                    const ctx = canvas.getContext('2d');
-                    const colors = getChartColors(); // Get latest colors
-
-                    // Destroy existing chart
-                    if (hierarchicalChart) {
-                        hierarchicalChart.destroy();
-                        // Also remove from chartInstances if it exists there
-                        const idx = chartInstances.indexOf(hierarchicalChart);
-                        if (idx > -1) chartInstances.splice(idx, 1);
-                    }
-
-                    // Generate colors
-                    const chartBarColors = [
-                        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-                        '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1',
-                        '#14b8a6', '#eab308'
-                    ];
-
-                    hierarchicalChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: data.labels,
-                            datasets: [{
-                                label: 'Akumulasi Prestasi',
-                                data: data.values,
-                                backgroundColor: chartBarColors.slice(0, data.labels.length),
-                                borderColor: chartBarColors.slice(0, data.labels.length),
-                                borderWidth: 1,
-                                borderRadius: 6,
-                                borderSkipped: false
-                            }]
-                        },
-                        options: {
-                            indexAxis: 'y', // Better for long labels
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: colors.tooltipBg,
-                                    titleColor: colors.tooltipTitle,
-                                    bodyColor: colors.tooltipBody,
-                                    borderColor: colors.tooltipBorder,
-                                    borderWidth: 1,
-                                    padding: 12,
-                                    callbacks: {
-                                        label: function (context) {
-                                            const value = context.parsed.x; // Use x for indexAxis: y
-                                            const total = data.values.reduce((a, b) => a + b, 0);
-                                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                                            return `Total Capaian: ${value} (${percentage}%)`;
-                                        },
-                                        afterLabel: function (context) {
-                                            const index = context.dataIndex;
-                                            const students = (data.drillData && data.drillData[index]) ?
-                                                data.drillData[index].students_count : 0;
-                                            let label = `Basis Populasi: ${students.toLocaleString()} Mahasiswa`;
-                                            if (data.canDrillDown) {
-                                                label += '\n\nKlik untuk drill down';
-                                            }
-                                            return label;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        color: colors.textColor,
-                                        font: { size: 11 }
-                                    },
-                                    grid: {
-                                        color: colors.gridColor
-                                    }
-                                },
-                                y: {
-                                    ticks: {
-                                        color: colors.textColor,
-                                        font: { size: 11, weight: '500' }
-                                    },
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            },
-                            onClick: (event, elements) => {
-                                if (elements.length > 0 && data.canDrillDown) {
-                                    const index = elements[0].index;
-                                    const drillItem = data.drillData[index];
-
-                                    // Save current state to history
-                                    drillHistory.push({
-                                        level: currentDrillLevel,
-                                        data: data,
-                                        title: data.title
-                                    });
-
-                                    // Determine next drill level
-                                    let nextLevel = 'level1';
-                                    if (currentDrillLevel === 'level1') {
-                                        nextLevel = 'level2';
-                                    }
-
-                                    // Save state to browser history
-                                    window.history.pushState({
-                                        type: 'chart-drill',
-                                        level: nextLevel,
-                                        parentId: drillItem.id,
-                                        title: drillItem.name
-                                    }, '', window.location.pathname + window.location.search);
-
-                                    // Load next level data
-                                    loadHierarchicalData(nextLevel, drillItem.id);
+                                if (drillHistory.length === 0 && backBtn) {
+                                    backBtn.classList.add('hidden');
+                                    backBtn.classList.remove('flex');
                                 }
                             }
                         }
                     });
-                    chartInstances.push(hierarchicalChart);
-                }
 
-                // Update breadcrumb
-                function updateBreadcrumb(title) {
-                    const breadcrumb = document.getElementById('breadcrumb');
-                    if (breadcrumb) {
-                        breadcrumb.textContent = title;
-                    }
-                }
-
-                // Back button functionality
-                const backBtn = document.getElementById('backBtn');
-                if (backBtn) {
-                    backBtn.addEventListener('click', function () {
-                        window.history.back();
-                    });
-                }
-
-                // Change charts theme dynamically
-                function updateChartsTheme() {
-                    const newColors = getChartColors();
-                    const isDark = document.documentElement.classList.contains('dark');
-
-                    chartInstances.forEach(chart => {
-                        // Update global plugin options
-                        if (chart.options.plugins.legend) {
-                            chart.options.plugins.legend.labels.color = newColors.textColor;
-                        }
-
-                        // Update tooltips
-                        if (chart.options.plugins.tooltip) {
-                            chart.options.plugins.tooltip.backgroundColor = newColors.tooltipBg;
-                            chart.options.plugins.tooltip.titleColor = newColors.tooltipTitle;
-                            chart.options.plugins.tooltip.bodyColor = newColors.tooltipBody;
-                            chart.options.plugins.tooltip.borderColor = newColors.tooltipBorder;
-                        }
-
-                        // Update scales for line/bar charts
-                        if (chart.options.scales) {
-                            if (chart.options.scales.x) {
-                                chart.options.scales.x.ticks.color = newColors.textColor;
-                                if (chart.options.scales.x.grid) {
-                                    chart.options.scales.x.grid.color = newColors.gridColor;
-                                }
-                            }
-                            if (chart.options.scales.y) {
-                                chart.options.scales.y.ticks.color = newColors.textColor;
-                                if (chart.options.scales.y.grid) {
-                                    chart.options.scales.y.grid.color = newColors.gridColor;
-                                }
-                            }
-                        }
-
-                        // Update doughnut specific options
-                        if (chart.config.type === 'doughnut') {
-                            chart.data.datasets.forEach(dataset => {
-                                dataset.borderColor = isDark ? '#1f2937' : '#ffffff';
-                            });
-                        }
-
-                        chart.update();
-                    });
-                }
-
-                // Monitor class changes on html tag to detect dark mode toggle
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        if (mutation.attributeName === 'class') {
-                            updateChartsTheme();
-                        }
-                    });
-                });
-
-                observer.observe(document.documentElement, { attributes: true });
-
-                // Handle drill-back via popstate
-                window.addEventListener('popstate', function (event) {
-                    if (event.state && event.state.type === 'chart-drill') {
-                        if (drillHistory.length > 0) {
-                            const previousState = drillHistory.pop();
-                            currentDrillLevel = previousState.level;
-                            updateHierarchicalChart(previousState.data);
-                            updateBreadcrumb(previousState.title);
-
-                            if (drillHistory.length === 0 && backBtn) {
-                                backBtn.classList.add('hidden');
-                                backBtn.classList.remove('flex');
-                            }
-                        }
-                    } else if (!event.state || event.state.type !== 'chart-drill') {
-                        if (drillHistory.length > 0) {
-                            const previousState = drillHistory.pop();
-                            currentDrillLevel = previousState.level;
-                            updateHierarchicalChart(previousState.data);
-                            updateBreadcrumb(previousState.title);
-
-                            if (drillHistory.length === 0 && backBtn) {
-                                backBtn.classList.add('hidden');
-                                backBtn.classList.remove('flex');
-                            }
-                        }
-                    }
-                });
-
-                // Initialize hierarchical chart on page load
-                @if(!empty($hierarchicalComparison) && isset($hierarchicalComparison['items']) && $hierarchicalComparison['items']->count() > 0)
-                    initHierarchicalChart();
-                @endif
-                                });
-        @endif
-    </script>
+                    // Initialize hierarchical chart on page load
+                    @if(!empty($hierarchicalComparison) && isset($hierarchicalComparison['items']) && $hierarchicalComparison['items']->count() > 0)
+                        initHierarchicalChart();
+                    @endif
+                                            });
+            @endif
+        </script>
 @endsection

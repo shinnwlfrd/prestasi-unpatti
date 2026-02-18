@@ -70,7 +70,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Tingkat <span class="text-red-500">*</span>
                 </label>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     @foreach($levels as $level)
                         @if($level->is_active)
                             <label class="relative">
@@ -104,7 +104,7 @@
             </div>
 
             <!-- Event Date & Ranking -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Tanggal Pelaksanaan <span class="text-red-500">*</span>
@@ -226,7 +226,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Tindakan Setelah Submit <span class="text-red-500">*</span>
                 </label>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="relative">
                         <input type="radio" name="submit_action" value="pending" x-model="action" checked class="peer sr-only">
                         <div class="px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-center cursor-pointer transition-all peer-checked:border-yellow-500 peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-900/30">

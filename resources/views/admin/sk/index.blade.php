@@ -4,13 +4,13 @@
 
 @section('content')
     <div class="max-w-7xl mx-auto" x-data="skManagement()">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Manajemen Surat Keputusan (SK)</h2>
-                <p class="text-gray-600 dark:text-gray-400 mt-1">Kelola SK untuk approval prestasi mahasiswa</p>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Manajemen Surat Keputusan (SK)</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola SK untuk approval prestasi mahasiswa</p>
             </div>
             <button @click="showModal = true"
-                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 transition-colors">
+                class="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm font-medium">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -238,7 +238,7 @@
                         <label class="block text-sm font-medium text-gray-900 dark:text-white mb-3">
                             Metode Upload <span class="text-red-500">*</span>
                         </label>
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <button type="button" @click="uploadType = 'file'"
                                 :class="uploadType === 'file' ? 'bg-purple-600 text-white border-purple-600' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'"
                                 class="px-4 py-3 border-2 rounded-lg font-medium transition-all hover:scale-105 flex items-center justify-center gap-2">
@@ -306,7 +306,7 @@
                     </div>
 
                     <!-- Date & Issuer -->
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                                 Tanggal Terbit <span class="text-red-500">*</span>
