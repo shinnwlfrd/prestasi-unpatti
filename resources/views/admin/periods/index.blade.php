@@ -3,7 +3,7 @@
 @section('title', 'Periode Akademik')
 
 @section('content')
-    <div class="space-y-6">
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -32,7 +32,111 @@
             </div>
         @endif
 
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4">
+
+            @forelse($periods as $period)
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+
+                    <!-- Header -->
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="font-semibold text-gray-900 dark:text-white truncate">
+                                {{ $period->name }}
+                            </h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                Kode: {{ $period->code }}
+                            </p>
+                        </div>
+
+                        @if($period->is_active)
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 whitespace-nowrap">
+                                Aktif
+                            </span>
+                        @else
+                            <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 whitespace-nowrap">
+                                Tidak Aktif
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Description -->
+                    @if($period->description)
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            {{ $period->description }}
+                        </p>
+                    @endif
+
+                    <!-- Date Info -->
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Mulai</p>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                {{ $period->start_date->format('d M Y') }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Selesai</p>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                {{ $period->end_date->format('d M Y') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+
+                        @if(!$period->is_active)
+                            <form action="{{ route('admin.periods.activate', $period) }}"
+                                method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    class="text-green-600 dark:text-green-400 text-sm font-medium">
+                                    Aktifkan
+                                </button>
+                            </form>
+                        @endif
+
+                        <a href="{{ route('admin.periods.edit', $period) }}"
+                        class="text-purple-600 dark:text-purple-400 text-sm font-medium">
+                            Edit
+                        </a>
+
+                        @if(!$period->is_active)
+                            <form action="{{ route('admin.periods.destroy', $period) }}"
+                                method="POST"
+                                onsubmit="return confirm('Yakin ingin menghapus periode ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="text-red-600 dark:text-red-400 text-sm font-medium">
+                                    Hapus
+                                </button>
+                            </form>
+                        @endif
+
+                    </div>
+
+                </div>
+
+            @empty
+                <div class="text-center py-12 text-gray-500 dark:text-gray-400 text-sm">
+                    Belum ada periode akademik
+                </div>
+            @endforelse
+
+            @if($periods->hasPages())
+                <div class="pt-4">
+                    {{ $periods->links() }}
+                </div>
+            @endif
+
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50 dark:bg-gray-900/50">

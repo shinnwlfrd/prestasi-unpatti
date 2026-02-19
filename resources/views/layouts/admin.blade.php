@@ -25,9 +25,9 @@
     </style>
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-    <div class="flex">
-
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen overflow-x-hidden
+             text-sm md:text-base lg:text-[15px] 2xl:text-[17px]">
+    <div class="min-h-screen">
         @php
             $user = auth()->user();
             $currentRole = $user->getCurrentRole();
@@ -39,8 +39,14 @@
             class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
 
         <!-- Sidebar -->
-        <aside :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-            class="fixed top-0 left-0 h-screen w-64 flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 z-50">
+        <aside
+            :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+            class="fixed top-0 left-0 h-screen 
+                    w-56 sm:w-60 md:w-64 lg:w-64 xl:w-72 2xl:w-80 
+                    flex flex-col bg-white dark:bg-gray-800 
+                    border-r border-gray-200 dark:border-gray-700 
+                    transition-all duration-300 z-50">
+
             <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-3">
                     <div
@@ -186,23 +192,34 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 lg:ml-64 min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <main class="flex-1 min-w-0 flex flex-col
+            ml-0 
+            md:ml-55 
+            lg:ml-55
+            xl:ml-72 
+            2xl:ml-80
+            min-h-screen 
+            overflow-y-auto
+            bg-gray-50 dark:bg-gray-900
+            transition-all duration-300">
+
             <!-- Top Bar -->
             <header
-                class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 flex justify-between items-center sticky top-0 z-30">
-                <div class="flex items-center gap-4">
-                    <button @click="mobileSidebarOpen = !mobileSidebarOpen"
-                        class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                    <h1 class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">
-                        @yield('title', 'Dashboard')</h1>
-                </div>
-                <div class="flex items-center gap-2 sm:gap-4">
+                class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 py-4 flex justify-between items-center sticky top-0 z-30">
+                <div class="w-full max-w-screen-xl xl:max-w-screen-2xl 2xl:max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8 2xl:px-12 flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <button @click="mobileSidebarOpen = !mobileSidebarOpen"
+                            class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                        <h1 class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">
+                            @yield('title', 'Dashboard')</h1>
+                    </div>
+                    <div class="flex items-center gap-2 sm:gap-4">
                     <button @click="darkMode = !darkMode"
                         class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200">
                         <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
@@ -303,12 +320,17 @@
                                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                         </button>
-                    </form>
+                    </div>
                 </div>
             </header>
 
             <!-- Page Content -->
-            <div class="p-4 sm:p-6 flex-1">
+            <div class="flex-1 w-full
+                        max-w-screen-xl xl:max-w-screen-2xl
+                        2xl:max-w-[1800px]
+                        mx-auto
+                        p-4 md:p-6 lg:p-8 2xl:p-12">
+
                 @yield('content')
             </div>
         </main>

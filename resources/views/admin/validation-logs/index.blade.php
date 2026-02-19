@@ -3,7 +3,7 @@
 @section('title', 'Log Validasi')
 
 @section('content')
-    <div class="space-y-6">
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -250,7 +250,120 @@
         </div>
 
         <!-- Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4">
+            @forelse($logs as $log)
+                @php
+                    $statusConfig = [/* PASTE ARRAY STATUS CONFIG YANG SUDAH ADA */];
+                    $status = $statusConfig[$log->new_status] ?? [
+                        'label' => $log->new_status,
+                        'sublabel' => 'Status',
+                        'bg' => 'bg-gray-50 dark:bg-gray-700',
+                        'border' => 'border-gray-200 dark:border-gray-600',
+                        'text' => 'text-gray-700 dark:text-gray-300',
+                        'icon' => ''
+                    ];
+                @endphp
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+
+                    <!-- Header: Mahasiswa -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                            <span class="text-purple-600 dark:text-purple-400 font-semibold text-sm">
+                                {{ substr($log->studentAchievement->student->name ?? 'M', 0, 1) }}
+                            </span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-semibold text-gray-900 dark:text-white truncate">
+                                {{ $log->studentAchievement->student->name ?? '-' }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ $log->studentAchievement->student->student_id ?? '-' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Event -->
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                            {{ $log->studentAchievement->event_name ?? '-' }}
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            {{ $log->studentAchievement->level ?? '-' }}
+                        </p>
+                    </div>
+
+                    <!-- Meta Grid -->
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Tanggal</p>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                {{ $log->validated_at->format('d M Y') }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Jam</p>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                {{ $log->validated_at->format('H:i') }}
+                            </p>
+                        </div>
+
+                        <div class="col-span-2">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Validator</p>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                {{ $log->validator->name ?? '-' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border {{ $status['bg'] }} {{ $status['border'] }} {{ $status['text'] }}">
+                            {!! $status['icon'] !!}
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold leading-tight">
+                                    {{ $status['label'] }}
+                                </span>
+                                <span class="text-xs opacity-75 leading-tight">
+                                    {{ $status['sublabel'] }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Catatan -->
+                    @if($log->notes)
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Catatan</p>
+                            <p class="leading-relaxed">
+                                {{ $log->notes }}
+                            </p>
+                        </div>
+                    @endif
+
+                    <!-- Action -->
+                    @if($log->studentAchievement)
+                        <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <a href="{{ route('admin.student-achievements.show', $log->studentAchievement->sa_id) }}"
+                                class="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                                Lihat Detail →
+                            </a>
+                        </div>
+                    @endif
+
+                </div>
+            @empty
+                <div class="text-center py-10 text-sm text-gray-500 dark:text-gray-400">
+                    Tidak ada log validasi
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">

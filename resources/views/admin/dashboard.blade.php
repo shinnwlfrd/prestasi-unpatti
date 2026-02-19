@@ -72,16 +72,26 @@
             }
 
             /* Grid Layout Reset for Print */
+            /* Hide responsive-only elements */
+            .sm\:block, .md\:block, .lg\:block {
+                display: none !important;
+            }
+            
+            /* Force single column for print */
             .grid {
                 display: block !important;
             }
-
-            .grid>div {
+            
+            .grid > div {
                 width: 100% !important;
-                margin-bottom: 1.5rem !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
+                margin-bottom: 1rem !important;
             }
+            
+            /* Scale down fonts for print */
+            h1 { font-size: 18pt !important; }
+            h2 { font-size: 14pt !important; }
+            h3 { font-size: 12pt !important; }
+            p { font-size: 10pt !important; }
 
             /* Keep Backgrounds (Critical for KPIs and Charts) */
             * {
@@ -90,11 +100,6 @@
             }
 
             /* Typography */
-            h1,
-            h2,
-            h3 {
-                color: black !important;
-            }
 
             .text-gray-500,
             .text-gray-400 {
@@ -138,6 +143,39 @@
         .print-report-header {
             display: none;
         }
+
+        @media (max-width: 640px) {
+        aside {
+            transform: translateX(-100%);
+            position: fixed;
+            z-index: 50;
+            transition: transform 0.3s ease;
+        }
+        
+        aside.open {
+            transform: translateX(0);
+        }
+        
+        main {
+            margin-left: 0 !important;
+            padding: 1rem !important;
+        }
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+        aside {
+            width: 200px !important;
+        }
+        
+        .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-icon {
+            margin: 0 auto;
+        }
+    }
+
     </style>
 
     <!-- Professional Print Header -->
@@ -151,9 +189,9 @@
 
     <div class="space-y-6 px-4 sm:px-6 lg:px-8">
         <!-- Header with Period Filter -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             Pantau statistik dan performa prestasi mahasiswa.
                         </p>
@@ -163,7 +201,11 @@
                         <!-- Period Filter -->
                         <form method="GET" action="{{ route('admin.dashboard') }}" class="w-full sm:w-auto">
                             <select name="period" onchange="this.form.submit()"
-                                class="w-full sm:w-auto px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-sm transition-all cursor-pointer">
+                                class="w-full sm:w-48 px-3 py-2 sm:px-4 sm:py-2 bg-white dark:bg-gray-800 
+                                    border border-gray-300 dark:border-gray-600 rounded-lg 
+                                    text-xs sm:text-sm text-gray-700 dark:text-gray-200 
+                                    focus:ring-2 focus:ring-purple-500 focus:border-purple-500 
+                                    shadow-sm transition-all cursor-pointer">
                                 <option value="all" {{ request('period') === 'all' || (!request('period') && !isset($selectedPeriod)) ? 'selected' : '' }}>
                                     Semua Periode
                                 </option>
@@ -180,14 +222,14 @@
                         <!-- Export Buttons -->
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             <a href="{{ route('admin.export.achievements', ['format' => 'excel', 'period' => request('period', 'all')]) }}" 
-                               class="flex-1 sm:flex-none justify-center flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm text-sm font-medium">
+                               class="flex-1 sm:flex-none justify-center justify-center flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm text-sm font-medium">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                                 Excel
                             </a>
                             <a href="{{ route('admin.export.achievements', ['format' => 'csv', 'period' => request('period', 'all')]) }}" 
-                               class="flex-1 sm:flex-none justify-center flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm text-sm font-medium">
+                               class="flex-1 sm:flex-none justify-center justify-center flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm text-sm font-medium">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 2v-6m0 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
@@ -254,9 +296,9 @@
 
                 @if($isInactivePeriod)
                     <!-- BARIS 1 – RINGKASAN AKHIR PERIODE (4 CARD) -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
                         <!-- Card 1 – Total Prestasi Final -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
+                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
                             <div class="absolute top-0 right-0 p-3 opacity-10">
                                 <svg class="w-16 h-16 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
@@ -269,7 +311,7 @@
                         </div>
 
                         <!-- Card 2 – Persentase Nasional & Internasional -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Skala Nasional & Inter</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
@@ -278,18 +320,18 @@
                                         $nasRatio = $total > 0 ? round(($levelDistribution['Nasional'] / $total) * 100) : 0;
                                         $interRatio = $total > 0 ? round(($levelDistribution['Internasional'] / $total) * 100) : 0;
                                     @endphp
-                                    <p class="text-2xl font-black text-purple-600">{{ $nasRatio }}%</p>
+                                    <p class="text-xl sm:text-2xl lg:text-3xl font-black text-purple-600">{{ $nasRatio }}%</p>
                                     <p class="text-[10px] text-gray-400 font-bold uppercase">Nasional</p>
                                 </div>
                                 <div>
-                                    <p class="text-2xl font-black text-indigo-600">{{ $interRatio }}%</p>
+                                    <p class="text-xl sm:text-2xl lg:text-3xl font-black text-indigo-600">{{ $interRatio }}%</p>
                                     <p class="text-[10px] text-gray-400 font-bold uppercase">Internasional</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Card 3 – Fakultas Aktif Berprestasi -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col justify-between">
+                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col justify-between">
                             <div>
                                 <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fakultas Aktif</p>
                                 <div class="flex items-baseline gap-2 mt-1">
@@ -303,7 +345,7 @@
                         </div>
 
                         <!-- Card 4 – Rata-rata Waktu Validasi (Final) -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden relative">
+                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden relative">
                             <div class="absolute -right-4 -bottom-4 opacity-5">
                                <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
                             </div>
@@ -316,7 +358,7 @@
                     <!-- BARIS 2 – DISTRIBUSI HASIL (3 CARD) -->
                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-6 mt-6">
                         <!-- Card 5 – Distribusi Tingkat -->
-                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Distribusi Tingkat</h3>
                             <div class="h-64 relative">
                                 <canvas id="archivedLevelChart"></canvas>
@@ -324,7 +366,7 @@
                         </div>
 
                         <!-- Card 6 – Distribusi Kategori -->
-                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Distribusi Kategori</h3>
                             <div class="h-64 relative">
                                 <canvas id="archivedCategoryChart"></canvas>
@@ -332,7 +374,7 @@
                         </div>
 
                         <!-- Card 7 – Status Prestasi (Final) -->
-                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Status Prestasi (Final)</h3>
                             <div class="h-64 relative">
                                 <canvas id="archivedStatusChart"></canvas>
@@ -353,7 +395,7 @@
                     <!-- BARIS 3 – PERBANDINGAN INTERNAL (3 CARD) -->
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
                         <!-- Card 8 – Prestasi per Fakultas -->
-                        <div class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Prestasi per Fakultas</h3>
                             <div class="h-80 relative">
                                 <canvas id="archivedFacultyChart"></canvas>
@@ -361,7 +403,7 @@
                         </div>
 
                         <!-- Card 9 – Prestasi per Program Studi -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
+                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Top Program Studi</h3>
                             <div class="space-y-4 flex-1">
                                 @foreach($topProgramStudies->take(6) as $prodi)
@@ -379,7 +421,7 @@
                         </div>
 
                         <!-- Card 10 – Rasio Prestasi per Mahasiswa -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Rasio per Mahasiswa (%)</h3>
                             <div class="h-80 relative">
                                 <canvas id="archivedRatioChart"></canvas>
@@ -390,7 +432,7 @@
                     <!-- BARIS 4 – EVALUASI & KUALITAS DATA (2 CARD) -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                         <!-- Card 11 – Temuan & Catatan Evaluasi -->
-                        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
                                 Temuan & Catatan Evaluasi
@@ -419,18 +461,19 @@
                         </div>
 
                         <!-- Card 12 – Ringkasan Data Ditolak -->
-                        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Ringkasan Data Ditolak</h3>
                             <div class="flex-1 max-h-[300px] overflow-auto custom-scrollbar pr-2">
-                                <table class="w-full text-left">
-                                    <thead class="sticky top-0 bg-white dark:bg-gray-800 z-10">
-                                        <tr>
-                                            <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fakultas</th>
-                                            <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Ditolak</th>
-                                            <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Failure Rate</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                <div class="overflow-x-auto custom-scrollbar">
+                                    <table class="w-full text-left min-w-[600px]">
+                                        <thead class="sticky top-0 bg-white dark:bg-gray-800 z-10">
+                                            <tr>
+                                                <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fakultas</th>
+                                                <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Ditolak</th>
+                                                <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Failure Rate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                         @foreach($facultyComparison->sortByDesc('rejected') as $f)
                                             <tr>
                                                 <td class="py-3 text-xs font-bold text-gray-700 dark:text-gray-300">{{ $f->faculty }}</td>
@@ -440,8 +483,9 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -456,7 +500,7 @@
                             </div>
                             <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
                                 <div class="flex-1">
-                                    <h2 class="text-2xl font-black mb-2">Ringkasan Arsip Periode</h2>
+                                    <h2 class="text-xl sm:text-2xl lg:text-3xl font-black mb-2">Ringkasan Arsip Periode</h2>
                                     <p class="text-gray-400 text-sm max-w-xl">Seluruh data pada periode akademik ini telah divalidasi dan dikunci dalam sistem arsip universitas. Laporan ini bersifat final.</p>
 
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
@@ -530,7 +574,7 @@
                     </div>
                 @elseif($isActivePeriod)
                     <!-- BARIS 1 – STATUS SISTEM SAAT INI (5 CARD) -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
                         <!-- Card 1 – Total Pengajuan -->
                         <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Pengajuan</p>
@@ -597,7 +641,7 @@
                         <!-- Card 6 – Status Pengajuan -->
                         <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Status Pengajuan</h3>
-                            <div class="h-64 relative">
+                            <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
                                 <canvas id="activeStatusChart"></canvas>
                             </div>
                         </div>
@@ -605,7 +649,7 @@
                         <!-- Card 7 – Distribusi Tingkat -->
                         <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Tingkat Prestasi</h3>
-                            <div class="h-64 relative">
+                            <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
                                 <canvas id="activeLevelChart"></canvas>
                             </div>
                         </div>
@@ -613,7 +657,7 @@
                         <!-- Card 8 – Distribusi Kategori -->
                         <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Top Kategori</h3>
-                            <div class="h-64 relative">
+                            <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
                                 <canvas id="activeCategoryChart"></canvas>
                             </div>
                         </div>
@@ -624,7 +668,7 @@
                         <!-- Card 9 – Backlog Validasi per Fakultas -->
                         <div class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Backlog per Fakultas</h3>
-                            <div class="h-80 relative">
+                            <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
                                 <canvas id="facultyBacklogChart"></canvas>
                             </div>
                         </div>
@@ -632,7 +676,7 @@
                         <!-- Card 10 – Aktivitas Validasi Harian -->
                         <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Aktivitas 14 Hari</h3>
-                            <div class="h-80 relative">
+                            <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
                                 <canvas id="dailyActivityChart"></canvas>
                             </div>
                         </div>
@@ -1368,7 +1412,7 @@
                                                         </div>
 
                                                         <div class="text-right flex-shrink-0">
-                                                            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                                            <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600 dark:text-purple-400">
                                                                 {{ $student->achievements_count }}
                                                             </p>
                                                             <p class="text-xs text-gray-500 dark:text-gray-400">Prestasi</p>
@@ -1728,7 +1772,7 @@
                                         <div>
                                             <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-widest">
                                                 Fakultas</p>
-                                            <p class="text-2xl font-black text-gray-900 dark:text-white leading-tight">
+                                            <p class="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white leading-tight">
                                                 {{ $masterData['faculties_count'] }}
                                             </p>
                                         </div>
@@ -1747,7 +1791,7 @@
                                         <div>
                                             <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-widest">
                                                 Program Studi</p>
-                                            <p class="text-2xl font-black text-gray-900 dark:text-white leading-tight">
+                                            <p class="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white leading-tight">
                                                 {{ $masterData['prodis_count'] }}
                                             </p>
                                         </div>
@@ -1766,7 +1810,7 @@
                                         <div>
                                             <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-widest">
                                                 Operator & Validator</p>
-                                            <p class="text-2xl font-black text-gray-900 dark:text-white leading-tight">
+                                            <p class="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white leading-tight">
                                                 {{ $masterData['validators_count'] + $masterData['operators_count'] }}
                                             </p>
                                         </div>
@@ -1786,7 +1830,7 @@
                                             <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-widest">
                                                 Sinkronisasi SIMAPRES</p>
                                             <div class="flex items-baseline gap-2">
-                                                <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 leading-tight">
+                                                <p class="text-xl sm:text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400 leading-tight">
                                                     {{ $masterData['sync_status']['percentage'] }}%
                                                 </p>
                                                 <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500">at
@@ -1807,10 +1851,11 @@
                                 <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity" aria-hidden="true"
                                     onclick="closeUnitModal()"></div>
                                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                                <div
-                                    class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-200 dark:border-gray-700">
-                                    <div
-                                        class="bg-white dark:bg-gray-800 px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl 
+                                            w-full sm:w-11/12 md:w-4/5 lg:w-3/4 xl:w-2/3 
+                                            sm:my-8 sm:align-middle sm:max-w-4xl 
+                                            max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
+                                    <div class="bg-white dark:bg-gray-800 px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                                         <div>
                                             <h3 class="text-lg font-bold text-gray-900 dark:text-white" id="modal-title">Sebaran Prestasi
                                                 per Unit</h3>

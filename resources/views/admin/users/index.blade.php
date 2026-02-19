@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', 'Kelola Users')
 @section('content')
-    <div class="space-y-6" x-data="userManagement()" @keydown.escape.window="showModal = false">
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8" x-data="userManagement()" @keydown.escape.window="showModal = false">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -62,8 +62,137 @@
             </form>
         </div>
 
-        <!-- Users Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4">
+            @forelse($users as $u)
+                @php
+                    $userRoles = $u->activeRoles;
+                    $hasStudentAccount = \App\Models\Student::where('email', $u->email)->exists();
+                @endphp
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+
+                    <!-- Header -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                            {{ strtoupper(substr($u->name, 0, 1)) }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-semibold text-gray-900 dark:text-white truncate">
+                                {{ $u->name }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {{ $u->email }}
+                            </p>
+
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                @if($u->provider && $u->provider_id)
+                                    <span class="text-xs text-blue-600 dark:text-blue-400">SSO</span>
+                                @elseif($u->provider)
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Menunggu SSO</span>
+                                @endif
+
+                                @if($hasStudentAccount)
+                                    <span class="text-xs text-indigo-600 dark:text-indigo-400">Multi-Role</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Roles -->
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Role & Scope</p>
+
+                        @if($userRoles->count() > 0)
+                            <div class="space-y-2">
+                                @foreach($userRoles as $userRole)
+                                    <div class="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-xs font-medium px-2 py-1 rounded
+                                                @if($userRole->role === 'super_admin') bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400
+                                                @elseif($userRole->role === 'admin') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                                @elseif($userRole->role === 'operator') bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                                                @elseif($userRole->role === 'pimpinan') bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400
+                                                @else bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400
+                                                @endif">
+                                                {{ $userRole->getRoleDisplayName() }}
+                                            </span>
+
+                                            @if($u->id !== auth()->id() && $userRoles->count() > 1)
+                                                <form action="{{ route('admin.users.delete-role', ['user' => $u, 'roleId' => $userRole->id]) }}"
+                                                    method="POST"
+                                                    onsubmit="return confirm('Hapus role ini?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit"
+                                                        class="text-red-600 dark:text-red-400 text-xs">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+
+                                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                            {{ $userRole->getScopeDescription() }}
+                                        </p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ $u->role ?? 'No Role' }}
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Status -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Status</p>
+                            @if($u->is_active)
+                                <span class="text-xs px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="text-xs px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
+                                    Nonaktif
+                                </span>
+                            @endif
+                        </div>
+
+                        <!-- Action -->
+                        <div>
+                            @if($u->id !== auth()->id())
+                                <form action="{{ route('admin.users.delete', $u) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Hapus user ini?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                        class="text-red-600 dark:text-red-400 text-sm font-medium">
+                                        Hapus
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-xs text-gray-400">Anda</span>
+                            @endif
+                        </div>
+                    </div>
+
+                </div>
+            @empty
+                <div class="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
+                    Belum ada user.
+                </div>
+            @endforelse
+
+            @if($users->hasPages())
+                <div class="pt-4">
+                    {{ $users->links() }}
+                </div>
+            @endif
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">

@@ -3,7 +3,7 @@
 @section('title', 'Ajukan Prestasi Mahasiswa')
 
 @section('content')
-    <div class="max-w-4xl mx-auto space-y-8 animate-fade-in pb-12">
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
         <!-- Breadcrumbs/Back -->
         <nav class="flex items-center gap-2 text-sm">
             <a href="{{ route('admin.dashboard') }}" class="text-gray-500 hover:text-purple-600 transition-colors">Dashboard</a>
@@ -14,12 +14,12 @@
         </nav>
 
         <!-- Header Section -->
-        <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
+        <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 p-5 sm:p-6 md:p-8 shadow-sm">
             <div class="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl"></div>
             <div class="absolute bottom-0 left-0 -mb-8 -ml-8 w-48 h-48 bg-indigo-500/5 rounded-full blur-2xl"></div>
 
             <div class="relative flex flex-col md:flex-row md:items-center gap-6">
-                <div class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg shadow-purple-200 dark:shadow-none flex items-center justify-center transform hover:scale-105 transition-transform">
+                <div class="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg shadow-purple-200 dark:shadow-none flex items-center justify-center transform hover:scale-105 transition-transform">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
@@ -53,7 +53,7 @@
                     </div>
                     <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-xs">Identitas & Kategori</h3>
                 </div>
-                <div class="p-6 space-y-6">
+                <div class="p-4 sm:p-6 space-y-5 sm:space-y-6">
                     <!-- Student Selection -->
                     <div class="relative">
                         <x-student-search-select 
@@ -102,7 +102,7 @@
                     </div>
                     <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-xs">Detail Kompetisi</h3>
                 </div>
-                <div class="p-6 space-y-6">
+                <div class="p-4 sm:p-6 space-y-5 sm:space-y-6">
                     <!-- Event Name -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
@@ -159,7 +159,7 @@
                     </div>
 
                     <!-- Event Date & Ranking in Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5">
                                 Tanggal Pelaksanaan <span class="text-red-500">*</span>
@@ -229,7 +229,7 @@
                             </div>
                         </div>
 
-                        <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <!-- Certificate Upload for this student -->
                             <div class="flex flex-col" x-data="{ 
                                 fileName: '', 
@@ -239,7 +239,7 @@
                                 showPreview: false
                             }">
                                 <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Sertifikat Utama <span class="text-red-500">*</span></label>
-                                <div class="relative group/upload h-full min-h-[140px]">
+                                <div class="relative group/upload h-full min-h-[120px] sm:min-h-[140px]">
                                     <input type="file" :name="'attachments[' + student.student_id + '][certificate]'" accept=".pdf,.jpg,.jpeg,.png" required class="hidden" :id="'cert-' + student.student_id"
                                         @change="
                                             const file = $event.target.files[0];
@@ -447,7 +447,7 @@
             </div>
 
             <!-- Sticky Bottom Actions -->
-            <div class="sticky bottom-4 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-8 py-4 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-8 duration-500">
+            <div class="sticky bottom-0 sm:bottom-4 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md px-4 sm:px-8 py-4 rounded-none sm:rounded-3xl border-t sm:border border-gray-200 dark:border-gray-700 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                 <div class="hidden sm:block">
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Status Formulir</p>
                     <div class="flex items-center gap-2 mt-1">
@@ -456,13 +456,13 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <a href="{{ route('admin.dashboard') }}" 
                        class="flex-1 sm:flex-none px-8 py-3 rounded-2xl border-2 border-gray-100 dark:border-gray-700 text-sm font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 transition-all text-center uppercase tracking-widest">
                         Batal
                     </a>
                     <button type="submit" :disabled="loading"
-                        class="flex-1 sm:flex-none px-10 py-3 bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 active:scale-95 text-white rounded-2xl text-sm font-bold shadow-xl shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 group">
+                        class="flex-1 sm:flex-none w-full px-10 py-3 bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 active:scale-95 text-white rounded-2xl text-sm font-bold shadow-xl shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 group">
                         <svg x-show="loading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

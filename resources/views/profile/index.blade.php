@@ -50,7 +50,7 @@
 @endphp
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6 animate-fade-in">
+<div class="max-w-3xl mx-auto space-y-5 sm:space-y-6 animate-fade-in px-4 sm:px-6 pb-20">
     <!-- Back Button -->
     <div>
         @php
@@ -81,7 +81,7 @@
     <!-- Multi-Role Switcher (if user has multiple roles) -->
     @if($hasMultipleRoles ?? false)
     <x-card>
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +94,7 @@
                 </div>
             </div>
             <a href="{{ route('role.switch.page') }}" 
-               class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
+               class="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
@@ -105,9 +105,9 @@
         <!-- Available Roles List -->
         <div class="mt-4 space-y-2">
             @foreach($availableRoles as $role)
-            <div class="flex items-center justify-between p-3 rounded-lg {{ $role['current'] ? 'bg-indigo-50 dark:bg-indigo-900/20 border-2 border-indigo-200 dark:border-indigo-800' : 'bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
+            <div class="flex items-center justify-between p-3 sm:p-4 rounded-lg {{ $role['current'] ? 'bg-indigo-50 dark:bg-indigo-900/20 border-2 border-indigo-200 dark:border-indigo-800' : 'bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br 
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br 
                         @if($role['role'] === 'mahasiswa') from-blue-500 to-cyan-600
                         @elseif($role['role'] === 'admin') from-blue-500 to-indigo-600
                         @elseif($role['role'] === 'operator') from-emerald-500 to-teal-600
@@ -201,7 +201,7 @@
             <!-- Local Auth Status -->
             <div class="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
                         <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
@@ -228,7 +228,7 @@
             <!-- SSO Status -->
             <div class="flex items-center justify-between p-4 rounded-xl {{ $user->provider ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600' }} border">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg {{ $user->provider ? 'bg-blue-200 dark:bg-blue-800' : 'bg-gray-200 dark:bg-gray-600' }} flex items-center justify-center">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg {{ $user->provider ? 'bg-blue-200 dark:bg-blue-800' : 'bg-gray-200 dark:bg-gray-600' }} flex items-center justify-center">
                         <svg class="w-5 h-5 {{ $user->provider ? 'text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
@@ -268,7 +268,7 @@
     <x-card title="Aktivitas Login Terakhir">
         <div class="space-y-3">
             @if($user->last_login_at)
-                <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                <div class="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg {{ $user->last_login_method === 'sso' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-600' }} flex items-center justify-center">
                             @if($user->last_login_method === 'sso')
@@ -304,7 +304,7 @@
     @if(config('sso.migration.deadline') && !$user->provider)
         <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
             <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
+                <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
                     <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
@@ -315,7 +315,7 @@
                         Sistem akan beralih ke SSO penuh pada {{ \Carbon\Carbon::parse(config('sso.migration.deadline'))->format('d M Y') }}. 
                         Silakan hubungkan akun Anda dengan SSO SIAKAD sebelum tanggal tersebut.
                     </p>
-                    <a href="{{ route('sso.redirect') }}" class="inline-flex items-center gap-1 mt-2 text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline">
+                    <a href="{{ route('sso.redirect') }}" class="inline-flex items-center gap-2 px-2 py-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                         Hubungkan Sekarang
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

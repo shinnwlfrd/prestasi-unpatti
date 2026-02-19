@@ -231,8 +231,90 @@
         </div>
 
         <!-- Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="overflow-x-auto">
+            <!-- Mobile Card View -->
+            <div class="md:hidden space-y-6 pb-6">
+                @forelse($achievements as $achievement)
+                    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+
+                        <!-- Header: Mahasiswa -->
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-purple-600 dark:text-purple-400 font-semibold text-sm">
+                                    {{ substr($achievement->student->name ?? 'M', 0, 1) }}
+                                </span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-medium text-gray-900 dark:text-white">
+                                    {{ $achievement->student->name ?? '-' }}
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ $achievement->student->student_id ?? '-' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Event -->
+                        <div>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                {{ $achievement->event_name }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ $achievement->organizer }}
+                            </p>
+                        </div>
+
+                        <!-- Meta Grid -->
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs">Level</p>
+                                <p class="font-medium text-gray-900 dark:text-white">
+                                    {{ $achievement->level }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs">Peringkat</p>
+                                <p class="font-medium text-gray-900 dark:text-white">
+                                    {{ $achievement->ranking ?? '-' }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs">Tanggal</p>
+                                <p class="font-medium text-gray-900 dark:text-white">
+                                    {{ \Carbon\Carbon::parse($achievement->event_date)->format('d M Y') }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs">Status</p>
+                                <p class="font-medium text-gray-900 dark:text-white">
+                                    {{ $achievement->validation_status }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Action -->
+                        @if($achievement->sa_id)
+                            <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
+                                <a href="{{ route('admin.student-achievements.show', $achievement->sa_id) }}"
+                                    class="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                                    Lihat Detail →
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                @empty
+                    <div class="text-center text-sm text-gray-500 dark:text-gray-400 py-10">
+                        Tidak ada data
+                    </div>
+                @endforelse
+            </div>
+        
+            <!-- Desktop Table -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                         <tr>

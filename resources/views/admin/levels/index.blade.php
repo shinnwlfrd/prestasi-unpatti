@@ -3,7 +3,7 @@
 @section('title', 'Kelola Level Prestasi')
 
 @section('content')
-    <div class="space-y-6"
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8"
         x-data="{ showModal: false, editMode: false, levelId: null, levelName: '', levelDescription: '', levelPoints: '' }">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -22,7 +22,83 @@
         </div>
 
         <!-- Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4">
+
+            @forelse($levels as $level)
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+
+                    <!-- Header -->
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold text-gray-900 dark:text-white">
+                            {{ $level->name }}
+                        </h3>
+
+                        @if($level->is_active)
+                            <span class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs font-medium">
+                                Aktif
+                            </span>
+                        @else
+                            <span class="px-2 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 rounded text-xs font-medium">
+                                Nonaktif
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Deskripsi</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            {{ $level->description ?? '-' }}
+                        </p>
+                    </div>
+
+                    <!-- Points -->
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Poin</p>
+                        <span class="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded text-xs font-medium">
+                            {{ $level->points }} poin
+                        </span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+
+                        <button
+                            @click="showModal = true; editMode = true; levelId = {{ $level->id }}; levelName = '{{ $level->name }}'; levelDescription = '{{ $level->description }}'; levelPoints = '{{ $level->points }}'"
+                            class="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg">
+                            Edit
+                        </button>
+
+                        <form action="{{ route('admin.levels.destroy', $level) }}"
+                            method="POST"
+                            onsubmit="return confirm('Yakin ingin menghapus level ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                                Hapus
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            @empty
+                <div class="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
+                    Belum ada level
+                </div>
+            @endforelse
+
+            @if($levels->hasPages())
+                <div class="pt-4">
+                    {{ $levels->links() }}
+                </div>
+            @endif
+
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">

@@ -3,7 +3,7 @@
 @section('title', 'Manajemen SK')
 
 @section('content')
-    <div class="max-w-7xl mx-auto" x-data="skManagement()">
+        <div class="space-y-6 px-4 sm:px-6 lg:px-8" x-data="skManagement()">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
@@ -49,8 +49,111 @@
                 </div>
             </form>
         </div>
+        
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4 mb-6">
 
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            @forelse($skDocuments as $sk)
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+
+                    <!-- Header -->
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="font-semibold text-gray-900 dark:text-white truncate">
+                                {{ $sk->sk_number }}
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 truncate">
+                                {{ $sk->title }}
+                            </p>
+                        </div>
+
+                        @if($sk->file_type === 'file')
+                            <span class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full whitespace-nowrap">
+                                PDF
+                            </span>
+                        @else
+                            <span class="px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-full whitespace-nowrap">
+                                Link
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Meta Info -->
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Tanggal Terbit</p>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                {{ $sk->issued_date->format('d/m/Y') }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Penerbit</p>
+                            <p class="font-medium text-gray-900 dark:text-white truncate">
+                                {{ $sk->issued_by }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Assignment Info -->
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ $sk->assignments_count }} prestasi ter-assign
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+
+                        {{-- Preview / Link --}}
+                        @if($sk->file_type === 'file')
+                            <a href="{{ route('admin.sk.preview', $sk) }}" target="_blank"
+                                class="flex-1 text-center px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg font-medium">
+                                Lihat
+                            </a>
+                        @else
+                            <a href="{{ $sk->external_link }}" target="_blank"
+                                class="flex-1 text-center px-3 py-2 text-sm bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-lg font-medium">
+                                Buka Link
+                            </a>
+                        @endif
+
+                        {{-- Assign --}}
+                        <button
+                            @click="openAssignModal({{ $sk->id }}, '{{ addslashes($sk->sk_number) }}', '{{ addslashes($sk->title) }}')"
+                            class="flex-1 px-3 py-2 text-sm bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg font-medium">
+                            Assign
+                        </button>
+
+                        {{-- Delete --}}
+                        <form action="{{ route('admin.sk.destroy', $sk) }}" method="POST" class="flex-1"
+                            onsubmit="return confirm('Yakin ingin menghapus SK ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="w-full px-3 py-2 text-sm bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg font-medium disabled:opacity-50"
+                                @if($sk->assignments_count > 0) disabled @endif>
+                                Hapus
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+            @empty
+                <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                    Belum ada SK yang diupload
+                </div>
+            @endforelse
+
+            @if($skDocuments->hasPages())
+                <div class="pt-4">
+                    {{ $skDocuments->links() }}
+                </div>
+            @endif
+
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
