@@ -10,6 +10,7 @@ use App\Services\Admin\UserManagementService;
 
 class UserController extends Controller
 {
+
     public function __construct(
         protected UserManagementService $userService
     ) {

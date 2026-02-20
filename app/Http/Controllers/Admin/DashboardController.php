@@ -643,7 +643,19 @@ class DashboardController extends Controller
 
     protected function getFacultyBacklog($periodId = null)
     {
-        return \DB::table('student_achievements')
+        $facultyMapping = [
+            'Fakultas Teknik' => 'FT',
+            'Fakultas Hukum' => 'FH',
+            'Fakultas Ekonomi dan Bisnis' => 'FEB',
+            'Fakultas Kedokteran' => 'FK',
+            'Fakultas Ilmu Sosial dan Ilmu Politik' => 'FISIP',
+            'Fakultas Perikanan dan Ilmu Kelautan' => 'FPIK',
+            'Fakultas MIPA' => 'FMIPA',
+            'Fakultas Keguruan dan Ilmu Pendidikan' => 'FKIP',
+            'Fakultas Pertanian' => 'FP',
+        ];
+
+        $results = \DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
             ->selectRaw("COALESCE(students.faculty, 'N/A') as faculty, COUNT(*) as count")
             ->where('student_achievements.validation_status', 'Menunggu')
@@ -651,6 +663,12 @@ class DashboardController extends Controller
             ->groupBy('students.faculty')
             ->orderByDesc('count')
             ->get();
+
+        // Map to abbreviated English names
+        return $results->map(function ($row) use ($facultyMapping) {
+            $row->faculty = $facultyMapping[$row->faculty] ?? $row->faculty;
+            return $row;
+        });
     }
 
     protected function getCriticalQueue($periodId = null, $limit = 5)

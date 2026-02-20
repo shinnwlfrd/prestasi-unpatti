@@ -1,0 +1,489 @@
+/**
+ * Responsive Admin CSS
+ * 4 Breakpoints: Mobile (< 640px), Tablet (640px-1024px), Desktop (1024px-1536px), Large Desktop (>= 1536px)
+ */
+
+/* ===================================
+   BASE STYLES & MOBILE FIRST (< 640px)
+   =================================== */
+
+/* Container Spacing */
+.admin-container {
+    @apply space-y-4 px-3;
+}
+
+/* Header Section */
+.admin-header {
+    @apply flex flex-col gap-3;
+}
+
+.admin-header-title {
+    @apply text-xl font-bold text-gray-900 dark:text-white;
+}
+
+.admin-header-subtitle {
+    @apply text-xs text-gray-500 dark:text-gray-400 mt-1;
+}
+
+/* Stats Grid */
+.admin-stats-grid {
+    @apply grid grid-cols-2 gap-3;
+}
+
+.admin-stat-card {
+    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3;
+}
+
+.admin-stat-icon {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center;
+}
+
+.admin-stat-label {
+    @apply text-[10px] text-gray-500 dark:text-gray-400;
+}
+
+.admin-stat-value {
+    @apply text-lg font-bold text-gray-900 dark:text-white;
+}
+
+/* Filter Section */
+.admin-filter-section {
+    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3;
+}
+
+.admin-filter-grid {
+    @apply grid grid-cols-1 gap-3;
+}
+
+/* Table Cards (Mobile) */
+.admin-card-list {
+    @apply space-y-3;
+}
+
+.admin-card {
+    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 space-y-3;
+}
+
+/* Buttons */
+.admin-btn {
+    @apply px-3 py-2 rounded-lg font-medium text-sm transition-colors;
+}
+
+.admin-btn-primary {
+    @apply bg-purple-600 hover:bg-purple-700 text-white;
+}
+
+.admin-btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300;
+}
+
+/* ===================================
+   TABLET (640px - 1024px)
+   =================================== */
+
+@media (min-width: 640px) {
+
+    /* Container */
+    .admin-container {
+        @apply space-y-5 px-4;
+    }
+
+    /* Header */
+    .admin-header {
+        @apply flex-row items-center justify-between gap-4;
+    }
+
+    .admin-header-title {
+        @apply text-2xl;
+    }
+
+    .admin-header-subtitle {
+        @apply text-sm;
+    }
+
+    /* Stats Grid - 2 columns on tablet */
+    .admin-stats-grid {
+        @apply grid-cols-2 gap-4;
+    }
+
+    .admin-stat-card {
+        @apply p-4;
+    }
+
+    .admin-stat-icon {
+        @apply w-10 h-10;
+    }
+
+    .admin-stat-label {
+        @apply text-xs;
+    }
+
+    .admin-stat-value {
+        @apply text-xl;
+    }
+
+    /* Filter Section */
+    .admin-filter-section {
+        @apply p-4;
+    }
+
+    .admin-filter-grid {
+        @apply grid-cols-2 gap-4;
+    }
+
+    /* Cards */
+    .admin-card-list {
+        @apply space-y-4;
+    }
+
+    .admin-card {
+        @apply p-4 space-y-4;
+    }
+
+    /* Buttons */
+    .admin-btn {
+        @apply px-4 py-2.5 text-sm;
+    }
+}
+
+/* ===================================
+   DESKTOP (1024px - 1536px)
+   =================================== */
+
+@media (min-width: 1024px) {
+
+    /* Container */
+    .admin-container {
+        @apply space-y-8 px-10;
+        max-width: 1600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Header */
+    .admin-header-title {
+        @apply text-3xl;
+    }
+
+    .admin-header-subtitle {
+        @apply text-base;
+    }
+
+    /* Stats Grid - 3-5 columns on desktop */
+    .admin-stats-grid {
+        @apply gap-5;
+    }
+
+    .admin-stats-grid-3 {
+        @apply grid-cols-3;
+    }
+
+    .admin-stats-grid-4 {
+        @apply grid-cols-4;
+    }
+
+    .admin-stats-grid-5 {
+        @apply grid-cols-5;
+    }
+
+    .admin-stat-card {
+        @apply p-6 rounded-2xl;
+    }
+
+    .admin-stat-icon {
+        @apply w-14 h-14 rounded-2xl;
+    }
+
+    .admin-stat-label {
+        @apply text-sm;
+    }
+
+    .admin-stat-value {
+        @apply text-3xl font-black;
+    }
+
+    /* Filter Section */
+    .admin-filter-section {
+        @apply p-8 rounded-2xl;
+    }
+
+    .admin-filter-grid {
+        @apply grid-cols-4 gap-6;
+    }
+
+    .admin-filter-grid-6 {
+        @apply grid-cols-6;
+    }
+
+    /* Table */
+    .admin-table-container {
+        @apply rounded-2xl overflow-hidden shadow-sm;
+    }
+
+    .admin-table {
+        @apply w-full text-base;
+    }
+
+    .admin-table thead {
+        @apply bg-gray-50 dark:bg-gray-700/50;
+    }
+
+    .admin-table th {
+        @apply px-6 py-5 text-left text-sm font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider;
+    }
+
+    .admin-table td {
+        @apply px-6 py-6;
+    }
+
+    .admin-table tbody tr {
+        @apply hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors;
+    }
+
+    /* Buttons */
+    .admin-btn {
+        @apply px-8 py-3.5 text-base;
+    }
+}
+
+/* ===================================
+   LARGE DESKTOP (>= 1536px)
+   =================================== */
+
+@media (min-width: 1536px) {
+
+    /* Container - Wider on large screens */
+    .admin-container {
+        @apply space-y-12 px-12;
+        max-width: 1800px;
+    }
+
+    /* Header */
+    .admin-header-title {
+        @apply text-4xl;
+    }
+
+    .admin-header-subtitle {
+        @apply text-lg;
+    }
+
+    /* Stats Grid */
+    .admin-stats-grid {
+        @apply gap-8;
+    }
+
+    .admin-stat-card {
+        @apply p-8 rounded-3xl;
+    }
+
+    .admin-stat-icon {
+        @apply w-18 h-18 rounded-3xl;
+    }
+
+    .admin-stat-label {
+        @apply text-base;
+    }
+
+    .admin-stat-value {
+        @apply text-4xl font-black;
+    }
+
+    /* Filter Section */
+    .admin-filter-section {
+        @apply p-10 rounded-3xl;
+    }
+
+    .admin-filter-grid {
+        @apply gap-8;
+    }
+
+    /* Table */
+    .admin-table-container {
+        @apply rounded-3xl;
+    }
+
+    .admin-table {
+        @apply text-lg;
+    }
+
+    .admin-table th {
+        @apply px-8 py-5 text-base font-bold;
+    }
+
+    .admin-table td {
+        @apply px-8 py-8;
+    }
+
+    /* Buttons */
+    .admin-btn {
+        @apply px-10 py-5 text-lg;
+    }
+}
+
+/* ===================================
+   EXTRA LARGE DESKTOP (>= 1920px)
+   =================================== */
+
+@media (min-width: 1920px) {
+
+    /* Container - Maximum width for very large screens */
+    .admin-container {
+        max-width: 2200px;
+        @apply space-y-16 px-16;
+    }
+
+    /* Header */
+    .admin-header-title {
+        @apply text-5xl;
+    }
+
+    /* Stats */
+    .admin-stat-card {
+        @apply p-12;
+    }
+
+    .admin-stat-icon {
+        @apply w-20 h-20;
+    }
+
+    .admin-stat-value {
+        @apply text-5xl;
+    }
+
+    /* Filter */
+    .admin-filter-section {
+        @apply p-12;
+    }
+
+    /* Table */
+    .admin-table {
+        @apply text-xl;
+    }
+
+    .admin-table th {
+        @apply px-10 py-8 text-lg;
+    }
+
+    .admin-table td {
+        @apply px-10 py-10;
+    }
+}
+
+/* ===================================
+   UTILITY CLASSES
+   =================================== */
+
+/* Responsive Text Sizes */
+.text-responsive-xs {
+    @apply text-xs sm:text-sm lg:text-base xl:text-lg;
+}
+
+.text-responsive-sm {
+    @apply text-sm sm:text-base lg:text-lg xl:text-xl;
+}
+
+.text-responsive-base {
+    @apply text-base sm:text-lg lg:text-xl xl:text-2xl;
+}
+
+.text-responsive-lg {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+}
+
+.text-responsive-xl {
+    @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl;
+}
+
+/* Responsive Spacing */
+.spacing-responsive-sm {
+    @apply space-y-3 sm:space-y-4 lg:space-y-5 xl:space-y-6;
+}
+
+.spacing-responsive-md {
+    @apply space-y-4 sm:space-y-5 lg:space-y-6 xl:space-y-8;
+}
+
+.spacing-responsive-lg {
+    @apply space-y-5 sm:space-y-6 lg:space-y-8 xl:space-y-10;
+}
+
+/* Responsive Padding */
+.padding-responsive-sm {
+    @apply p-3 sm:p-4 lg:p-5 xl:p-6;
+}
+
+.padding-responsive-md {
+    @apply p-4 sm:p-5 lg:p-6 xl:p-8;
+}
+
+.padding-responsive-lg {
+    @apply p-5 sm:p-6 lg:p-8 xl:p-10;
+}
+
+/* Responsive Gaps */
+.gap-responsive-sm {
+    @apply gap-3 sm:gap-4 lg:gap-5 xl:gap-6;
+}
+
+.gap-responsive-md {
+    @apply gap-4 sm:gap-5 lg:gap-6 xl:gap-8;
+}
+
+/* Responsive Rounded */
+.rounded-responsive {
+    @apply rounded-lg sm:rounded-xl lg:rounded-2xl;
+}
+
+/* Hide/Show based on breakpoints */
+.mobile-only {
+    @apply block sm:hidden;
+}
+
+.tablet-up {
+    @apply hidden sm:block;
+}
+
+.desktop-only {
+    @apply hidden lg:block;
+}
+
+.large-desktop-only {
+    @apply hidden xl:block;
+}
+
+/* ===================================
+   GENERIC COMPONENT SCALING (Global)
+   =================================== */
+
+@media (min-width: 1024px) {
+
+    /* Scale up common card paddings */
+    .bg-white.rounded-2xl {
+        @apply p-8 !important;
+    }
+
+    /* Scale up common section titles */
+    h1.font-bold,
+    h2.font-extrabold {
+        @apply tracking-tight !important;
+    }
+
+    /* Scale up form inputs */
+    input,
+    select,
+    textarea {
+        @apply py-3.5 px-5 text-base !important;
+    }
+}
+
+@media (min-width: 1536px) {
+    .bg-white.rounded-2xl {
+        @apply p-10 !important;
+    }
+
+    input,
+    select,
+    textarea {
+        @apply py-4 px-6 text-lg !important;
+    }
+}

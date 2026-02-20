@@ -3,10 +3,10 @@
 @section('title', 'Validasi Universitas')
 
 @section('content')
-    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
+    <div class="space-y-6 lg:space-y-8">
         <!-- Header Section -->
         <div
-            class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 md:p-8 shadow-sm group">
+            class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 shadow-sm group desktop-card-hover">
             <div
                 class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-all duration-700">
             </div>
@@ -23,10 +23,10 @@
         </div>
 
         <!-- Statistics Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-5">
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6 xl:gap-8">
             <!-- Pending Card -->
             <div
-                class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover transition-all duration-300 group">
                 <div class="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                     <svg class="w-16 h-16 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -127,12 +127,12 @@
         </div>
 
         <!-- Filters Section -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-            <form method="GET" action="{{ route('admin.university.index') }}"
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 shadow-sm">
+            <form method="GET" action="{{ url()->current() }}"
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4 xl:gap-6">
                 <!-- Search -->
                 <div class="lg:col-span-4">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Pencarian</label>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Pencarian</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors"
@@ -143,15 +143,15 @@
                         </div>
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Cari Nama, NIM, atau Event..."
-                            class="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none">
+                            class="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none">
                     </div>
                 </div>
 
                 <!-- Faculty -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Fakultas</label>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Fakultas</label>
                     <select name="faculty"
-                        class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
+                        class="w-full px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
                         <option value="">Semua Fakultas</option>
                         @foreach($faculties ?? [] as $faculty)
                             <option value="{{ $faculty }}" {{ request('faculty') === $faculty ? 'selected' : '' }}>
@@ -163,9 +163,9 @@
 
                 <!-- Level -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Tingkat</label>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Tingkat</label>
                     <select name="level"
-                        class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
+                        class="w-full px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
                         <option value="">Semua Tingkat</option>
                         <option value="Universitas" {{ request('level') === 'Universitas' ? 'selected' : '' }}>Universitas
                         </option>
@@ -177,9 +177,9 @@
 
                 <!-- Sort -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Urutan</label>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Urutan</label>
                     <select name="sort_date"
-                        class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
+                        class="w-full px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
                         <option value="newest" {{ request('sort_date') === 'newest' ? 'selected' : '' }}>Terbaru</option>
                         <option value="oldest" {{ request('sort_date') === 'oldest' ? 'selected' : '' }}>Terlama</option>
                     </select>
@@ -195,7 +195,7 @@
                         </svg>
                         Filter
                     </button>
-                    <a href="{{ route('admin.university.index') }}"
+                    <a href="{{ url()->current() }}"
                         class="p-3 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-all active:scale-95"
                         title="Reset Filter">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,15 +208,15 @@
         </div>
 
         <!-- Table Section -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Prestasi Pending Validasi
+                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Prestasi Pending Validasi
                             Universitas</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Prestasi yang telah disetujui fakultas</p>
+                        <p class="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">Prestasi yang telah disetujui fakultas</p>
                     </div>
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <span class="text-sm lg:text-base font-medium text-gray-500 dark:text-gray-400">
                         Total: <strong class="text-gray-900 dark:text-white">{{ $achievements->total() }}</strong> prestasi
                     </span>
                 </div>
@@ -276,35 +276,35 @@
             </div>
 
             <!-- Desktop Table View -->
-            <div class="hidden lg:block overflow-x-auto">
+            <div class="hidden lg:block overflow-x-auto custom-scrollbar">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
                             <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Mahasiswa</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Prestasi</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Penyelenggara</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Validator Fakultas</th>
                             <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Tgl Approve Fakultas</th>
                             <th
-                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-right text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($achievements as $achievement)
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="flex items-center gap-4">
+                                            <tr class="desktop-table-row transition-colors">
+                                                <td class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 whitespace-nowrap">
+                                                    <div class="flex items-center gap-3 lg:gap-4">
                                                         <div class="relative flex-shrink-0">
                                                             <div
                                                                 class="w-11 h-11 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-purple-200 dark:shadow-none">

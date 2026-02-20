@@ -3,18 +3,18 @@
 @section('title', 'Log Validasi')
 
 @section('content')
-    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
+    <div class="space-y-6 lg:space-y-8">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Log Validasi</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Riwayat lengkap aktivitas validasi prestasi mahasiswa oleh validator dan admin.</p>
+                <h2 class="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 dark:text-white">Log Validasi</h2>
+                <p class="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">Riwayat lengkap aktivitas validasi prestasi mahasiswa oleh validator dan admin.</p>
             </div>
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 lg:gap-6 xl:gap-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -31,7 +31,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -48,7 +48,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -82,7 +82,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -101,8 +101,8 @@
         </div>
 
         <!-- Search & Filter -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <form method="GET" action="{{ route('admin.validation-logs') }}" class="space-y-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 shadow-sm">
+            <form method="GET" action="{{ url()->current() }}" class="space-y-4">
                 <!-- Main Filters Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
                     <!-- Search (Span 6) -->
@@ -191,7 +191,7 @@
                 </div>
 
                 <!-- Date Range & Tools -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <!-- Date From -->
                     <div>
                         <label
@@ -210,24 +210,10 @@
                             class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
                     </div>
 
-                    <!-- Per Page -->
-                    <div>
-                        <label
-                            class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Baris
-                            per Halaman</label>
-                        <select name="per_page" onchange="this.form.submit()"
-                            class="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
-                            <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 Baris</option>
-                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 Baris</option>
-                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 Baris</option>
-                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 Baris</option>
-                        </select>
-                    </div>
-
                     <!-- Action Buttons -->
                     <div class="flex gap-2">
                         @if(request()->hasAny(['search', 'decision', 'validator', 'date_from', 'date_to', 'faculty_id', 'department_id', 'program_study_id']))
-                            <a href="{{ route('admin.validation-logs') }}"
+                            <a href="{{ url()->current() }}"
                                 class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                                 title="Reset Filter">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -363,46 +349,46 @@
         </div>
 
         <!-- Desktop Table -->
-        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-sm lg:text-base">
                     <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                         <tr>
                             <th
-                                class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 Waktu
                             </th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 Mahasiswa
                             </th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 Event
                             </th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 Validator
                             </th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 Keputusan
                             </th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 Catatan
                             </th>
                             <th
-                                class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                 Aksi
                             </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($logs as $log)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                            <tr class="desktop-table-row transition-colors">
                                 <!-- Waktu -->
-                                <td class="px-4 py-3 whitespace-nowrap">
+                                <td class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 whitespace-nowrap">
                                     <div class="text-sm">
                                         <p class="font-medium text-gray-900 dark:text-white">
                                             {{ $log->validated_at->format('d M Y') }}
@@ -414,7 +400,7 @@
                                 </td>
 
                                 <!-- Mahasiswa -->
-                                <td class="px-4 py-3">
+                                <td class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5">
                                     <div class="flex items-center gap-3">
                                         <div
                                             class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
@@ -434,7 +420,7 @@
                                 </td>
 
                                 <!-- Event -->
-                                <td class="px-4 py-3">
+                                <td class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5">
                                     <div class="max-w-xs">
                                         <p class="font-medium text-gray-900 dark:text-white truncate"
                                             title="{{ $log->studentAchievement->event_name ?? '-' }}">
@@ -447,7 +433,7 @@
                                 </td>
 
                                 <!-- Validator -->
-                                <td class="px-4 py-3">
+                                <td class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5">
                                     <div class="flex items-center gap-2">
                                         <div
                                             class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
@@ -462,7 +448,7 @@
                                 </td>
 
                                 <!-- Keputusan -->
-                                <td class="px-4 py-3">
+                                <td class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5">
                                     @php
                                         $statusConfig = [
                                             // Two-stage validation statuses

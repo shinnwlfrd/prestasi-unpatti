@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 @section('title', 'Daftar Mahasiswa')
 @section('content')
-    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
+    <div class="space-y-6 lg:space-y-8">
         <!-- Header Section -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Daftar Mahasiswa</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola data mahasiswa dan pantau capaian prestasi mereka.</p>
+                <h2 class="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 dark:text-white">Daftar Mahasiswa</h2>
+                <p class="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">Kelola data mahasiswa dan pantau capaian prestasi mereka.</p>
             </div>
             <a href="{{ route('admin.submit.create') }}"
                 class="w-full sm:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
@@ -18,8 +18,8 @@
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 xl:gap-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -34,7 +34,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -50,7 +50,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -68,15 +68,15 @@
         </div>
 
         <!-- Search & Filter -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <form method="GET" action="{{ route('admin.students') }}" class="space-y-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-4 lg:p-6 xl:p-8">
+            <form method="GET" action="{{ url()->current() }}" class="space-y-3 sm:space-y-4">
                 <!-- SIGAP Cascade Filter -->
                 <x-sigap-filter-simple :faculties="$sigapFaculties" :departments="$sigapDepartments"
                     :studyPrograms="$sigapStudyPrograms" :selectedFaculty="$selectedFaculty"
                     :selectedDepartment="$selectedDepartment" :selectedStudyProgram="$selectedStudyProgram" />
 
                 <!-- Search & Additional Filters -->
-                <div class="flex flex-col lg:flex-row gap-4">
+                <div class="flex flex-col lg:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
                     <!-- Search -->
                     <div class="flex-1">
                         <div class="relative">
@@ -88,13 +88,13 @@
                             </div>
                             <input type="text" name="search" value="{{ request('search') }}"
                                 placeholder="Cari NIM, nama, atau email mahasiswa..."
-                                class="pl-10 w-full py-3 text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                class="pl-10 w-full py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                         </div>
                     </div>
 
                     <!-- Filter Angkatan -->
                     <select name="angkatan" onchange="this.form.submit()"
-                        class="w-full lg:w-auto px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        class="w-full lg:w-auto px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                         <option value="">Semua Angkatan</option>
                         @for($year = 2025; $year >= 2020; $year--)
                             <option value="{{ $year }}" {{ request('angkatan') == $year ? 'selected' : '' }}>Angkatan {{ $year }}
@@ -105,7 +105,7 @@
                     <!-- Buttons -->
                     <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                         @if(request()->hasAny(['search', 'faculty_id', 'department_id', 'program_study_id', 'angkatan']))
-                            <a href="{{ route('admin.students') }}"
+                            <a href="{{ url()->current() }}"
                                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -128,11 +128,11 @@
         </div>
 
         <!-- Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Daftar Mahasiswa</h2>
+                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Daftar Mahasiswa</h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             Total: <strong class="text-gray-900 dark:text-white">{{ $students->total() }}</strong> mahasiswa
                         </p>
@@ -252,22 +252,22 @@
             </div>
 
             <!-- Desktop Table View -->
-            <div class="hidden lg:block overflow-x-auto">
+            <div class="hidden lg:block overflow-x-auto custom-scrollbar">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">NIM</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nama</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fakultas</th>
+                            <th class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">NIM</th>
+                            <th class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nama</th>
+                            <th class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fakultas</th>
                             @if($showDepartment)
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Jurusan</th>
+                                <th class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Jurusan</th>
                             @endif
                             @if($showProgramStudy)
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Prodi</th>
+                                <th class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Prodi</th>
                             @endif
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Angkatan</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Prestasi</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
+                            <th class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Angkatan</th>
+                            <th class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Prestasi</th>
+                            <th class="px-5 lg:px-6 xl:px-8 py-3 lg:py-4 text-right text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -296,8 +296,8 @@
                         @endphp
 
                         @forelse($students as $s)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap">
+                            <tr class="desktop-table-row transition-colors">
+                                <td class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 whitespace-nowrap">
                                     <div class="flex items-center gap-3">
                                         <div class="w-9 h-9 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
                                             <span class="text-purple-600 dark:text-purple-400 font-semibold text-sm">{{ substr($s->name, 0, 1) }}</span>

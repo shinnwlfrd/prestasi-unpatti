@@ -22,6 +22,77 @@
         [x-cloak] {
             display: none !important;
         }
+
+        /* Mobile auto-hide navbar */
+        @media (max-width: 1023px) {
+            .mobile-navbar {
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                will-change: transform;
+            }
+            .mobile-navbar.navbar-hidden {
+                transform: translateY(-100%);
+            }
+            .mobile-navbar.navbar-visible {
+                transform: translateY(0);
+            }
+        }
+
+        /* Desktop Optimizations */
+        @media (min-width: 1024px) {
+            /* Enhanced hover effects */
+            .desktop-card-hover {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .desktop-card-hover:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+
+            /* Table row hover */
+            .desktop-table-row:hover {
+                background-color: rgba(139, 92, 246, 0.05);
+            }
+
+            /* Smooth scrollbar */
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 10px;
+                height: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.05);
+                border-radius: 5px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(139, 92, 246, 0.3);
+                border-radius: 5px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(139, 92, 246, 0.5);
+            }
+
+            /* Dark mode scrollbar */
+            .dark .custom-scrollbar::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(139, 92, 246, 0.4);
+            }
+            .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(139, 92, 246, 0.6);
+            }
+        }
+
+        /* Enhanced Typography */
+        @media (min-width: 1280px) {
+            .desktop-heading-xl {
+                font-size: 2.5rem;
+                line-height: 1.2;
+            }
+            .desktop-heading-lg {
+                font-size: 2rem;
+                line-height: 1.3;
+            }
+        }
     </style>
 </head>
 
@@ -194,8 +265,7 @@
         <!-- Main Content -->
         <main class="flex-1 min-w-0 flex flex-col
             ml-0 
-            md:ml-55 
-            lg:ml-55
+            lg:ml-64
             xl:ml-72 
             2xl:ml-80
             min-h-screen 
@@ -204,8 +274,8 @@
             transition-all duration-300">
 
             <!-- Top Bar -->
-            <header
-                class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 py-4 flex justify-between items-center sticky top-0 z-30">
+            <header id="mobileNavbar"
+                class="mobile-navbar bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 lg:border-l lg:border-gray-200 dark:lg:border-gray-700 py-4 flex justify-between items-center sticky top-0 z-30">
                 <div class="w-full max-w-screen-xl xl:max-w-screen-2xl 2xl:max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8 2xl:px-12 flex justify-between items-center">
                     <div class="flex items-center gap-4">
                         <button @click="mobileSidebarOpen = !mobileSidebarOpen"
@@ -329,7 +399,7 @@
                         max-w-screen-xl xl:max-w-screen-2xl
                         2xl:max-w-[1800px]
                         mx-auto
-                        p-4 md:p-6 lg:p-8 2xl:p-12">
+                        p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12">
 
                 @yield('content')
             </div>
@@ -384,6 +454,114 @@
 
     <script src="https://instant.page/5.2.0" type="module"
         integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"></script>
+
+    {{-- Mobile auto-hide navbar script --}}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navbar = document.getElementById('mobileNavbar');
+        if (!navbar) return;
+
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+        let tapTimer = null;
+        const SCROLL_THRESHOLD = 5;
+        const TOP_ZONE = 100;
+        const TAP_SHOW_DURATION = 3000; // ms to keep navbar visible after tap
+
+        function isMobile() {
+            return window.innerWidth < 1024;
+        }
+
+        function showNavbar() {
+            navbar.classList.remove('navbar-hidden');
+            navbar.classList.add('navbar-visible');
+        }
+
+        function hideNavbar() {
+            // Don't hide if sidebar is open
+            if (document.querySelector('[x-data]') && 
+                document.querySelector('[x-data]').__x &&
+                document.querySelector('[x-data]').__x.$data.mobileSidebarOpen) {
+                return;
+            }
+            navbar.classList.remove('navbar-visible');
+            navbar.classList.add('navbar-hidden');
+        }
+
+        function onScroll() {
+            if (!isMobile()) {
+                // On desktop, always show and remove mobile classes
+                navbar.classList.remove('navbar-hidden', 'navbar-visible');
+                return;
+            }
+
+            const currentScrollY = window.scrollY;
+            const delta = currentScrollY - lastScrollY;
+
+            // Always show at top of page
+            if (currentScrollY <= TOP_ZONE) {
+                showNavbar();
+                lastScrollY = currentScrollY;
+                return;
+            }
+
+            // Only trigger if scroll distance exceeds threshold
+            if (Math.abs(delta) < SCROLL_THRESHOLD) return;
+
+            if (delta < 0) {
+                // Scrolling UP → show navbar
+                showNavbar();
+            } else {
+                // Scrolling DOWN → hide navbar
+                hideNavbar();
+            }
+
+            lastScrollY = currentScrollY;
+        }
+
+        // Scroll handler with requestAnimationFrame for performance
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                window.requestAnimationFrame(function() {
+                    onScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+
+        // Tap/touch handler — show navbar on screen tap
+        document.addEventListener('touchstart', function(e) {
+            if (!isMobile()) return;
+
+            // Don't interfere with interactive elements
+            const tag = e.target.tagName.toLowerCase();
+            const isInteractive = tag === 'a' || tag === 'button' || tag === 'input' || 
+                                  tag === 'select' || tag === 'textarea' ||
+                                  e.target.closest('a') || e.target.closest('button') || 
+                                  e.target.closest('form');
+
+            showNavbar();
+
+            // If tapping on non-interactive area, auto-hide after delay
+            if (!isInteractive) {
+                clearTimeout(tapTimer);
+                tapTimer = setTimeout(function() {
+                    if (window.scrollY > TOP_ZONE) {
+                        hideNavbar();
+                    }
+                }, TAP_SHOW_DURATION);
+            }
+        }, { passive: true });
+
+        // Reset on resize (e.g. rotating device)
+        window.addEventListener('resize', function() {
+            if (!isMobile()) {
+                navbar.classList.remove('navbar-hidden', 'navbar-visible');
+            }
+        });
+    });
+    </script>
     
     @stack('scripts')
 </body>

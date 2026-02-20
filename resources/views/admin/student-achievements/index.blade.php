@@ -113,14 +113,14 @@
 
         <!-- Search & Filter -->
         <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <form method="GET" action="{{ route('admin.student-achievements') }}" class="space-y-4">
+            <form method="GET" action="{{ url()->current() }}" class="space-y-3 sm:space-y-4">
                 <!-- SIGAP Cascade Filter -->
                 <x-sigap-filter-simple :faculties="$sigapFaculties" :departments="$sigapDepartments"
                     :studyPrograms="$sigapStudyPrograms" :selectedFaculty="$selectedFaculty"
                     :selectedDepartment="$selectedDepartment" :selectedStudyProgram="$selectedStudyProgram" />
 
                 <!-- Search & Additional Filters -->
-                <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex flex-col lg:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
                     <!-- Search -->
                     <div class="flex-1">
                         <div class="relative">
@@ -138,7 +138,7 @@
 
                     <!-- Filter Status -->
                     <select name="status" onchange="this.form.submit()"
-                        class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                        class="w-full md:w-auto md:min-w-[180px] px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
                         <option value="">Semua Status</option>
                         <optgroup label="Validasi Fakultas">
                             <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Diajukan
@@ -176,7 +176,7 @@
 
                     <!-- Filter Category -->
                     <select name="category" onchange="this.form.submit()"
-                        class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                        class="w-full md:w-auto md:min-w-[160px] px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
                         <option value="">Semua Kategori</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
@@ -187,7 +187,7 @@
 
                     <!-- Filter Level -->
                     <select name="level" onchange="this.form.submit()"
-                        class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                        class="w-full md:w-auto md:min-w-[160px] px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
                         <option value="">Semua Level</option>
                         <option value="Internasional" {{ request('level') == 'Internasional' ? 'selected' : '' }}>
                             Internasional</option>
@@ -196,19 +196,10 @@
                         </option>
                     </select>
 
-                    <!-- Per Page -->
-                    <select name="per_page" onchange="this.form.submit()"
-                        class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
-                        <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15 per halaman</option>
-                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 per halaman</option>
-                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 per halaman</option>
-                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 per halaman</option>
-                    </select>
-
                     <!-- Buttons -->
                     <div class="flex gap-2">
                         @if(request()->hasAny(['search', 'status', 'level', 'category', 'faculty_id', 'department_id', 'program_study_id']))
-                            <a href="{{ route('admin.student-achievements') }}"
+                            <a href="{{ url()->current() }}"
                                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

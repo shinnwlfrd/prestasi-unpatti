@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', 'Kelola Users')
 @section('content')
-    <div class="space-y-6 px-4 sm:px-6 lg:px-8" x-data="userManagement()" @keydown.escape.window="showModal = false">
+    <div class="max-w-7xl mx-auto w-full space-y-6 px-4 sm:px-6 lg:px-8" x-data="userManagement()" @keydown.escape.window="showModal = false">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -29,8 +29,8 @@
         </div>
 
         <!-- Search Bar -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <form method="GET" action="{{ route('admin.users') }}" class="flex items-center gap-3">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+            <form method="GET" action="{{ route('admin.users') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div class="flex-1 relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,25 +40,27 @@
                     </div>
                     <input type="text" name="search" value="{{ $search ?? '' }}"
                         placeholder="Cari nama, email, role, atau fakultas..."
-                        class="pl-10 w-full py-3 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+                        class="pl-10 w-full py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
                 </div>
-                <button type="submit"
-                    class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    Cari
-                </button>
-                @if($search)
-                    <a href="{{ route('admin.users') }}"
-                        class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium flex items-center gap-2 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <div class="flex flex-row gap-2">
+                    <button type="submit"
+                        class="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        Reset
-                    </a>
-                @endif
+                        Cari
+                    </button>
+                    @if($search)
+                        <a href="{{ route('admin.users') }}"
+                            class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Reset
+                        </a>
+                    @endif
+                </div>
             </form>
         </div>
 
@@ -197,17 +199,17 @@
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">User</th>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Email</th>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Role & Scope</th>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Status</th>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Aksi</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">User</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">Email</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">Role & Scope</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">Status</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($users as $u)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                <td class="px-6 py-4">
+                                <td class="px-4 sm:px-6 py-2.5 sm:py-4">
                                     <div class="flex items-center gap-3">
                                         <div
                                             class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">

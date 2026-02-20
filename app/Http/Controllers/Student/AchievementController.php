@@ -246,3 +246,4 @@ class AchievementController extends Controller
                 ->with('error', 'Terjadi kesalahan saat menghapus prestasi. Silakan coba lagi.');
         }
     }
+}

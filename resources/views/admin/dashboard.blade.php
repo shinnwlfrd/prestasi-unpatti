@@ -144,38 +144,6 @@
             display: none;
         }
 
-        @media (max-width: 640px) {
-        aside {
-            transform: translateX(-100%);
-            position: fixed;
-            z-index: 50;
-            transition: transform 0.3s ease;
-        }
-        
-        aside.open {
-            transform: translateX(0);
-        }
-        
-        main {
-            margin-left: 0 !important;
-            padding: 1rem !important;
-        }
-    }
-
-    @media (min-width: 641px) and (max-width: 1024px) {
-        aside {
-            width: 200px !important;
-        }
-        
-        .sidebar-text {
-            display: none;
-        }
-        
-        .sidebar-icon {
-            margin: 0 auto;
-        }
-    }
-
     </style>
 
     <!-- Professional Print Header -->
@@ -187,12 +155,12 @@
             {{ auth()->user()->name }}</p>
     </div>
 
-    <div class="space-y-6 px-4 sm:px-6 lg:px-8">
+    <div class="space-y-6 lg:space-y-8">
         <!-- Header with Period Filter -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
                     <div>
-                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
+                        <p class="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">
                             Pantau statistik dan performa prestasi mahasiswa.
                         </p>
                     </div>
@@ -296,9 +264,9 @@
 
                 @if($isInactivePeriod)
                     <!-- BARIS 1 – RINGKASAN AKHIR PERIODE (4 CARD) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
                         <!-- Card 1 – Total Prestasi Final -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
+                        <div class="xl:col-span-3 bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl p-5 lg:p-6 xl:p-8 border border-gray-200 dark:border-gray-700 shadow-sm desktop-card-hover relative overflow-hidden">
                             <div class="absolute top-0 right-0 p-3 opacity-10">
                                 <svg class="w-16 h-16 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
@@ -576,10 +544,10 @@
                     <!-- BARIS 1 – STATUS SISTEM SAAT INI (5 CARD) -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
                         <!-- Card 1 – Total Pengajuan -->
-                        <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Pengajuan</p>
                             <div class="flex items-baseline gap-2">
-                                <p class="text-3xl font-black text-gray-900 dark:text-white">{{ number_format($stats['achievements']) }}</p>
+                                <p class="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">{{ number_format($stats['achievements']) }}</p>
                                 <svg class="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
                             <p class="text-[10px] text-gray-500 mt-2">Diterima periode ini</p>
@@ -587,10 +555,10 @@
 
                         <!-- Card 2 – Menunggu Validasi -->
                         @php $isOverThreshold = $stats['pending'] > 20; @endphp
-                        <div class="lg:col-span-2 {{ $isOverThreshold ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' }} rounded-xl p-6 border shadow-sm group">
+                        <div class="lg:col-span-2 {{ $isOverThreshold ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' }} rounded-xl p-4 sm:p-5 lg:p-6 border shadow-sm group">
                             <p class="text-[10px] font-bold {{ $isOverThreshold ? 'text-amber-600' : 'text-gray-400' }} uppercase tracking-widest mb-1">Menunggu Validasi</p>
                             <div class="flex items-baseline gap-2">
-                                <p class="text-3xl font-black {{ $isOverThreshold ? 'text-amber-600' : 'text-gray-900 dark:text-white' }}">{{ number_format($stats['pending']) }}</p>
+                                <p class="text-2xl sm:text-3xl font-black {{ $isOverThreshold ? 'text-amber-600' : 'text-gray-900 dark:text-white' }}">{{ number_format($stats['pending']) }}</p>
                                 @if($isOverThreshold)
                                     <span class="flex h-2 w-2 relative">
                                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -607,21 +575,21 @@
                         </div>
 
                         <!-- Card 3 – Disetujui -->
-                        <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Disetujui</p>
-                            <p class="text-3xl font-black text-emerald-600">{{ number_format($stats['approved']) }}</p>
+                            <p class="text-2xl sm:text-3xl font-black text-emerald-600">{{ number_format($stats['approved']) }}</p>
                             <p class="text-[10px] text-gray-500 mt-2">Lolos validasi periode ini</p>
                         </div>
 
                         <!-- Card 4 – Ditolak -->
-                        <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ditolak</p>
-                            <p class="text-3xl font-black text-red-600">{{ number_format($stats['total_rejected']) }}</p>
+                            <p class="text-2xl sm:text-3xl font-black text-red-600">{{ number_format($stats['total_rejected']) }}</p>
                             <p class="text-[10px] text-gray-500 mt-2">Butuh revisi/tidak valid</p>
                         </div>
 
                         <!-- Card 5 – Rata-rata Waktu Validasi -->
-                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
+                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden">
                             <div class="relative z-10">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Speed Validasi</p>
                                 <div class="flex items-baseline gap-2">
@@ -637,9 +605,9 @@
                     </div>
 
                     <!-- BARIS 2 – DISTRIBUSI PROSES (3 CARD) -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-6 mt-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6 mt-6">
                         <!-- Card 6 – Status Pengajuan -->
-                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Status Pengajuan</h3>
                             <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
                                 <canvas id="activeStatusChart"></canvas>
@@ -647,7 +615,7 @@
                         </div>
 
                         <!-- Card 7 – Distribusi Tingkat -->
-                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Tingkat Prestasi</h3>
                             <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
                                 <canvas id="activeLevelChart"></canvas>
@@ -655,7 +623,7 @@
                         </div>
 
                         <!-- Card 8 – Distribusi Kategori -->
-                        <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="sm:col-span-2 lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Top Kategori</h3>
                             <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
                                 <canvas id="activeCategoryChart"></canvas>
@@ -664,34 +632,34 @@
                     </div>
 
                     <!-- BARIS 3 – MONITORING UNIT (3 CARD) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4 sm:gap-6 mt-6">
                         <!-- Card 9 – Backlog Validasi per Fakultas -->
-                        <div class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                            <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Backlog per Fakultas</h3>
-                            <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
+                        <div class="md:col-span-2 xl:col-span-6 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-4 sm:mb-6 tracking-widest">Backlog per Fakultas</h3>
+                            <div class="h-48 sm:h-56 md:h-60 lg:h-56 xl:h-72 relative">
                                 <canvas id="facultyBacklogChart"></canvas>
                             </div>
                         </div>
 
                         <!-- Card 10 – Aktivitas Validasi Harian -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                            <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Aktivitas 14 Hari</h3>
-                            <div class="h-48 sm:h-56 md:h-64 lg:h-72 relative">
+                        <div class="xl:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-4 sm:mb-6 tracking-widest">Aktivitas 14 Hari</h3>
+                            <div class="h-48 sm:h-56 md:h-60 lg:h-56 xl:h-72 relative">
                                 <canvas id="dailyActivityChart"></canvas>
                             </div>
                         </div>
 
                         <!-- Card 11 – Fakultas Paling Aktif -->
-                        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                            <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Fakultas Teraktif</h3>
-                            <div class="space-y-4 pr-1">
+                        <div class="xl:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-4 sm:mb-6 tracking-widest">Fakultas Teraktif</h3>
+                            <div class="space-y-3 lg:space-y-2.5 xl:space-y-4 pr-1">
                                 @foreach($facultyComparison->take(6) as $index => $f)
                                     <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2 sm:gap-3">
                                             <span class="text-[10px] font-black w-4 text-gray-400">#{{ $index + 1 }}</span>
-                                            <span class="text-xs font-bold text-gray-700 dark:text-gray-300">{{ $f->faculty }}</span>
+                                            <span class="text-[11px] lg:text-xs font-bold text-gray-700 dark:text-gray-300">{{ $f->faculty }}</span>
                                         </div>
-                                        <span class="text-xs font-black text-blue-600">{{ $f->total }}</span>
+                                        <span class="text-[11px] lg:text-xs font-black text-blue-600">{{ $f->total }}</span>
                                     </div>
                                 @endforeach
                             </div>
@@ -699,9 +667,9 @@
                     </div>
 
                     <!-- BARIS 4 – RISIKO & KUALITAS DATA (2 CARD) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-6">
                         <!-- Card 12 – Peringatan Sistem -->
-                        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                             <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Peringatan Sistem</h3>
                             <div class="space-y-3">
                                 @if($anomalies['sla_breach'] > 0)
@@ -742,9 +710,51 @@
                         </div>
 
                         <!-- Card 13 – Antrian Pengajuan Kritis -->
-                        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
-                            <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Antrian Terlama</h3>
-                            <div class="flex-1 overflow-x-auto custom-scrollbar">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-4 xl:p-6 border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
+                            <h3 class="text-xs font-bold text-gray-900 dark:text-white uppercase mb-3 sm:mb-4 lg:mb-3 xl:mb-5 tracking-widest">Antrian Terlama</h3>
+                            
+                            <!-- Mobile: Card-based layout (< 640px) -->
+                            <div class="sm:hidden space-y-3">
+                                @forelse($activeStats['critical_queue'] as $ach)
+                                    @php $days = now()->diffInDays($ach->submitted_at); @endphp
+                                    <div class="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-bold text-gray-900 dark:text-white truncate">{{ $ach->student->name }}</p>
+                                            <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">{{ $ach->event_name }}</p>
+                                            <span class="inline-block mt-1 text-[9px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{{ $ach->student->faculty }}</span>
+                                        </div>
+                                        <a href="{{ route('admin.student-achievements') }}?search={{ $ach->student->student_id }}" class="flex-shrink-0 px-2.5 py-1.5 {{ $days > 7 ? 'bg-red-500 text-white' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' }} text-[10px] font-black rounded-lg hover:opacity-80 transition-opacity leading-none">
+                                            {{ $days }} HRI
+                                        </a>
+                                    </div>
+                                @empty
+                                    <div class="py-6 text-center text-xs italic text-gray-400">Belum ada antrian</div>
+                                @endforelse
+                            </div>
+
+                            <!-- Tablet/lg: Compact card layout (640px–1279px) -->
+                            <div class="hidden sm:block xl:hidden space-y-2">
+                                @forelse($activeStats['critical_queue'] as $ach)
+                                    @php $days = now()->diffInDays($ach->submitted_at); @endphp
+                                    <div class="flex items-center gap-2 p-2 lg:p-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-[11px] font-bold text-gray-900 dark:text-white truncate">{{ $ach->student->name }}</p>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="text-[9px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded shrink-0">{{ $ach->student->faculty }}</span>
+                                                <span class="text-[9px] text-gray-400 dark:text-gray-500 truncate">{{ $ach->event_name }}</span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('admin.student-achievements') }}?search={{ $ach->student->student_id }}" class="flex-shrink-0 px-2 py-1 {{ $days > 7 ? 'bg-red-500 text-white' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' }} text-[9px] font-black rounded-lg hover:opacity-80 transition-opacity leading-none">
+                                            {{ $days }} HRI
+                                        </a>
+                                    </div>
+                                @empty
+                                    <div class="py-6 text-center text-xs italic text-gray-400">Belum ada antrian</div>
+                                @endforelse
+                            </div>
+
+                            <!-- Desktop: Table layout (≥ 1280px / xl) -->
+                            <div class="hidden xl:block flex-1 overflow-x-auto custom-scrollbar">
                                 <table class="w-full text-left">
                                     <thead class="border-b border-gray-100 dark:border-gray-700">
                                         <tr>
@@ -757,7 +767,7 @@
                                         @forelse($activeStats['critical_queue'] as $ach)
                                             <tr>
                                                 <td class="py-3">
-                                                    <p class="text-xs font-bold text-gray-900 dark:text-white truncate w-32 tracking-tight">{{ $ach->student->name }}</p>
+                                                    <p class="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[12rem] tracking-tight">{{ $ach->student->name }}</p>
                                                     <p class="text-[9px] text-gray-500 line-clamp-1 mt-0.5">{{ $ach->event_name }}</p>
                                                 </td>
                                                 <td class="py-3">
@@ -783,22 +793,23 @@
                     <div class="mt-6">
                         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                             <!-- Header -->
-                            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
+                            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
                                 <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                                            <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="flex items-center gap-2 sm:gap-3">
+                                        <div class="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                                             </svg>
                                         </div>
                                         <div>
-                                            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Log Aktivitas Sistem</h3>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">Aktivitas terbaru dalam sistem</p>
+                                            <h3 class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">Log Aktivitas Sistem</h3>
+                                            <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 hidden sm:block">Aktivitas terbaru dalam sistem</p>
                                         </div>
                                     </div>
-                                    <a href="{{ route('admin.validation-logs') }}" class="text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 flex items-center gap-1 transition-colors">
-                                        Lihat Semua
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="{{ route('admin.validation-logs') }}" class="text-[10px] sm:text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 flex items-center gap-1 transition-colors">
+                                        <span class="hidden sm:inline">Lihat Semua</span>
+                                        <span class="sm:hidden">Semua</span>
+                                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                         </svg>
                                     </a>
@@ -864,32 +875,32 @@
                                             $displayDescription = str_replace($raw, $label, $displayDescription);
                                         }
                                     @endphp
-                                    <div class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                        <div class="flex items-start gap-4">
+                                    <div class="px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                        <div class="flex items-start gap-3 sm:gap-4">
                                             <!-- Icon -->
-                                            <div class="flex-shrink-0 {{ $iconBg }} rounded-lg p-2">
+                                            <div class="flex-shrink-0 {{ $iconBg }} rounded-lg p-1.5 sm:p-2">
                                                 @if($icon === 'auth')
-                                                    <svg class="w-5 h-5 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-4 h-4 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                                                     </svg>
                                                 @elseif($icon === 'rejected')
-                                                    <svg class="w-5 h-5 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-4 h-4 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                                                     </svg>
                                                 @elseif($icon === 'approved')
-                                                    <svg class="w-5 h-5 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-4 h-4 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                     </svg>
                                                 @elseif($icon === 'verified')
-                                                    <svg class="w-5 h-5 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-4 h-4 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                     </svg>
                                                 @elseif($icon === 'revision')
-                                                    <svg class="w-5 h-5 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-4 h-4 {{ $iconColor }}" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
                                                     </svg>
                                                 @else
-                                                    <svg class="w-5 h-5 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-4 h-4 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                     </svg>
                                                 @endif
@@ -897,20 +908,20 @@
 
                                             <!-- Content -->
                                             <div class="flex-1 min-w-0">
-                                                <div class="flex items-start justify-between gap-4">
+                                                <div class="flex items-start justify-between gap-2 sm:gap-4">
                                                     <div class="flex-1 min-w-0">
-                                                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                                        <p class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">
                                                             {{ $log->user }}
                                                         </p>
-                                                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">
+                                                        <p class="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-1 sm:line-clamp-2">
                                                             {{ $displayDescription }}
                                                         </p>
                                                     </div>
                                                     <div class="flex-shrink-0 text-right">
-                                                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                                        <p class="text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                                             {{ $log->timestamp->format('H:i') }}
                                                         </p>
-                                                        <p class="text-xs text-gray-400 dark:text-gray-500">
+                                                        <p class="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap">
                                                             {{ $log->timestamp->format('d M') }}
                                                         </p>
                                                     </div>
@@ -919,11 +930,11 @@
                                         </div>
                                     </div>
                                 @empty
-                                    <div class="px-6 py-12 text-center">
-                                        <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="px-4 sm:px-6 py-8 sm:py-12 text-center">
+                                        <svg class="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                         </svg>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Belum ada aktivitas sistem</p>
+                                        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Belum ada aktivitas sistem</p>
                                     </div>
                                 @endforelse
                             </div>
@@ -931,10 +942,10 @@
                     </div>
                 @else
                     <!-- RINGKASAN DATA GLOBAL -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-6 mt-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6 mt-6">
                         <!-- Total Achievements (Static) - Col 1-2 -->
                         <div
-                            class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                            class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                                     <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
@@ -958,7 +969,7 @@
 
                         <!-- Period Achievement - Col 3-4 -->
                             <div
-                                class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                                class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
                                 <div class="flex items-center justify-between mb-4">
                                     <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                                         <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor"
@@ -984,7 +995,7 @@
 
                             <!-- Backlog - Col 5-6 -->
                             <div
-                                class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                                class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
                                 <div class="flex items-center justify-between mb-4">
                                     <div class="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
                                         <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor"
@@ -1004,7 +1015,7 @@
 
                             <!-- Rejected - Col 7-8 -->
                             <div
-                                class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                                class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
                                 <div class="flex items-center justify-between mb-4">
                                     <div class="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
                                         <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
@@ -1024,7 +1035,7 @@
 
                             <!-- Avg Validation Time - Col 9-12 -->
                             <div
-                                class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                                class="sm:col-span-2 lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
                                 <div class="flex items-center justify-between mb-4 relative z-10">
                                     <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
                                         <svg class="w-8 h-8 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor"
@@ -1068,9 +1079,9 @@
 
                         <!-- Two-Stage Validation Queues -->
                         @if($isActivePeriod)
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                                 <!-- University Validation Queue -->
-                                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="flex items-center justify-between mb-6">
                                         <div>
                                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -1143,9 +1154,9 @@
 
                         <!-- Recent Activity & Achievements Grid -->
                         @if($isActivePeriod)
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                                 <!-- Urgent Pending Alerts -->
-                                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="flex items-center justify-between mb-6">
                                         <div>
                                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -1197,7 +1208,7 @@
                                 </div>
 
                                 <!-- Combined Recent Activity & Achievements -->
-                                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="flex items-center justify-between mb-6">
                                         <div>
                                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -1352,7 +1363,7 @@
                                 </div>
 
                                 <!-- Top 5 Students -->
-                                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="flex items-center justify-between mb-6">
                                         <div>
                                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -1427,10 +1438,10 @@
                         @endif
 
                         <!-- Global Insights Row -->
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6 mt-6">
                             <!-- Global Status Doughnut - Col 1-4 -->
                             <div
-                                class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                class="sm:col-span-2 lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                 <div class="mb-6">
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Status Prestasi Global</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Distribusi status dari seluruh periode tercatat
@@ -1463,7 +1474,7 @@
 
                             <!-- Distribusi Tingkat Prestasi - Col 5-8 (col-span-4) -->
                             <div
-                                class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                 <div class="mb-6">
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Tingkat Prestasi</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tingkat capaian prestasi semua periode</p>
@@ -1495,7 +1506,7 @@
 
                             <!-- Global Category Doughnut - Col 9-12 (col-span-4) -->
                             <div
-                                class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                class="sm:col-span-2 lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                 <div class="mb-6">
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Kategori Prestasi</h3>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Pembagian kategori prestasi semua periode</p>
@@ -1522,10 +1533,10 @@
                         </div>
 
                         <!-- Row 3: Multi-Period Trend, Faculty Bar Chart, and Analysis -->
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-6 mt-6">
                             <!-- Multi-Period Achievement Trend - Col 1-6 -->
                             <div
-                                class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                class="md:col-span-2 lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                 <div class="flex items-center justify-between mb-6">
                                     <div>
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Tren Prestasi Multi-Periode</h3>
@@ -1550,7 +1561,7 @@
 
                             <!-- Prestasi per Fakultas - Col 7-9 (col-span-3) -->
                             <div
-                                class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+                                class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 shadow-sm">
                                 <div class="mb-4">
                                     <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Prestasi per
                                         Fakultas</h3>
@@ -1568,7 +1579,7 @@
 
                             <!-- Prestasi per Prodi - Col 10-12 (col-span-3) -->
                             <div
-                                class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm flex flex-col">
+                                class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 shadow-sm flex flex-col">
                                 <div class="mb-5">
                                     <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Top Program Studi
                                     </h3>
@@ -1630,10 +1641,10 @@
                         </div>
 
                         <!-- Row 4: Anomaly & System Activity -->
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mt-6">
                             <!-- Anomali & Data Bermasalah - Col 1-6 (col-span-6) -->
                             <div
-                                class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                 <div class="mb-6">
                                     <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Kualitas Data</h3>
                                     <p class="text-[10px] text-gray-500 mt-1">Identifikasi anomali data</p>
@@ -1669,7 +1680,7 @@
 
                             <!-- Aktivitas Sistem - Col 7-12 (col-span-6) -->
                             <div
-                                class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                                class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                 <div class="mb-5">
                                     <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Aktivitas Sistem
                                     </h3>
@@ -1733,7 +1744,7 @@
                         <!-- Row 5: Master Data Summary -->
                         <div class="grid grid-cols-1 gap-6 mt-6">
                             <div
-                                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm overflow-hidden relative">
+                                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm overflow-hidden relative">
                                 <!-- Decorative Background Element -->
                                 <div
                                     class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-gray-50 dark:bg-gray-700/30 rounded-full blur-3xl opacity-50">
@@ -1758,7 +1769,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative z-10">
+                                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 relative z-10">
                                     <!-- Faculty Count -->
                                     <div
                                         class="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
@@ -2174,8 +2185,8 @@
                                             maintainAspectRatio: false,
                                             plugins: { legend: { display: false } },
                                             scales: {
-                                                y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } },
-                                                x: { ticks: { color: textColor }, grid: { display: false } }
+                                                y: { beginAtZero: true, ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } },
+                                                x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 0, maxTicksLimit: 8 }, grid: { display: false } }
                                             }
                                         }
                                     });

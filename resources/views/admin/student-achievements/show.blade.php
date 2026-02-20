@@ -3,7 +3,7 @@
 @section('title', 'Detail Prestasi')
 
 @section('content')
-    <div class="space-y-6">
+    <div class="space-y-6 lg:space-y-8">
         <!-- Back Button -->
         <div>
             <a href="{{ route('admin.student-achievements') }}"
@@ -16,7 +16,7 @@
         </div>
 
         <!-- Achievement Header -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $achievement->event_name }}</h1>
@@ -72,11 +72,11 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <!-- Left Column: Details -->
-            <div class="lg:col-span-2 space-y-6">
+            <div class="lg:col-span-2 space-y-6 lg:space-y-8">
                 <!-- Student Information -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Informasi Mahasiswa</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -103,7 +103,7 @@
                 </div>
 
                 <!-- Achievement Details -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Detail Prestasi</h2>
                     <div class="space-y-4">
                         <div>
@@ -147,7 +147,7 @@
                 </div>
 
                 <!-- Documents -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Dokumen Pendukung</h2>
                         <a href="{{ route('achievements.documents.index', $achievement) }}"
@@ -189,9 +189,9 @@
             </div>
 
             <!-- Right Column: Validation Info & Actions -->
-            <div class="space-y-6">
+            <div class="space-y-6 lg:space-y-8">
                 <!-- Quick Actions -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Aksi Cepat</h2>
                     <div class="space-y-3">
                         @if(in_array($achievement->validation_status, ['faculty_approved', 'university_review']))
@@ -247,7 +247,7 @@
                 </div>
 
                 <!-- Validation Timeline -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Timeline Validasi</h2>
                     <div class="space-y-4">
                         <!-- Submitted -->

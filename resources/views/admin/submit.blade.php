@@ -370,34 +370,34 @@
                     </div>
                 </div>
 
-                <div class="p-8 space-y-8">
+                <div class="p-4 sm:p-8 space-y-6 sm:space-y-8">
                     <!-- Action Tabs/Radios -->
                     <div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-6">
                             <label class="relative cursor-pointer group">
                                 <input type="radio" name="submit_action" value="pending" x-model="action" class="peer sr-only">
-                                <div class="h-full p-5 rounded-3xl border-2 border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all group-hover:border-amber-200 dark:group-hover:border-gray-600 peer-checked:border-amber-500 peer-checked:bg-amber-50/30 dark:peer-checked:bg-amber-900/10 peer-checked:shadow-lg peer-checked:shadow-amber-500/10 flex flex-col items-center text-center">
-                                    <div class="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mb-4 transition-colors">
-                                        <svg class="w-6 h-6 text-amber-600 dark:text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="h-full p-3 sm:p-5 rounded-2xl sm:rounded-3xl border-2 border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all group-hover:border-amber-200 dark:group-hover:border-gray-600 peer-checked:border-amber-500 peer-checked:bg-amber-50/30 dark:peer-checked:bg-amber-900/10 peer-checked:shadow-lg peer-checked:shadow-amber-500/10 flex flex-col items-center text-center">
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 dark:bg-amber-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-4 transition-colors">
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 dark:text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                     </div>
-                                    <span class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-widest peer-checked:text-amber-700">Pending</span>
+                                    <span class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white uppercase tracking-widest peer-checked:text-amber-700">Pending</span>
                                 </div>
-                                <div class="absolute inset-0 rounded-3xl ring-2 ring-amber-500 opacity-0 scale-105 peer-checked:opacity-100 peer-checked:scale-100 transition-all pointer-events-none"></div>
+                                <div class="absolute inset-0 rounded-2xl sm:rounded-3xl ring-2 ring-amber-500 opacity-0 scale-105 peer-checked:opacity-100 peer-checked:scale-100 transition-all pointer-events-none"></div>
                             </label>
 
                             <label class="relative cursor-pointer group">
                                 <input type="radio" name="submit_action" value="approve" x-model="action" class="peer sr-only">
-                                <div class="h-full p-5 rounded-3xl border-2 border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all group-hover:border-emerald-200 dark:group-hover:border-gray-600 peer-checked:border-emerald-500 peer-checked:bg-emerald-50/30 dark:peer-checked:bg-emerald-900/10 peer-checked:shadow-lg peer-checked:shadow-emerald-500/10 flex flex-col items-center text-center text-center">
-                                    <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-4 transition-colors">
-                                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="h-full p-3 sm:p-5 rounded-2xl sm:rounded-3xl border-2 border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all group-hover:border-emerald-200 dark:group-hover:border-gray-600 peer-checked:border-emerald-500 peer-checked:bg-emerald-50/30 dark:peer-checked:bg-emerald-900/10 peer-checked:shadow-lg peer-checked:shadow-emerald-500/10 flex flex-col items-center text-center">
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-4 transition-colors">
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                     </div>
-                                    <span class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-widest peer-checked:text-emerald-700">Approve</span>
+                                    <span class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white uppercase tracking-widest peer-checked:text-emerald-700">Approve</span>
                                 </div>
-                                <div class="absolute inset-0 rounded-3xl ring-2 ring-emerald-500 opacity-0 scale-105 peer-checked:opacity-100 peer-checked:scale-100 transition-all pointer-events-none"></div>
+                                <div class="absolute inset-0 rounded-2xl sm:rounded-3xl ring-2 ring-emerald-500 opacity-0 scale-105 peer-checked:opacity-100 peer-checked:scale-100 transition-all pointer-events-none"></div>
                             </label>
 
                         </div>
