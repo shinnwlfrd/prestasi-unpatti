@@ -165,16 +165,6 @@ class StudentAchievement extends Model
         return $this->hasOne(ValidationChecklist::class, 'sa_id', 'sa_id');
     }
 
-    public function appeals()
-    {
-        return $this->hasMany(AchievementAppeal::class, 'sa_id', 'sa_id');
-    }
-
-    public function latestAppeal()
-    {
-        return $this->hasOne(AchievementAppeal::class, 'sa_id', 'sa_id')->latestOfMany();
-    }
-
     public function skAssignment()
     {
         return $this->hasOne(SKAssignment::class, 'sa_id', 'sa_id');
@@ -196,7 +186,7 @@ class StudentAchievement extends Model
     public function getStatusBadgeAttribute(): string
     {
         return match ($this->validation_status) {
-            // New statuses
+                // New statuses
             self::STATUS_DRAFT => 'secondary',
             self::STATUS_SUBMITTED => 'info',
             self::STATUS_FACULTY_REVIEW => 'warning',
@@ -209,7 +199,7 @@ class StudentAchievement extends Model
             self::STATUS_APPEAL_SUBMITTED => 'info',
             self::STATUS_APPEAL_APPROVED => 'success',
             self::STATUS_APPEAL_REJECTED => 'danger',
-            // Legacy statuses
+                // Legacy statuses
             self::STATUS_PENDING => 'warning',
             self::STATUS_APPROVED => 'success',
             self::STATUS_REJECTED => 'danger',
@@ -221,22 +211,22 @@ class StudentAchievement extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->validation_status) {
-            // New statuses
+                // New statuses
             self::STATUS_DRAFT => 'Draft',
-            self::STATUS_SUBMITTED => 'Diajukan',
-            self::STATUS_FACULTY_REVIEW => 'Review Fakultas',
-            self::STATUS_FACULTY_APPROVED => 'Disetujui Fakultas',
-            self::STATUS_FACULTY_REJECTED => 'Ditolak Fakultas',
-            self::STATUS_FACULTY_REVISION => 'Revisi Fakultas',
-            self::STATUS_UNIVERSITY_REVIEW => 'Review Universitas',
-            self::STATUS_UNIVERSITY_APPROVED => 'Disetujui Universitas',
-            self::STATUS_UNIVERSITY_REJECTED => 'Ditolak Universitas',
+            self::STATUS_SUBMITTED => 'Telah Diajukan',
+            self::STATUS_FACULTY_REVIEW => 'Sedang Ditinjau Fakultas',
+            self::STATUS_FACULTY_APPROVED => 'Disetujui oleh Fakultas',
+            self::STATUS_FACULTY_REJECTED => 'Ditolak oleh Fakultas',
+            self::STATUS_FACULTY_REVISION => 'Perlu Revisi (Fakultas)',
+            self::STATUS_UNIVERSITY_REVIEW => 'Sedang Ditinjau Universitas',
+            self::STATUS_UNIVERSITY_APPROVED => 'Disetujui oleh Universitas',
+            self::STATUS_UNIVERSITY_REJECTED => 'Ditolak oleh Universitas',
             self::STATUS_APPEAL_SUBMITTED => 'Banding Diajukan',
             self::STATUS_APPEAL_APPROVED => 'Banding Diterima',
             self::STATUS_APPEAL_REJECTED => 'Banding Ditolak',
-            // Legacy statuses
-            self::STATUS_PENDING, 'Menunggu' => 'Menunggu Validasi',
-            self::STATUS_APPROVED, 'Disetujui' => 'Disetujui',
+                // Legacy statuses
+            self::STATUS_PENDING, 'Menunggu' => 'Menunggu Verifikasi',
+            self::STATUS_APPROVED, 'Disetujui' => 'Selesai Diverifikasi',
             self::STATUS_REJECTED, 'Ditolak' => 'Ditolak',
             self::STATUS_NEED_REVISION, 'Revisi' => 'Perlu Revisi',
             default => $this->validation_status ?? 'Unknown',
@@ -260,12 +250,6 @@ class StudentAchievement extends Model
         return $this->documents->count() >= 1;
     }
 
-    public function canBeAppealed(): bool
-    {
-        return $this->validation_status === self::STATUS_FACULTY_REVISION
-            && ! $this->appeals()->where('status', 'pending')->exists();
-    }
-
     public function isFinalStatus(): bool
     {
         return in_array($this->validation_status, [
@@ -282,7 +266,7 @@ class StudentAchievement extends Model
 
     public function canBeSubmitted(): bool
     {
-        return $this->validation_status === self::STATUS_DRAFT 
+        return $this->validation_status === self::STATUS_DRAFT
             && $this->hasMinimumDocuments();
     }
 

@@ -1,6 +1,6 @@
 @extends('layouts.validator')
 
-@section('title', 'Validasi Fakultas - Pending')
+@section('title', 'Verifikasi Fakultas - Pending')
 
 @push('styles')
     <style>
@@ -25,7 +25,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Review</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Menunggu Verifikasi</p>
                         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $statistics['pending'] ?? 0 }}
                         </p>
                     </div>
@@ -43,9 +43,10 @@
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Disetujui Hari Ini</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Selesai Diverifikasi Hari Ini</p>
                         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                            {{ $statistics['approved_today'] ?? 0 }}</p>
+                            {{ $statistics['approved_today'] ?? 0 }}
+                        </p>
                     </div>
                     <div
                         class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
@@ -64,7 +65,8 @@
                     <div>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Revisi Diminta</p>
                         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                            {{ $statistics['revision_requested'] ?? 0 }}</p>
+                            {{ $statistics['revision_requested'] ?? 0 }}
+                        </p>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
@@ -82,7 +84,8 @@
                     <div>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Rata-rata Review</p>
                         <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                            {{ number_format($statistics['avg_review_time_hours'] ?? 0, 1) }}h</p>
+                            {{ number_format($statistics['avg_review_time_hours'] ?? 0, 1) }}h
+                        </p>
                     </div>
                     <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor"
@@ -137,7 +140,8 @@
                 <!-- Sort Date -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Urutkan Tanggal</label>
-                    <select name="sort_date" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    <select name="sort_date"
+                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
                         <option value="oldest" {{ request('sort_date') === 'oldest' ? 'selected' : '' }}>Terlama</option>
                         <option value="newest" {{ request('sort_date') === 'newest' ? 'selected' : '' }}>Terbaru</option>
                     </select>
@@ -162,12 +166,12 @@
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Prestasi Pending Validasi</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Antrean Verifikasi Prestasi</h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             @if($isPimpinan)
-                                Daftar prestasi yang menunggu validasi
+                                Daftar prestasi yang menunggu verifikasi
                             @else
-                                Klik prestasi untuk melakukan validasi
+                                Klik prestasi untuk melakukan verifikasi
                             @endif
                         </p>
                     </div>
@@ -216,7 +220,8 @@
                                                     </div>
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {{ $achievement->student?->name }}</div>
+                                                            {{ $achievement->student?->name }}
+                                                        </div>
                                                         <div class="text-sm text-gray-500 dark:text-gray-400">{{ $achievement->student_id }}
                                                         </div>
                                                     </div>
@@ -224,13 +229,15 @@
                                             </td>
                                             <td class="px-6 py-4">
                                                 <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {{ $achievement->event_name }}</div>
+                                                    {{ $achievement->event_name }}
+                                                </div>
                                                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                    {{ $achievement->achievement?->category?->name }}</div>
+                                                    {{ $achievement->achievement?->category?->name }}
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    {{ $achievement->level === 'Internasional' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
+                                                                                            {{ $achievement->level === 'Internasional' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
                             ($achievement->level === 'Nasional' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
                                 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400') }}">
                                                     {{ $achievement->level }}
@@ -239,12 +246,14 @@
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="flex items-center gap-2">
                                                     <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                        {{ in_array($achievement->validation_status, ['submitted', 'Menunggu']) ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-                                'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' }}">
+                                                                                                {{ in_array($achievement->validation_status, ['submitted', 'Menunggu']) ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+                            'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' }}">
                                                         {{ $achievement->status_label ?? $achievement->validation_status }}
                                                     </span>
                                                     @if($achievement->is_resubmission)
-                                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" title="Review Ulang ke-{{ $achievement->resubmission_count }}">
+                                                        <span
+                                                            class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                                                            title="Review Ulang ke-{{ $achievement->resubmission_count }}">
                                                             🔄 Review {{ $achievement->resubmission_count }}x
                                                         </span>
                                                     @endif
@@ -273,7 +282,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Validasi
+                                                        Verifikasi
                                                     </a>
                                                 @endif
                                             </td>
@@ -287,8 +296,8 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Tidak ada prestasi yang perlu
-                                        divalidasi</p>
-                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Semua prestasi sudah divalidasi
+                                        diverifikasi</p>
+                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Semua prestasi sudah diverifikasi
                                         atau belum ada yang diajukan</p>
                                 </td>
                             </tr>

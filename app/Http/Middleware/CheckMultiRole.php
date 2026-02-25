@@ -18,6 +18,13 @@ class CheckMultiRole
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (!auth()->check()) {
+            \Log::warning('CheckMultiRole: User not authenticated', [
+                'url' => $request->fullUrl(),
+                'method' => $request->method(),
+                'ip' => $request->ip(),
+                'has_session' => $request->hasSession(),
+                'session_id' => $request->hasSession() ? $request->session()->getId() : null,
+            ]);
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
@@ -33,7 +40,18 @@ class CheckMultiRole
             return $next($request);
         }
 
-        // User doesn't have required role
-        abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        // User doesn't have required role - log details for debugging
+        \Log::warning('CheckMultiRole: User lacks required role', [
+            'url' => $request->fullUrl(),
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'user_legacy_role' => $user->role,
+            'required_roles' => $roles,
+            'active_roles' => $user->getActiveRoleNames(),
+        ]);
+
+        return redirect()->route('login')->withErrors([
+            'login' => 'Anda tidak memiliki role yang diperlukan untuk mengakses halaman ini. Role yang diperlukan: ' . implode(', ', $roles),
+        ]);
     }
 }

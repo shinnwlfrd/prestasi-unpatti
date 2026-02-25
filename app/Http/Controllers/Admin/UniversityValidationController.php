@@ -126,12 +126,19 @@ class UniversityValidationController extends Controller
     public function validate(Request $request, StudentAchievement $achievement)
     {
         // Validate request
-        $request->validate([
+        $validated = $request->validate([
             'action' => 'required|in:approve,reject',
             'sk_id' => 'nullable|exists:sk_documents,id',
             'notes' => 'nullable|string|max:1000',
-            'rejection_reason' => 'required_if:action,reject|string|max:1000',
+            'rejection_reason' => 'nullable|string|max:1000',
         ]);
+
+        // Additional validation for rejection
+        if ($request->action === 'reject') {
+            if (empty($request->rejection_reason) || !is_string($request->rejection_reason)) {
+                return back()->withErrors(['rejection_reason' => 'Alasan penolakan wajib diisi.'])->withInput();
+            }
+        }
 
         $admin = auth()->user();
 

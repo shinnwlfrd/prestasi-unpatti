@@ -1,6 +1,6 @@
 @extends('layouts.validator')
 
-@section('title', 'Validasi Prestasi')
+@section('title', 'Verifikasi Prestasi')
 
 @section('content')
     @php
@@ -175,7 +175,7 @@
                 @unless($isPimpinan)
                     <!-- Validation Form -->
                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Validasi Fakultas</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Verifikasi Fakultas</h2>
 
                         <form action="{{ route('validator.pending.validate', $achievement) }}" method="POST" class="space-y-4">
                             @csrf
@@ -238,7 +238,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Kirim Validasi
+                                Kirim Verifikasi
                             </button>
                         </form>
                     </div>
@@ -247,7 +247,7 @@
                 <!-- Validation History -->
                 @if($achievement->validationLogs->count() > 0)
                     <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Riwayat Validasi</h2>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Riwayat Verifikasi</h2>
                         <div class="space-y-3">
                             @foreach($achievement->validationLogs->sortByDesc('validated_at') as $log)
                                 <div class="border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-2">
@@ -282,7 +282,7 @@
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div class="text-sm text-blue-800 dark:text-blue-300">
-                            <p class="font-medium mb-1">Panduan Validasi:</p>
+                            <p class="font-medium mb-1">Panduan Verifikasi:</p>
                             <ul class="list-disc list-inside space-y-1 text-xs">
                                 <li>Periksa kelengkapan dokumen</li>
                                 <li>Verifikasi keaslian sertifikat</li>

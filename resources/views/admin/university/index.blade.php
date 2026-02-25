@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Validasi Universitas')
+@section('title', 'Verifikasi Universitas')
 
 @section('content')
     <div class="space-y-6 lg:space-y-8">
@@ -12,11 +12,11 @@
             </div>
             <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Validasi Universitas
+                    <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Verifikasi Universitas
                     </h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-                        Review dan validasi akhir prestasi yang telah disetujui oleh tingkat fakultas.
+                        Review dan verifikasi akhir prestasi yang telah disetujui oleh tingkat fakultas.
                     </p>
                 </div>
             </div>
@@ -34,7 +34,7 @@
                 </div>
                 <div class="flex items-center justify-between relative z-10">
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Pending Review</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Menunggu Verifikasi</p>
                         <p class="text-3xl font-black text-gray-900 dark:text-white mt-2">
                             {{ number_format($statistics['pending'] ?? 0) }}</p>
                     </div>
@@ -59,7 +59,7 @@
                 </div>
                 <div class="flex items-center justify-between relative z-10">
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Disetujui Bulan Ini</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Selesai Diverifikasi</p>
                         <p class="text-3xl font-black text-gray-900 dark:text-white mt-2">
                             {{ number_format($statistics['approved_this_month'] ?? 0) }}</p>
                     </div>
@@ -110,7 +110,7 @@
                 </div>
                 <div class="flex items-center justify-between relative z-10">
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Rata-rata Review</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Waktu Verifikasi (Avg)</p>
                         <p class="text-3xl font-black text-gray-900 dark:text-white mt-2">
                             {{ number_format($statistics['avg_review_time_hours'] ?? 0, 1) }}h</p>
                     </div>
@@ -128,7 +128,7 @@
 
         <!-- Filters Section -->
         <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 shadow-sm">
-            <form method="GET" action="{{ url()->current() }}"
+            <form method="GET" action="{{ route('admin.university.index') }}"
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4 xl:gap-6">
                 <!-- Search -->
                 <div class="lg:col-span-4">
@@ -195,7 +195,7 @@
                         </svg>
                         Filter
                     </button>
-                    <a href="{{ url()->current() }}"
+                    <a href="?"
                         class="p-3 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-all active:scale-95"
                         title="Reset Filter">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,7 +212,7 @@
             <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Prestasi Pending Validasi
+                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Antrean Verifikasi Prestasi
                             Universitas</h2>
                         <p class="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">Prestasi yang telah disetujui fakultas</p>
                     </div>
@@ -265,7 +265,7 @@
                         <!-- Action -->
                         <a href="{{ route('admin.university.show', $achievement) }}"
                             class="block w-full text-center py-2.5 bg-purple-600 text-white rounded-lg text-xs font-semibold uppercase tracking-wider hover:bg-purple-700 transition-colors">
-                            Validasi
+                            Verifikasi
                         </a>
                     </div>
                 @empty
@@ -383,7 +383,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Validasi
+                                                        Verifikasi
                                                     </a>
                                                 </td>
                                             </tr>
@@ -396,8 +396,8 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Tidak ada prestasi yang perlu
-                                        divalidasi</p>
-                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Semua prestasi sudah divalidasi
+                                        diverifikasi</p>
+                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Semua prestasi sudah diverifikasi
                                         atau belum ada yang disetujui fakultas</p>
                                 </td>
                             </tr>

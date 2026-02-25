@@ -102,7 +102,7 @@
 
         <!-- Search & Filter -->
         <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 shadow-sm">
-            <form method="GET" action="{{ url()->current() }}" class="space-y-4">
+            <form method="GET" action="{{ route('admin.validation-logs') }}" class="space-y-4">
                 <!-- Main Filters Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
                     <!-- Search (Span 6) -->
@@ -213,7 +213,7 @@
                     <!-- Action Buttons -->
                     <div class="flex gap-2">
                         @if(request()->hasAny(['search', 'decision', 'validator', 'date_from', 'date_to', 'faculty_id', 'department_id', 'program_study_id']))
-                            <a href="{{ url()->current() }}"
+                            <a href="?"
                                 class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                                 title="Reset Filter">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

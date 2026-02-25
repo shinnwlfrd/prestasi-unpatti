@@ -7,14 +7,14 @@
         <div class="mb-6">
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('validator.sk.index') }}"
+                    <button onclick="window.history.back()"
                         class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Kembali">
                         <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
-                    </a>
+                    </button>
                     <div>
                         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Detail Surat Keputusan (SK)</h2>
                         <p class="text-gray-600 dark:text-gray-400 mt-1">{{ $sk->sk_number }}</p>

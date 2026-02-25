@@ -647,8 +647,8 @@
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Menunggu Validasi</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Klik prestasi untuk validasi</p>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Menunggu Verifikasi</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Klik prestasi untuk verifikasi</p>
                     </div>
                     <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
                         Total: <strong class="text-gray-900 dark:text-white">{{ $pendingAchievements->total() }}</strong>

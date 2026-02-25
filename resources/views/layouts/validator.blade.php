@@ -103,7 +103,7 @@
                 <!-- Validation Section -->
                 <div class="pt-2">
                     <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        {{ $isPimpinan ? 'Monitoring' : 'Validasi' }}</p>
+                        {{ $isPimpinan ? 'Monitoring' : 'Verifikasi' }}</p>
                 </div>
                 <a href="{{ route($routePrefix . '.pending.index') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs($routePrefix . '.pending.*') ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
@@ -111,7 +111,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
-                    <span>{{ $isPimpinan ? 'Lihat Prestasi' : 'Validasi Prestasi' }}</span>
+                    <span>{{ $isPimpinan ? 'Lihat Prestasi' : 'Verifikasi Prestasi' }}</span>
                 </a>
                 <a href="{{ route($routePrefix . '.history') }}"
                     class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs($routePrefix . '.history') ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">

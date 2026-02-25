@@ -61,8 +61,7 @@ class AchievementController extends Controller
             'achievement.category',
             'documents',
             'facultyValidator',
-            'universityValidator',
-            'latestAppeal'
+            'universityValidator'
         ])->findOrFail($id);
 
         return view('admin.student-achievements.show', compact('achievement'));

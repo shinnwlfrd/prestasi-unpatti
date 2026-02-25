@@ -1,18 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', 'Validasi Universitas - Detail')
+@section('title', 'Verifikasi Universitas - Detail')
 
 @section('content')
     <div class="space-y-6">
         <!-- Back Button -->
         <div>
-            <a href="{{ route('admin.university.index') }}"
+            <button onclick="window.history.back()"
                 class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
-                Kembali ke Daftar
-            </a>
+                Kembali
+            </button>
         </div>
 
         <!-- Achievement Header -->
@@ -24,7 +24,7 @@
 
                     <div class="flex items-center gap-4 mt-4">
                         <span class="px-3 py-1 rounded-full text-sm font-semibold
-                                    {{ $achievement->level === 'Internasional' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
+                                        {{ $achievement->level === 'Internasional' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
         ($achievement->level === 'Nasional' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
             'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400') }}">
                             {{ $achievement->level }}
@@ -138,7 +138,7 @@
 
                 <!-- Faculty Validation History -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Validasi Fakultas</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Verifikasi Fakultas</h2>
                     <div
                         class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                         <div class="flex items-start gap-3">
@@ -268,9 +268,9 @@
             <div class="space-y-6">
                 <!-- Validation Form -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Validasi Universitas</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Keputusan Verifikasi</h2>
 
-                    <form action="{{ route('admin.university.validate', $achievement) }}" method="POST" class="space-y-4">
+                    <form action="{{ route('admin.university.validate', $achievement) }}" method="POST" class="space-y-4" id="validation-form">
                         @csrf
 
                         <!-- Action Selection -->
@@ -350,7 +350,10 @@
                             </label>
                             <textarea name="rejection_reason" id="rejection-textarea" rows="4" required
                                 placeholder="Jelaskan alasan penolakan..."
-                                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                                class="w-full px-4 py-2 border @error('rejection_reason') border-red-500 @else border-gray-300 @enderror dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">{{ old('rejection_reason') }}</textarea>
+                            @error('rejection_reason')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Alasan penolakan wajib diisi dan akan dilihat oleh mahasiswa
                             </p>
@@ -363,14 +366,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            Kirim Validasi
+                            Kirim Verifikasi
                         </button>
                     </form>
                 </div>
 
                 <!-- Validation Timeline -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Timeline Validasi</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Timeline Verifikasi</h2>
                     <div class="space-y-4">
                         <!-- Submitted -->
                         <div class="flex gap-3">
@@ -433,7 +436,7 @@
                                 </div>
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">Menunggu Validasi Universitas
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">Menunggu Verifikasi Universitas
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Sedang dalam proses review</p>
                             </div>
@@ -491,9 +494,23 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="mt-2 h-[75vh]">
+                    <div class="mt-2 h-[75vh] bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden">
                         <iframe id="preview-frame" src=""
-                            class="w-full h-full border-0 rounded-lg bg-gray-50 dark:bg-gray-900"></iframe>
+                            class="w-full h-full border-0"></iframe>
+                    </div>
+                    <div class="mt-4 flex justify-end gap-2">
+                        <a id="download-link" href="" download target="_blank"
+                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors inline-flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                        </a>
+                        <button type="button" onclick="closePreviewModal()"
+                            class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-colors">
+                            Tutup
+                        </button>
                     </div>
                 </div>
             </div>
@@ -502,15 +519,38 @@
 
     @push('scripts')
         <script>
+            // Show rejection field if there's a validation error
+            @if($errors->has('rejection_reason') || old('action') === 'reject')
+                document.addEventListener('DOMContentLoaded', function() {
+                    const actionSelect = document.getElementById('validation-action');
+                    const rejectionField = document.getElementById('rejection-field');
+                    const rejectionTextarea = document.getElementById('rejection-textarea');
+                    
+                    if (actionSelect) {
+                        actionSelect.value = 'reject';
+                        rejectionField.style.display = 'block';
+                        rejectionTextarea.required = true;
+                    }
+                });
+            @endif
+
             function openPreviewModal(url, title) {
                 const modal = document.getElementById('preview-modal');
                 const frame = document.getElementById('preview-frame');
                 const modalTitle = document.getElementById('modal-title');
+                const downloadLink = document.getElementById('download-link');
 
-                frame.src = url;
+                // Set iframe src with #toolbar=0 for PDF to hide toolbar
+                const fileUrl = url.toLowerCase().endsWith('.pdf') ? url + '#toolbar=0&navpanes=0' : url;
+                frame.src = fileUrl;
+                
                 if (title) {
                     modalTitle.textContent = title;
                 }
+                
+                // Set download link
+                downloadLink.href = url;
+                
                 modal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden'; // Prevent scrolling
             }
@@ -556,9 +596,9 @@
                                     const div = document.createElement('div');
                                     div.className = 'px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm dark:text-gray-300';
                                     div.innerHTML = `
-                                                <div class="font-medium">${sk.sk_number}</div>
-                                                <div class="text-xs text-gray-500">${sk.title}</div>
-                                            `;
+                                                        <div class="font-medium">${sk.sk_number}</div>
+                                                        <div class="text-xs text-gray-500">${sk.title}</div>
+                                                    `;
                                     div.onclick = () => selectSK(sk);
                                     skResults.appendChild(div);
                                 });
@@ -611,6 +651,7 @@
 
                 const notesTextarea = document.getElementById('notes-textarea');
                 const rejectionTextarea = document.getElementById('rejection-textarea');
+                const skIdInput = document.getElementById('sk-id');
 
                 // Hide all fields first
                 skSelection.style.display = 'none';
@@ -620,13 +661,40 @@
                 // Remove required from all
                 notesTextarea.required = false;
                 rejectionTextarea.required = false;
+                skIdInput.required = false; // SK is optional
+
+                // Clear values when hiding to prevent submission
+                if (action !== 'approve') {
+                    notesTextarea.value = '';
+                    skIdInput.value = '';
+                }
+                if (action !== 'reject') {
+                    rejectionTextarea.value = '';
+                }
 
                 if (action === 'approve') {
                     skSelection.style.display = 'block';
                     notesField.style.display = 'block';
+                    // SK is optional, no required attribute
                 } else if (action === 'reject') {
                     rejectionField.style.display = 'block';
                     rejectionTextarea.required = true;
+                }
+            });
+
+            // Form validation before submit
+            document.getElementById('validation-form')?.addEventListener('submit', function(e) {
+                const action = document.getElementById('validation-action').value;
+                const rejectionTextarea = document.getElementById('rejection-textarea');
+
+                if (action === 'reject') {
+                    const rejectionReason = rejectionTextarea.value.trim();
+                    if (!rejectionReason) {
+                        e.preventDefault();
+                        alert('Alasan penolakan wajib diisi!');
+                        rejectionTextarea.focus();
+                        return false;
+                    }
                 }
             });
         </script>

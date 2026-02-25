@@ -1,0 +1,255 @@
+<?php
+
+namespace App\Http\Traits;
+
+use App\Models\StudentAchievement;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
+trait AnomalyAlertsTrait
+{
+    /**
+     * Get all anomalies based on context (active/archive/global)
+     * 
+     * @param string $context 'active', 'archive', or 'global'
+     * @param int|null $periodId
+     * @return array
+     */
+    protected function getAnomalies(string $context = 'active', ?int $periodId = null): array
+    {
+        return [
+            'sla_breach' => $this->getSLABreaches($context, $periodId),
+            'missing_documents' => $this->getMissingDocuments($context, $periodId),
+            'duplicates' => $this->getDuplicates($context, $periodId),
+            'abandoned_drafts' => $this->getAbandonedDrafts($context, $periodId),
+            'total_count' => 0, // Will be calculated
+            'context' => $context,
+            'period_id' => $periodId,
+        ];
+    }
+
+    /**
+     * Get SLA Breach anomalies
+     * Active: Pending submissions > 7 working days
+     * Archive: Validated submissions that took > 7 working days
+     */
+    protected function getSLABreaches(string $context, ?int $periodId): array
+    {
+        $query = StudentAchievement::query()
+            ->with(['student', 'achievement', 'academicPeriod']);
+
+        // Apply period filter
+        if ($context === 'active' && $periodId) {
+            $query->where('academic_period_id', $periodId);
+        } elseif ($context === 'archive' && $periodId) {
+            $query->where('academic_period_id', $periodId);
+        }
+
+        if ($context === 'active') {
+            // For active period: Find pending submissions older than 7 working days
+            $query->where('validation_status', 'pending_faculty')
+                ->where(function ($q) {
+                    $q->whereRaw('submitted_at IS NOT NULL')
+                      ->whereRaw('submitted_at <= ?', [
+                          Carbon::now()->subWeekdays(7)->toDateTimeString()
+                      ]);
+                });
+        } elseif ($context === 'archive') {
+            // For archive: Find validated submissions that took > 7 working days
+            $query->whereIn('validation_status', ['approved_faculty', 'approved_university', 'rejected'])
+                ->whereRaw('submitted_at IS NOT NULL')
+                ->whereRaw('updated_at IS NOT NULL')
+                ->where(function ($q) {
+                    $sevenWorkingDaysAgo = Carbon::now()->subWeekdays(7);
+                    $q->whereRaw('DATEDIFF(updated_at, submitted_at) > 10'); // Approximate 7 working days
+                });
+        } else {
+            // Global: Combine both
+            $query->where(function ($q) {
+                $q->where(function ($subQ) {
+                    // Active-like
+                    $subQ->where('validation_status', 'pending_faculty')
+                        ->whereRaw('submitted_at IS NOT NULL')
+                        ->whereRaw('submitted_at <= ?', [
+                            Carbon::now()->subWeekdays(7)->toDateTimeString()
+                        ]);
+                })->orWhere(function ($subQ) {
+                    // Archive-like
+                    $subQ->whereIn('validation_status', ['approved_faculty', 'approved_university', 'rejected'])
+                        ->whereRaw('submitted_at IS NOT NULL')
+                        ->whereRaw('updated_at IS NOT NULL')
+                        ->whereRaw('DATEDIFF(updated_at, submitted_at) > 10');
+                });
+            });
+        }
+
+        $results = $query->get();
+
+        return [
+            'count' => $results->count(),
+            'items' => $results->map(function ($item) use ($context) {
+                $workingDays = $this->calculateWorkingDays(
+                    Carbon::parse($item->submitted_at),
+                    $context === 'active' ? Carbon::now() : Carbon::parse($item->updated_at)
+                );
+
+                return [
+                    'id' => $item->id,
+                    'student_name' => $item->student->name ?? 'N/A',
+                    'student_nim' => $item->student->nim ?? 'N/A',
+                    'achievement_name' => $item->achievement->name ?? $item->event_name,
+                    'submitted_at' => $item->submitted_at,
+                    'updated_at' => $item->updated_at,
+                    'working_days_elapsed' => $workingDays,
+                    'status' => $item->validation_status,
+                    'period' => $item->academicPeriod->name ?? 'N/A',
+                ];
+            })->toArray(),
+        ];
+    }
+
+    /**
+     * Get Missing Documents anomalies
+     * Exclude drafts, find records with no certificate AND no alternative document
+     */
+    protected function getMissingDocuments(string $context, ?int $periodId): array
+    {
+        $query = StudentAchievement::query()
+            ->with(['student', 'achievement', 'academicPeriod'])
+            ->where('validation_status', '!=', 'draft')
+            ->whereNull('certificate_path')
+            ->whereNull('alternative_document_path');
+
+        // Apply period filter
+        if ($periodId && in_array($context, ['active', 'archive'])) {
+            $query->where('academic_period_id', $periodId);
+        }
+
+        $results = $query->get();
+
+        return [
+            'count' => $results->count(),
+            'items' => $results->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'student_name' => $item->student->name ?? 'N/A',
+                    'student_nim' => $item->student->nim ?? 'N/A',
+                    'achievement_name' => $item->achievement->name ?? $item->event_name,
+                    'status' => $item->validation_status,
+                    'submitted_at' => $item->submitted_at,
+                    'period' => $item->academicPeriod->name ?? 'N/A',
+                ];
+            })->toArray(),
+        ];
+    }
+
+    /**
+     * Get Duplicate anomalies
+     * Group by student_id, event_name, AND achievement_level
+     */
+    protected function getDuplicates(string $context, ?int $periodId): array
+    {
+        $query = StudentAchievement::query()
+            ->select(
+                'student_id',
+                'event_name',
+                'achievement_level',
+                DB::raw('COUNT(*) as duplicate_count'),
+                DB::raw('GROUP_CONCAT(id) as ids'),
+                DB::raw('MAX(academic_period_id) as period_id')
+            )
+            ->whereNotNull('event_name')
+            ->whereNotNull('achievement_level')
+            ->groupBy('student_id', 'event_name', 'achievement_level')
+            ->having('duplicate_count', '>', 1);
+
+        // Apply period filter
+        if ($periodId && in_array($context, ['active', 'archive'])) {
+            $query->where('academic_period_id', $periodId);
+        }
+
+        $results = $query->get();
+
+        return [
+            'count' => $results->count(),
+            'items' => $results->map(function ($item) {
+                $firstRecord = StudentAchievement::with(['student', 'academicPeriod'])
+                    ->find(explode(',', $item->ids)[0]);
+
+                return [
+                    'student_id' => $item->student_id,
+                    'student_name' => $firstRecord->student->name ?? 'N/A',
+                    'student_nim' => $firstRecord->student->nim ?? 'N/A',
+                    'event_name' => $item->event_name,
+                    'achievement_level' => $item->achievement_level,
+                    'duplicate_count' => $item->duplicate_count,
+                    'ids' => explode(',', $item->ids),
+                    'period' => $firstRecord->academicPeriod->name ?? 'N/A',
+                ];
+            })->toArray(),
+        ];
+    }
+
+    /**
+     * Get Abandoned Drafts
+     * Drafts not updated for > 30 calendar days
+     */
+    protected function getAbandonedDrafts(string $context, ?int $periodId): array
+    {
+        $query = StudentAchievement::query()
+            ->with(['student', 'achievement', 'academicPeriod'])
+            ->where('validation_status', 'draft')
+            ->where('updated_at', '<=', Carbon::now()->subDays(30));
+
+        // Apply period filter
+        if ($periodId && in_array($context, ['active', 'archive'])) {
+            $query->where('academic_period_id', $periodId);
+        }
+
+        $results = $query->get();
+
+        return [
+            'count' => $results->count(),
+            'items' => $results->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'student_name' => $item->student->name ?? 'N/A',
+                    'student_nim' => $item->student->nim ?? 'N/A',
+                    'achievement_name' => $item->achievement->name ?? $item->event_name ?? 'Draft Baru',
+                    'updated_at' => $item->updated_at,
+                    'days_abandoned' => Carbon::parse($item->updated_at)->diffInDays(Carbon::now()),
+                    'period' => $item->academicPeriod->name ?? 'N/A',
+                ];
+            })->toArray(),
+        ];
+    }
+
+    /**
+     * Calculate working days between two dates (excluding weekends)
+     */
+    protected function calculateWorkingDays(Carbon $startDate, Carbon $endDate): int
+    {
+        $workingDays = 0;
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            if ($currentDate->isWeekday()) {
+                $workingDays++;
+            }
+            $currentDate->addDay();
+        }
+
+        return $workingDays;
+    }
+
+    /**
+     * Get total anomaly count
+     */
+    protected function getTotalAnomalyCount(array $anomalies): int
+    {
+        return $anomalies['sla_breach']['count'] +
+               $anomalies['missing_documents']['count'] +
+               $anomalies['duplicates']['count'] +
+               $anomalies['abandoned_drafts']['count'];
+    }
+}

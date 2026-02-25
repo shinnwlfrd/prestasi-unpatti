@@ -291,6 +291,13 @@ Route::middleware(['auth', 'multi.role:pimpinan', 'pimpinan.level'])->prefix('pi
 Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard - using new controller
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    
+    // API for Dashboard Anomalies
+    Route::get('/api/anomalies/{type}', [\App\Http\Controllers\Admin\DashboardController::class, 'getAnomalyDetails'])->name('api.anomalies');
+    Route::delete('/api/achievements/{id}', [\App\Http\Controllers\Admin\DashboardController::class, 'deleteAchievement'])->name('api.achievements.delete');
+    
+    // API for Unit Distribution
+    Route::get('/api/unit-distribution', [\App\Http\Controllers\Admin\DashboardController::class, 'getUnitDistribution'])->name('api.unit-distribution');
 
     // University Validation (Two-Stage System)
     Route::prefix('university')->name('university.')->group(function () {

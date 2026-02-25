@@ -48,7 +48,7 @@ class AchievementRepository implements AchievementRepositoryInterface
     public function getWithFilters(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         // Admin can see ALL achievements including soft-deleted ones
-        $query = $this->model->withTrashed()->with(['student', 'achievement.category', 'validator', 'latestAppeal']);
+        $query = $this->model->withTrashed()->with(['student', 'achievement.category', 'validator']);
 
         // Search by student name, NIM, or event name
         if (!empty($filters['search'])) {
@@ -65,6 +65,12 @@ class AchievementRepository implements AchievementRepositoryInterface
         // Filter by status
         if (!empty($filters['status'])) {
             $query->where('validation_status', $filters['status']);
+        }
+
+        // Filter abandoned drafts (drafts older than 30 days)
+        if (!empty($filters['abandoned'])) {
+            $query->where('validation_status', StudentAchievement::STATUS_DRAFT)
+                  ->where('updated_at', '<', now()->subDays(30));
         }
 
         // Filter by level

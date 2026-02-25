@@ -93,6 +93,251 @@
                 line-height: 1.3;
             }
         }
+
+        /* ===================================
+           DASHBOARD CARD DESKTOP SCALING
+           =================================== */
+
+        /* Desktop (≥1024px) — Scale up dashboard cards */
+        @media (min-width: 1024px) {
+            /* Dashboard stat cards — bigger padding */
+            .dash-card {
+                padding: 1.75rem !important;
+                border-radius: 1rem;
+            }
+
+            /* Dashboard KPI stat value — much bigger numbers */
+            .dash-stat-value {
+                font-size: 2.75rem !important;
+                line-height: 1.1;
+                letter-spacing: -0.02em;
+            }
+
+            /* Dashboard stat label — cleaner & bigger */
+            .dash-stat-label {
+                font-size: 0.8125rem !important;
+                letter-spacing: 0.1em;
+                color: #6B7280; /* text-gray-500 */
+                font-weight: 700 !important;
+            }
+            .dark .dash-stat-label {
+                color: #9CA3AF; /* text-gray-400 */
+            }
+
+            /* Dashboard stat sublabel / helper text */
+            .dash-stat-sub {
+                font-size: 0.8125rem !important;
+                color: #6B7280; /* text-gray-500 */
+                font-weight: 500;
+            }
+            .dark .dash-stat-sub {
+                color: #9CA3AF; /* text-gray-400 */
+            }
+
+            /* Chart section headings */
+            .dash-chart-title {
+                font-size: 0.9375rem !important;
+                margin-bottom: 1.25rem !important;
+                color: #111827; /* text-gray-900 */
+                font-weight: 800 !important;
+            }
+            .dark .dash-chart-title {
+                color: #F3F4F6; /* text-gray-100 */
+            }
+
+            /* Chart containers — taller */
+            .dash-chart-container {
+                height: 20rem !important;
+                min-height: 20rem;
+            }
+
+            /* Chart containers large variant */
+            .dash-chart-container-lg {
+                height: 24rem !important;
+                min-height: 24rem;
+            }
+
+            /* Warning/alert cards — scale text */
+            .dash-alert-title {
+                font-size: 0.875rem !important;
+            }
+            .dash-alert-text {
+                font-size: 0.8125rem !important;
+            }
+
+            /* Table text inside dashboard */
+            .dash-table th {
+                font-size: 0.8125rem !important;
+                padding-top: 0.875rem !important;
+                padding-bottom: 0.875rem !important;
+            }
+            .dash-table td {
+                font-size: 0.875rem !important;
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+
+            /* Ranking list items */
+            .dash-rank-item {
+                padding: 0.625rem 0 !important;
+            }
+            .dash-rank-name {
+                font-size: 0.875rem !important;
+                color: #374151; /* text-gray-700 */
+            }
+            .dark .dash-rank-name {
+                color: #D1D5DB; /* text-gray-300 */
+            }
+            .dash-rank-value {
+                font-size: 0.875rem !important;
+            }
+
+            /* Activity log items */
+            .dash-activity-item {
+                padding: 1.25rem 1.5rem !important;
+            }
+            .dash-activity-user {
+                font-size: 0.9375rem !important;
+            }
+            .dash-activity-desc {
+                font-size: 0.875rem !important;
+                color: #4B5563; /* text-gray-600 */
+            }
+            .dark .dash-activity-desc {
+                color: #9CA3AF; /* text-gray-400 */
+            }
+            .dash-activity-time {
+                font-size: 0.8125rem !important;
+            }
+
+            /* Insight cards */
+            .dash-insight-item {
+                padding: 1.25rem !important;
+            }
+            .dash-insight-badge {
+                font-size: 0.75rem !important;
+                padding: 0.35rem 0.65rem !important;
+            }
+            .dash-insight-text {
+                font-size: 0.875rem !important;
+            }
+        }
+
+        /* XL Desktop (≥1280px) — Even larger */
+        @media (min-width: 1280px) {
+            .dash-card {
+                padding: 2rem !important;
+                border-radius: 1.25rem;
+            }
+
+            .dash-stat-value {
+                font-size: 3.25rem !important;
+            }
+
+            .dash-stat-label {
+                font-size: 0.875rem !important;
+            }
+
+            .dash-stat-sub {
+                font-size: 0.875rem !important;
+            }
+
+            .dash-chart-title {
+                font-size: 1.0625rem !important;
+                margin-bottom: 1.5rem !important;
+            }
+
+            .dash-chart-container {
+                height: 22rem !important;
+                min-height: 22rem;
+            }
+
+            .dash-chart-container-lg {
+                height: 26rem !important;
+                min-height: 26rem;
+            }
+
+            .dash-alert-title {
+                font-size: 0.9375rem !important;
+            }
+            .dash-alert-text {
+                font-size: 0.875rem !important;
+            }
+
+            .dash-table th {
+                font-size: 0.875rem !important;
+            }
+            .dash-table td {
+                font-size: 0.9375rem !important;
+            }
+
+            .dash-rank-name {
+                font-size: 0.9375rem !important;
+            }
+            .dash-rank-value {
+                font-size: 0.9375rem !important;
+            }
+
+            .dash-activity-item {
+                padding: 1.5rem 2rem !important;
+            }
+            .dash-activity-user {
+                font-size: 1.0625rem !important;
+            }
+            .dash-activity-desc {
+                font-size: 0.9375rem !important;
+            }
+
+            .dash-insight-item {
+                padding: 1.5rem !important;
+            }
+            .dash-insight-text {
+                font-size: 0.9375rem !important;
+                line-height: 1.6;
+            }
+        }
+
+        /* 2XL Desktop (≥1536px) — Max scaling */
+        @media (min-width: 1536px) {
+            .dash-card {
+                padding: 2.5rem !important;
+                border-radius: 1.5rem;
+            }
+
+            .dash-stat-value {
+                font-size: 3.75rem !important;
+            }
+
+            .dash-stat-label {
+                font-size: 0.875rem !important;
+            }
+
+            .dash-stat-sub {
+                font-size: 0.875rem !important;
+            }
+
+            .dash-chart-title {
+                font-size: 1.125rem !important;
+                margin-bottom: 1.75rem !important;
+            }
+
+            .dash-chart-container {
+                height: 24rem !important;
+                min-height: 24rem;
+            }
+
+            .dash-chart-container-lg {
+                height: 28rem !important;
+                min-height: 28rem;
+            }
+
+            .dash-rank-name {
+                font-size: 1rem !important;
+            }
+            .dash-rank-value {
+                font-size: 1rem !important;
+            }
+        }
     </style>
 </head>
 
@@ -101,8 +346,8 @@
     <div class="min-h-screen">
         @php
             $user = auth()->user();
-            $currentRole = $user->getCurrentRole();
-            $isPimpinan = $currentRole && $currentRole->role === 'pim<!--  -->pinan';
+            $currentRole = $user ? $user->getCurrentRole() : null;
+            $isPimpinan = $currentRole && $currentRole->role === 'pimpinan';
             $routePrefix = $isPimpinan ? 'pimpinan' : 'validator';
         @endphp
         <!-- Mobile Sidebar Backdrop -->
@@ -118,146 +363,147 @@
                     border-r border-gray-200 dark:border-gray-700 
                     transition-all duration-300 z-50">
 
-            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div class="p-3.5 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20 ring-4 ring-purple-500/10">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                     </div>
-                    <span class="font-bold text-gray-800 dark:text-white">SIMAPRES Admin</span>
+                    <div class="flex flex-col">
+                        <span class="font-black text-xl text-gray-900 dark:text-white leading-none tracking-tight">SIMAPRES</span>
+                        <span class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest mt-1">Admin Panel</span>
+                    </div>
                 </div>
                 <button @click="mobileSidebarOpen = false"
-                    class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
+                    class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
                 <a href="{{ route('admin.dashboard') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.dashboard') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
-                    <span>Dashboard</span>
+                    <span class="text-sm lg:text-[20px]">Dashboard</span>
                 </a>
 
                 <!-- Validation System -->
-                <div class="pt-2">
-                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Validasi</p>
+                <div class="pt-6 pb-2">
+                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Verifikasi</p>
                 </div>
                 <a href="{{ route('admin.university.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.university.*') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.university.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Validasi Universitas</span>
+                    <span class="text-sm lg:text-[20px]">Verifikasi Universitas</span>
                 </a>
 
                 <!-- Data Management -->
-                <div class="pt-2">
-                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Data</p>
+                <div class="pt-6 pb-2">
+                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Data</p>
                 </div>
                 <a href="{{ route('admin.students') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.students') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.students') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
-                    <span>Mahasiswa</span>
+                    <span class="text-sm lg:text-[20px]">Mahasiswa</span>
                 </a>
                 <a href="{{ route('admin.student-achievements') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.student-achievements') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.student-achievements') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
-                    <span>Prestasi Mahasiswa</span>
+                    <span class="text-sm lg:text-[20px]">Prestasi</span>
                 </a>
                 <a href="{{ route('admin.validation-logs') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.validation-logs') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.validation-logs') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Log Validasi</span>
+                    <span class="text-sm lg:text-[20px]">Log Verifikasi</span>
                 </a>
                 <a href="{{ route('admin.users') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.users') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.users') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span>Users</span>
+                    <span class="text-sm lg:text-[20px]">Users</span>
                 </a>
 
                 <!-- Master Data -->
-                <div class="pt-2">
-                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Master Data</p>
+                <div class="pt-6 pb-2">
+                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Master Data</p>
                 </div>
                 <a href="{{ route('admin.categories.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.categories.*') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.categories.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                    <span>Kategori Prestasi</span>
+                    <span class="text-sm lg:text-[20px]">Kategori</span>
                 </a>
                 <a href="{{ route('admin.levels.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.levels.*') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.levels.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
-                    <span>Level Prestasi</span>
+                    <span class="text-sm lg:text-[20px]">Level</span>
                 </a>
                 <a href="{{ route('admin.periods.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.periods.*') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.periods.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>Periode Akademik</span>
+                    <span class="text-sm lg:text-[20px]">Periode</span>
                 </a>
                 <a href="{{ route('admin.sk.index') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.sk.*') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.sk.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Manajemen SK</span>
+                    <span class="text-sm lg:text-[20px]">Manajemen SK</span>
                 </a>
 
                 <!-- Actions -->
-                <div class="pt-2">
-                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Aksi</p>
+                <div class="pt-6 pb-2">
+                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Aksi</p>
                 </div>
                 <a href="{{ route('admin.submit.create') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('admin.submit.*') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.submit.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span>Ajukan Prestasi</span>
+                    <span class="text-sm lg:text-[20px]">Ajukan Prestasi</span>
                 </a>
 
                 <!-- Profile -->
-                <div class="pt-2">
-                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Akun</p>
+                <div class="pt-6 pb-2">
+                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Akun</p>
                 </div>
                 <a href="{{ route('profile') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('profile') ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('profile') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>Profil Saya</span>
+                    <span class="text-sm lg:text-[20px]">Profil Saya</span>
                 </a>
             </nav>
         </aside>
@@ -275,23 +521,28 @@
 
             <!-- Top Bar -->
             <header id="mobileNavbar"
-                class="mobile-navbar bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 lg:border-l lg:border-gray-200 dark:lg:border-gray-700 py-4 flex justify-between items-center sticky top-0 z-30">
-                <div class="w-full max-w-screen-xl xl:max-w-screen-2xl 2xl:max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8 2xl:px-12 flex justify-between items-center">
+                class="mobile-navbar bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 py-3.5 flex justify-between items-center sticky top-0 z-30 ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
+                <div class="w-full px-4 md:px-6 lg:px-8 xl:px-10 flex justify-between items-center">
                     <div class="flex items-center gap-4">
                         <button @click="mobileSidebarOpen = !mobileSidebarOpen"
-                            class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            class="lg:hidden p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                             <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                     d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
-                        <h1 class="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">
+                        <h1 class="text-lg lg:text-xl font-black text-gray-900 dark:text-white tracking-tight">
                             @yield('title', 'Dashboard')</h1>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-4">
+                    {{-- Bell Notification Icon (Dashboard only) --}}
+                    @hasSection('anomaly_bell')
+                        @yield('anomaly_bell')
+                    @endif
+
                     <button @click="darkMode = !darkMode"
-                        class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200">
+                        class="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 border border-gray-200 dark:border-gray-600">
                         <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -314,92 +565,87 @@
                     @if($activeRoles->count() > 1)
                         <div x-data="{ open: false }" class="relative">
                             <button @click="open = !open" type="button"
-                                class="flex items-center gap-2 px-3 py-2 text-sm bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
+                                class="flex items-center gap-2 px-3 py-2.5 text-xs font-bold bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors border border-purple-100 dark:border-purple-800">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                                 <span
-                                    class="hidden sm:inline">{{ $currentRole ? $currentRole->getRoleDisplayName() : 'Role' }}</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    class="hidden sm:inline uppercase tracking-wider">{{ $currentRole ? $currentRole->getRoleDisplayName() : 'Role' }}</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
-                            <div x-show="open" @click.away="open = false" x-transition
-                                class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-[60]">
-                                <div class="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Beralih Role
-                                    </p>
+                            <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100"
+                                class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-1.5 z-[60] overflow-hidden">
+                                <div class="px-4 py-3 border-b border-gray-50 dark:border-gray-700">
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Ganti Peran</p>
                                 </div>
-                                @foreach($activeRoles as $role)
-                                    @if($role->id !== $currentRoleId)
-                                        <form method="POST" action="{{ route('role.switch') }}" class="block">
-                                            @csrf
-                                            <input type="hidden" name="role_id" value="{{ $role->id }}">
-                                            <button type="submit"
-                                                class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                                <div class="flex items-center space-x-2">
-                                                    <div
-                                                        class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                        </svg>
+                                <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                                    @foreach($activeRoles as $role)
+                                        @if($role->id !== $currentRoleId)
+                                            <form method="POST" action="{{ route('role.switch') }}" class="block">
+                                                @csrf
+                                                <input type="hidden" name="role_id" value="{{ $role->id }}">
+                                                <button type="submit"
+                                                    class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
+                                                    <div class="flex items-center space-x-3">
+                                                        <div
+                                                            class="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform group-hover:scale-110">
+                                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ $role->getRoleDisplayName() }}</p>
+                                                            @if($role->level !== 'university')
+                                                                <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                                                                    {{ $role->getScopeDescription() }}</p>
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="font-medium truncate">{{ $role->getRoleDisplayName() }}</p>
-                                                        @if($role->level !== 'university')
-                                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                                                {{ $role->getScopeDescription() }}</p>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        </form>
-                                    @endif
-                                @endforeach
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     @endif
 
-                    <div class="hidden sm:flex items-center gap-2">
-                        <span class="text-sm text-gray-600 dark:text-gray-300">{{ auth()->user()->name }}</span>
-                        @if(auth()->user()->last_login_method === 'sso')
-                            <span
-                                class="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                SSO
-                            </span>
-                        @endif
+                    <div class="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600">
+                        <div class="flex flex-col items-end">
+                            <span class="text-xs font-bold text-gray-900 dark:text-white leading-none">{{ auth()->user()->name }}</span>
+                            @if(auth()->user()->last_login_method === 'sso')
+                                <span class="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter mt-1">Verified SSO</span>
+                            @endif
+                        </div>
+                        <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-xs ring-2 ring-white dark:ring-gray-800">
+                            {{ substr(auth()->user()->name, 0, 1) }}
+                        </div>
                     </div>
+
                     <form
                         action="{{ auth()->user()->last_login_method === 'sso' ? route('sso.logout') : route('logout') }}"
                         method="POST">
                         @csrf
                         <button type="submit"
-                            class="p-2 sm:p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 hover:scale-105"
+                            class="p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 hover:scale-105 border border-red-100 dark:border-red-900/30 group"
                             title="Logout{{ auth()->user()->last_login_method === 'sso' ? ' (SSO)' : '' }}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <svg class="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                         </button>
-                    </div>
+                    </form>
                 </div>
             </header>
 
             <!-- Page Content -->
-            <div class="flex-1 w-full
-                        max-w-screen-xl xl:max-w-screen-2xl
-                        2xl:max-w-[1800px]
-                        mx-auto
-                        p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12">
+            <div class="flex-1 w-full p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12">
 
                 @yield('content')
             </div>
@@ -452,8 +698,9 @@
         </script>
     @endif
 
-    <script src="https://instant.page/5.2.0" type="module"
-        integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"></script>
+    {{-- Disabled: instant.page prefetch can cause session race conditions on search/filter --}}
+    {{-- <script src="https://instant.page/5.2.0" type="module"
+        integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"></script> --}}
 
     {{-- Mobile auto-hide navbar script --}}
     <script>

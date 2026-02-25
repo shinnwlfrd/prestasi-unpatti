@@ -113,7 +113,7 @@
 
         <!-- Search & Filter -->
         <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <form method="GET" action="{{ url()->current() }}" class="space-y-3 sm:space-y-4">
+            <form method="GET" action="{{ route('admin.student-achievements') }}" class="space-y-3 sm:space-y-4">
                 <!-- SIGAP Cascade Filter -->
                 <x-sigap-filter-simple :faculties="$sigapFaculties" :departments="$sigapDepartments"
                     :studyPrograms="$sigapStudyPrograms" :selectedFaculty="$selectedFaculty"
@@ -199,7 +199,7 @@
                     <!-- Buttons -->
                     <div class="flex gap-2">
                         @if(request()->hasAny(['search', 'status', 'level', 'category', 'faculty_id', 'department_id', 'program_study_id']))
-                            <a href="{{ url()->current() }}"
+                            <a href="?"
                                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -67,8 +67,8 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <x-stat-card title="Total Prestasi" :value="$totalAchievements" icon="trophy" color="purple" />
-            <x-stat-card title="Menunggu" :value="$pending" icon="clock" color="yellow" />
-            <x-stat-card title="Disetujui" :value="$approved" icon="check" color="green" />
+            <x-stat-card title="Menunggu Verifikasi" :value="$pending" icon="clock" color="yellow" />
+            <x-stat-card title="Telah Disetujui" :value="$approved" icon="check" color="green" />
             <x-stat-card title="Perlu Revisi" :value="$needRevision" icon="refresh" color="blue" />
             <x-stat-card title="Ditolak" :value="$rejected" icon="x" color="red" />
         </div>
@@ -101,20 +101,20 @@
                             @php
                                 $statusConfig = [
                                     // Legacy statuses
-                                    'Disetujui' => ['label' => 'Disetujui', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
+                                    'Disetujui' => ['label' => 'Selesai Diverifikasi', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
                                     'Ditolak' => ['label' => 'Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
-                                    'Menunggu' => ['label' => 'Menunggu', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
+                                    'Menunggu' => ['label' => 'Menunggu Verifikasi', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
                                     'Revisi' => ['label' => 'Perlu Revisi', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
                                     // Two-stage validation statuses
                                     'draft' => ['label' => 'Draft', 'class' => 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400', 'icon' => 'clock'],
-                                    'submitted' => ['label' => 'Diajukan', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'clock'],
-                                    'faculty_review' => ['label' => 'Review Fakultas', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
-                                    'faculty_approved' => ['label' => 'Disetujui Fakultas', 'class' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400', 'icon' => 'check'],
-                                    'faculty_rejected' => ['label' => 'Ditolak Fakultas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
-                                    'faculty_revision' => ['label' => 'Revisi Fakultas', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
-                                    'university_review' => ['label' => 'Review Universitas', 'class' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', 'icon' => 'clock'],
-                                    'university_approved' => ['label' => 'Disetujui Universitas', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
-                                    'university_rejected' => ['label' => 'Ditolak Universitas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
+                                    'submitted' => ['label' => 'Telah Diajukan', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'clock'],
+                                    'faculty_review' => ['label' => 'Sedang Ditinjau Fakultas', 'class' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', 'icon' => 'clock'],
+                                    'faculty_approved' => ['label' => 'Disetujui oleh Fakultas', 'class' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400', 'icon' => 'check'],
+                                    'faculty_rejected' => ['label' => 'Ditolak oleh Fakultas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
+                                    'faculty_revision' => ['label' => 'Perlu Revisi (Fakultas)', 'class' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'icon' => 'refresh'],
+                                    'university_review' => ['label' => 'Sedang Ditinjau Universitas', 'class' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', 'icon' => 'clock'],
+                                    'university_approved' => ['label' => 'Disetujui oleh Universitas', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
+                                    'university_rejected' => ['label' => 'Ditolak oleh Universitas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
                                     'appeal_submitted' => ['label' => 'Banding Diajukan', 'class' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', 'icon' => 'clock'],
                                     'appeal_approved' => ['label' => 'Banding Diterima', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
                                     'appeal_rejected' => ['label' => 'Banding Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
@@ -193,7 +193,7 @@
                                             <form action="{{ route('student.achievement.request-review', $item) }}" method="POST" class="inline-block">
                                                 @csrf
                                                 <button type="submit" 
-                                                    onclick="return confirm('Apakah Anda yakin ingin mengajukan review ulang untuk prestasi ini? Prestasi akan dikembalikan ke antrian validasi.')"
+                                                    onclick="return confirm('Apakah Anda yakin ingin mengajukan review ulang untuk prestasi ini? Prestasi akan dikembalikan ke antrean verifikasi.')"
                                                     class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors text-sm font-medium">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
