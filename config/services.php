@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'siakad' => [
+        'base_url' => env('SIAKAD_API_URL', 'http://api.siakadng.unpatti.ac.id/api/v1'),
+        'api_key' => env('SIAKAD_API_KEY'),
+    ],
+
 ];

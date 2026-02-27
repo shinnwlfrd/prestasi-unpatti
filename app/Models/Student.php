@@ -29,6 +29,12 @@ class Student extends Model
         'gpa',
         'email',
         'photo',
+        'foto_url', // SIAKAD photo URL
+        'ipk', // Alias for gpa
+        'year', // Alias for angkatan
+        'major', // Alias for department
+        'major_id', // Alias for department_id
+        'is_active',
     ];
 
     protected $casts = [
@@ -53,7 +59,16 @@ class Student extends Model
 
     public function getPhotoUrlAttribute()
     {
-        return $this->photo ? asset('storage/'.$this->photo) : 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=3b82f6&color=fff';
+        // Priority: foto_url (SIAKAD) > photo (local upload) > default avatar
+        if (!empty($this->attributes['foto_url'])) {
+            return $this->attributes['foto_url'];
+        }
+        
+        if (!empty($this->attributes['photo'])) {
+            return asset('storage/' . $this->attributes['photo']);
+        }
+        
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=3b82f6&color=fff';
     }
     
     /**

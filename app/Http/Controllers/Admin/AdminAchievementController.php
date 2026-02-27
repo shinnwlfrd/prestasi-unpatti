@@ -31,7 +31,35 @@ class AdminAchievementController extends Controller
         $levels = AchievementLevel::active()->get();
         $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
 
-        return view('admin.submit', compact('students', 'categories', 'levels', 'skDocuments'));
+        // Handle old student_ids to preserve UI state after validation errors
+        $oldStudentIds = old('student_ids', []);
+        $selectedStudentsJson = '[]';
+
+        if (!empty($oldStudentIds)) {
+            $siakadService = app(\App\Services\SiakadApiService::class);
+            $selectedStudents = [];
+
+            foreach ($oldStudentIds as $idMahasiswa) {
+                try {
+                    $siakadData = $siakadService->getMahasiswaById($idMahasiswa);
+                    if ($siakadData) {
+                        $selectedStudents[] = [
+                            'id' => $siakadData['id_mahasiswa'],
+                            'student_id' => $siakadData['id_mahasiswa'],
+                            'nim' => $siakadData['registrasi']['nim'] ?? '',
+                            'name' => $siakadData['nama_mahasiswa'],
+                            'faculty' => $siakadData['fakultas']['nama'] ?? '',
+                            'prodi' => $siakadData['program_studi']['nama'] ?? ''
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error resolving old student ID', ['id' => $idMahasiswa, 'error' => $e->getMessage()]);
+                }
+            }
+            $selectedStudentsJson = json_encode($selectedStudents);
+        }
+
+        return view('admin.submit', compact('students', 'categories', 'levels', 'skDocuments', 'selectedStudentsJson'));
     }
 
     /**
@@ -41,7 +69,7 @@ class AdminAchievementController extends Controller
     {
         $validated = $request->validate([
             'student_ids' => 'required|array|min:1',
-            'student_ids.*' => 'required|exists:students,student_id',
+            'student_ids.*' => 'required|string', // Changed: now accepts id_mahasiswa (UUID)
             'category_id' => 'required|exists:achievement_categories,id',
             'event_name' => 'required|string|max:255',
             'level' => 'required|in:Universitas,Nasional,Internasional',
@@ -77,7 +105,7 @@ class AdminAchievementController extends Controller
                 ->withInput();
         }
 
-        $studentIds = $validated['student_ids'];
+        $studentIds = $validated['student_ids']; // Array of id_mahasiswa (UUID)
         $createdAchievements = [];
         $errors = [];
 
@@ -85,13 +113,51 @@ class AdminAchievementController extends Controller
         $attachments = $request->file('attachments', []);
 
         // Process each student
-        foreach ($studentIds as $studentId) {
+        foreach ($studentIds as $idMahasiswa) {
             try {
-                // Get files for this specific student
-                $studentFiles = $attachments[$studentId] ?? null;
+                // Fetch full data from SIAKAD API
+                $siakadService = app(\App\Services\SiakadApiService::class);
+                $siakadData = $siakadService->getMahasiswaById($idMahasiswa);
+
+                if (!$siakadData) {
+                    throw new \Exception("Data mahasiswa dengan ID {$idMahasiswa} tidak ditemukan di SIAKAD.");
+                }
+
+                // Get NIM from SIAKAD data
+                $nim = $siakadData['registrasi']['nim'] ?? null;
+
+                if (!$nim) {
+                    throw new \Exception("NIM tidak ditemukan untuk mahasiswa ID {$idMahasiswa}.");
+                }
+
+                // Check if student exists in local database
+                $student = Student::find($nim);
+
+                // If not exists, create from SIAKAD data
+                if (!$student) {
+                    $studentData = $siakadService->transformToStudentData($siakadData);
+                    $student = Student::create($studentData);
+
+                    \Log::info('New student created from SIAKAD', [
+                        'nim' => $nim,
+                        'name' => $student->name
+                    ]);
+                } else {
+                    // Optional: Update existing student data
+                    $studentData = $siakadService->transformToStudentData($siakadData);
+                    $student->update($studentData);
+
+                    \Log::info('Student data updated from SIAKAD', [
+                        'nim' => $nim,
+                        'name' => $student->name
+                    ]);
+                }
+
+                // Get files for this specific student (use idMahasiswa as key)
+                $studentFiles = $attachments[$idMahasiswa] ?? null;
 
                 if (!$studentFiles || !isset($studentFiles['certificate'])) {
-                    throw new \Exception("Sertifikat untuk mahasiswa ID {$studentId} tidak ditemukan.");
+                    throw new \Exception("Sertifikat untuk mahasiswa ID {$idMahasiswa} tidak ditemukan.");
                 }
 
                 $certificate = $studentFiles['certificate'];
@@ -111,7 +177,7 @@ class AdminAchievementController extends Controller
                 $skRequired = !$request->boolean('skip_sk');
 
                 $achievement = StudentAchievement::create([
-                    'student_id' => $studentId,
+                    'student_id' => $nim, // Use NIM from SIAKAD
                     'achievement_id' => $achievementId,
                     'event_name' => $validated['event_name'],
                     'level' => $validated['level'],
@@ -201,8 +267,7 @@ class AdminAchievementController extends Controller
 
                 $createdAchievements[] = $achievement;
             } catch (\Exception $e) {
-                $student = Student::find($studentId);
-                $errors[] = "Gagal membuat prestasi untuk {$student->name} ({$studentId}): {$e->getMessage()}";
+                $errors[] = "Gagal membuat prestasi untuk mahasiswa ID {$idMahasiswa}: {$e->getMessage()}";
             }
         }
 

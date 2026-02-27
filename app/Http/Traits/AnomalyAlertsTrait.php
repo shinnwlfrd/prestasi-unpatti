@@ -47,38 +47,84 @@ trait AnomalyAlertsTrait
 
         if ($context === 'active') {
             // For active period: Find pending submissions older than 7 working days
-            $query->where('validation_status', 'pending_faculty')
+            $query->whereIn('validation_status', [
+                'Menunggu',
+                'submitted',
+                'faculty_review',
+                'faculty_approved',
+                'university_review',
+                'appeal_submitted'
+            ])
                 ->where(function ($q) {
                     $q->whereRaw('submitted_at IS NOT NULL')
-                      ->whereRaw('submitted_at <= ?', [
-                          Carbon::now()->subWeekdays(7)->toDateTimeString()
-                      ]);
+                        ->whereRaw('submitted_at <= ?', [
+                            Carbon::now()->subWeekdays(7)->toDateTimeString()
+                        ]);
                 });
         } elseif ($context === 'archive') {
             // For archive: Find validated submissions that took > 7 working days
-            $query->whereIn('validation_status', ['approved_faculty', 'approved_university', 'rejected'])
+            $query->whereIn('validation_status', [
+                'Disetujui',
+                'faculty_approved',
+                'university_approved',
+                'appeal_approved',
+                'Ditolak',
+                'faculty_rejected',
+                'university_rejected',
+                'appeal_rejected'
+            ])
                 ->whereRaw('submitted_at IS NOT NULL')
                 ->whereRaw('updated_at IS NOT NULL')
                 ->where(function ($q) {
-                    $sevenWorkingDaysAgo = Carbon::now()->subWeekdays(7);
-                    $q->whereRaw('DATEDIFF(updated_at, submitted_at) > 10'); // Approximate 7 working days
+                    $dbDriver = DB::getDriverName();
+                    if ($dbDriver === 'pgsql') {
+                        $q->whereRaw('(updated_at::date - submitted_at::date) > 10');
+                    } elseif ($dbDriver === 'sqlite') {
+                        $q->whereRaw('(JULIANDAY(updated_at) - JULIANDAY(submitted_at)) > 10');
+                    } else {
+                        $q->whereRaw('DATEDIFF(updated_at, submitted_at) > 10'); // Approximate 7 working days
+                    }
                 });
         } else {
             // Global: Combine both
             $query->where(function ($q) {
                 $q->where(function ($subQ) {
-                    // Active-like
-                    $subQ->where('validation_status', 'pending_faculty')
+                    // Active-like: pending submissions older than 7 working days
+                    $subQ->whereIn('validation_status', [
+                        'Menunggu',
+                        'submitted',
+                        'faculty_review',
+                        'faculty_approved',
+                        'university_review',
+                        'appeal_submitted'
+                    ])
                         ->whereRaw('submitted_at IS NOT NULL')
                         ->whereRaw('submitted_at <= ?', [
                             Carbon::now()->subWeekdays(7)->toDateTimeString()
                         ]);
                 })->orWhere(function ($subQ) {
-                    // Archive-like
-                    $subQ->whereIn('validation_status', ['approved_faculty', 'approved_university', 'rejected'])
+                    // Archive-like: completed submissions that took > 10 calendar days
+                    $dbDriver = DB::getDriverName();
+                    $datediffSql = 'DATEDIFF(updated_at, submitted_at)';
+                    if ($dbDriver === 'pgsql') {
+                        $datediffSql = '(updated_at::date - submitted_at::date)';
+                    } elseif ($dbDriver === 'sqlite') {
+                        $datediffSql = '(JULIANDAY(updated_at) - JULIANDAY(submitted_at))';
+                    }
+
+                    $subQ->whereIn('validation_status', [
+                        'Disetujui',
+                        'faculty_approved',
+                        'university_approved',
+                        'appeal_approved',
+                        'Ditolak',
+                        'faculty_rejected',
+                        'university_rejected',
+                        'appeal_rejected'
+                    ])
                         ->whereRaw('submitted_at IS NOT NULL')
                         ->whereRaw('updated_at IS NOT NULL')
-                        ->whereRaw('DATEDIFF(updated_at, submitted_at) > 10');
+                        ->whereRaw($datediffSql . ' > 10');
                 });
             });
         }
@@ -94,9 +140,9 @@ trait AnomalyAlertsTrait
                 );
 
                 return [
-                    'id' => $item->id,
+                    'id' => $item->sa_id,
                     'student_name' => $item->student->name ?? 'N/A',
-                    'student_nim' => $item->student->nim ?? 'N/A',
+                    'student_nim' => $item->student->student_id ?? 'N/A',
                     'achievement_name' => $item->achievement->name ?? $item->event_name,
                     'submitted_at' => $item->submitted_at,
                     'updated_at' => $item->updated_at,
@@ -116,9 +162,8 @@ trait AnomalyAlertsTrait
     {
         $query = StudentAchievement::query()
             ->with(['student', 'achievement', 'academicPeriod'])
-            ->where('validation_status', '!=', 'draft')
-            ->whereNull('certificate_path')
-            ->whereNull('alternative_document_path');
+            ->whereNotIn('validation_status', ['draft', 'Draft'])
+            ->whereNull('certificate'); // Fixed: use 'certificate' not 'certificate_path'
 
         // Apply period filter
         if ($periodId && in_array($context, ['active', 'archive'])) {
@@ -131,9 +176,9 @@ trait AnomalyAlertsTrait
             'count' => $results->count(),
             'items' => $results->map(function ($item) {
                 return [
-                    'id' => $item->id,
+                    'id' => $item->sa_id,
                     'student_name' => $item->student->name ?? 'N/A',
-                    'student_nim' => $item->student->nim ?? 'N/A',
+                    'student_nim' => $item->student->student_id ?? 'N/A',
                     'achievement_name' => $item->achievement->name ?? $item->event_name,
                     'status' => $item->validation_status,
                     'submitted_at' => $item->submitted_at,
@@ -145,23 +190,29 @@ trait AnomalyAlertsTrait
 
     /**
      * Get Duplicate anomalies
-     * Group by student_id, event_name, AND achievement_level
+     * Group by student_id, event_name, AND level
      */
     protected function getDuplicates(string $context, ?int $periodId): array
     {
+        $dbDriver = DB::getDriverName();
+        $concatSql = "GROUP_CONCAT(sa_id)";
+        if ($dbDriver === 'pgsql') {
+            $concatSql = "string_agg(CAST(sa_id AS TEXT), ',')";
+        }
+
         $query = StudentAchievement::query()
             ->select(
                 'student_id',
                 'event_name',
-                'achievement_level',
+                'level',
                 DB::raw('COUNT(*) as duplicate_count'),
-                DB::raw('GROUP_CONCAT(id) as ids'),
+                DB::raw($concatSql . ' as ids'),
                 DB::raw('MAX(academic_period_id) as period_id')
             )
             ->whereNotNull('event_name')
-            ->whereNotNull('achievement_level')
-            ->groupBy('student_id', 'event_name', 'achievement_level')
-            ->having('duplicate_count', '>', 1);
+            ->whereNotNull('level')
+            ->groupBy('student_id', 'event_name', 'level')
+            ->havingRaw('COUNT(*) > 1'); // PostgreSQL compatible - use aggregate function directly
 
         // Apply period filter
         if ($periodId && in_array($context, ['active', 'archive'])) {
@@ -179,9 +230,9 @@ trait AnomalyAlertsTrait
                 return [
                     'student_id' => $item->student_id,
                     'student_name' => $firstRecord->student->name ?? 'N/A',
-                    'student_nim' => $firstRecord->student->nim ?? 'N/A',
+                    'student_nim' => $firstRecord->student->student_id ?? 'N/A',
                     'event_name' => $item->event_name,
-                    'achievement_level' => $item->achievement_level,
+                    'level' => $item->level,
                     'duplicate_count' => $item->duplicate_count,
                     'ids' => explode(',', $item->ids),
                     'period' => $firstRecord->academicPeriod->name ?? 'N/A',
@@ -212,9 +263,9 @@ trait AnomalyAlertsTrait
             'count' => $results->count(),
             'items' => $results->map(function ($item) {
                 return [
-                    'id' => $item->id,
+                    'id' => $item->sa_id,
                     'student_name' => $item->student->name ?? 'N/A',
-                    'student_nim' => $item->student->nim ?? 'N/A',
+                    'student_nim' => $item->student->student_id ?? 'N/A',
                     'achievement_name' => $item->achievement->name ?? $item->event_name ?? 'Draft Baru',
                     'updated_at' => $item->updated_at,
                     'days_abandoned' => Carbon::parse($item->updated_at)->diffInDays(Carbon::now()),
@@ -248,8 +299,8 @@ trait AnomalyAlertsTrait
     protected function getTotalAnomalyCount(array $anomalies): int
     {
         return $anomalies['sla_breach']['count'] +
-               $anomalies['missing_documents']['count'] +
-               $anomalies['duplicates']['count'] +
-               $anomalies['abandoned_drafts']['count'];
+            $anomalies['missing_documents']['count'] +
+            $anomalies['duplicates']['count'] +
+            $anomalies['abandoned_drafts']['count'];
     }
 }

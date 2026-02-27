@@ -536,11 +536,6 @@
                             @yield('title', 'Dashboard')</h1>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-4">
-                    {{-- Bell Notification Icon (Dashboard only) --}}
-                    @hasSection('anomaly_bell')
-                        @yield('anomaly_bell')
-                    @endif
-
                     <button @click="darkMode = !darkMode"
                         class="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 border border-gray-200 dark:border-gray-600">
                         <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
@@ -659,7 +654,7 @@
     @if(session('success'))
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                showToast('success', '{{ session('success') }}');
+                showToast('success', {!! json_encode(session('success')) !!}, 'Berhasil!');
             });
         </script>
     @endif
@@ -667,7 +662,7 @@
     @if(session('error'))
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                showToast('error', '{{ session('error') }}');
+                showToast('error', {!! json_encode(session('error')) !!}, 'Terjadi Kesalahan!');
             });
         </script>
     @endif
@@ -675,7 +670,7 @@
     @if(session('warning'))
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                showToast('warning', '{{ session('warning') }}');
+                showToast('warning', {!! json_encode(session('warning')) !!}, 'Peringatan!');
             });
         </script>
     @endif
@@ -683,16 +678,17 @@
     @if(session('info'))
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                showToast('info', '{{ session('info') }}');
+                showToast('info', {!! json_encode(session('info')) !!}, 'Informasi');
             });
         </script>
     @endif
 
+    @php /** @var \Illuminate\Support\ViewErrorBag $errors */ @endphp
     @if($errors->any())
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 @foreach($errors->all() as $error)
-                    showToast('error', '{{ $error }}');
+                    showToast('error', {!! json_encode($error) !!}, 'Validasi Gagal');
                 @endforeach
             });
         </script>

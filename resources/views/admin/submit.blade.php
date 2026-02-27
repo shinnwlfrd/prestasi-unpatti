@@ -1,3 +1,4 @@
+@php /** @var \Illuminate\Support\ViewErrorBag $errors */ @endphp
 @extends('layouts.admin')
 
 @section('title', 'Ajukan Prestasi Mahasiswa')
@@ -37,14 +38,14 @@
               x-data="{ 
                 loading: false, 
                 action: '{{ old('submit_action', 'pending') }}',
-                students: []
+                students: {!! $selectedStudentsJson !!}
               }" 
-              @students-changed="students = $event.detail"
+              @students-changed.window="students = $event.detail"
               @submit="loading = true">
             @csrf
 
             <!-- Section 1: Identitas & Kategori -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden group">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm group relative">
                 <div class="bg-gray-50/50 dark:bg-gray-700/50 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
                     <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,11 +57,12 @@
                 <div class="p-4 sm:p-6 space-y-5 sm:space-y-6">
                     <!-- Student Selection -->
                     <div class="relative">
-                        <x-student-search-select 
+                        <x-siakad-student-select 
                             name="student_ids" 
                             :required="true" 
                             :error="$errors->first('student_ids')" 
                             :multiple="true"
+                            :selected="$selectedStudentsJson"
                         />
                     </div>
 
@@ -93,7 +95,7 @@
             </div>
 
             <!-- Section 2: Detail Kegiatan & Kompetisi -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden group">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm group relative">
                 <div class="bg-gray-50/50 dark:bg-gray-700/50 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
                     <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,7 +227,8 @@
                             <div class="w-10 h-10 bg-purple-100 dark:bg-purple-800 rounded-xl flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-sm" x-text="sIndex + 1"></div>
                             <div class="flex-1 min-w-0">
                                 <p class="font-bold text-gray-900 dark:text-white truncate" x-text="student.name"></p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400" x-text="student.student_id + ' • ' + student.faculty"></p>
+                                <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5" x-text="student.nim + ' • ' + student.prodi"></p>
+                                <p class="text-[10px] text-gray-400 font-medium italic" x-text="student.faculty"></p>
                             </div>
                         </div>
 
@@ -261,7 +264,7 @@
                                             <p class="text-[11px] font-bold text-gray-900 dark:text-white truncate max-w-[180px]" x-text="fileName"></p>
                                             <p class="text-[9px] text-purple-600 font-bold mt-1" x-text="fileSize"></p>
                                             <button type="button" @click.stop.prevent="showPreview = true" 
-                                                class="mt-2 text-[9px] font-bold text-purple-600 uppercase tracking-widest border-b border-purple-500/30 hover:border-purple-500">
+                                                class="mt-2 text-[9px] font-bold text-white bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded-full uppercase tracking-widest transition-colors">
                                                 Pratinjau
                                             </button>
                                         </div>
@@ -309,12 +312,18 @@
                                         this.allFiles.push({
                                             id: Math.random().toString(36).substr(2, 9),
                                             file: file,
-                                            name: file.name
+                                            name: file.name,
+                                            url: URL.createObjectURL(file),
+                                            type: file.type
                                         });
                                         this.dataTransfer.items.add(file);
                                     });
                                     this.sync();
                                     event.target.value = '';
+                                },
+                                previewFile: null,
+                                showPreview(f) {
+                                    this.previewFile = f;
                                 },
                                 removeSupporting(id) {
                                     const idx = this.allFiles.findIndex(f => f.id === id);
@@ -343,13 +352,55 @@
 
                                 <div class="space-y-2">
                                     <template x-for="f in allFiles" :key="f.id">
-                                        <div class="flex items-center gap-2 p-2 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30">
+                                        <div class="flex items-center gap-2 p-2 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30 group/item">
                                             <div class="flex-1 min-w-0 text-[10px] font-bold text-gray-700 dark:text-gray-300 truncate" x-text="f.name"></div>
-                                            <button type="button" @click="removeSupporting(f.id)" class="p-1 hover:text-red-500">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                            </button>
+                                            <div class="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                <button type="button" @click="showPreview(f)" class="p-1 text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-800 rounded-lg transition-colors" title="Pratinjau">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                </button>
+                                                <button type="button" @click="removeSupporting(f.id)" class="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-lg transition-colors" title="Hapus">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </template>
+                                </div>
+
+                                <!-- Supporting Documents Preview Modal -->
+                                <div x-show="previewFile" x-cloak
+                                    class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                                    @click.self="previewFile = null">
+                                    <div class="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-700/50">
+                                            <div class="flex items-center gap-3">
+                                                <div class="p-2 bg-purple-100 dark:bg-purple-900/40 rounded-lg">
+                                                    <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                </div>
+                                                <p class="font-bold text-gray-900 dark:text-white text-sm truncate max-w-xs sm:max-w-md" x-text="previewFile ? previewFile.name : ''"></p>
+                                            </div>
+                                            <button type="button" @click="previewFile = null" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+                                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                        </div>
+                                        <div class="p-4 sm:p-6 bg-gray-100 dark:bg-gray-900/50 flex items-center justify-center" style="height: 70vh;">
+                                            <template x-if="previewFile && previewFile.type.startsWith('image/')">
+                                                <div class="w-full h-full flex items-center justify-center p-2 bg-white dark:bg-gray-800 rounded-xl shadow-inner overflow-auto">
+                                                    <img :src="previewFile.url" class="max-w-full max-h-full object-contain">
+                                                </div>
+                                            </template>
+                                            <template x-if="previewFile && previewFile.type === 'application/pdf'">
+                                                <iframe :src="previewFile.url" class="w-full h-full rounded-xl shadow-lg border-0 bg-white" title="PDF Preview"></iframe>
+                                            </template>
+                                            <template x-if="previewFile && !previewFile.type.startsWith('image/') && previewFile.type !== 'application/pdf'">
+                                                <div class="text-center p-8">
+                                                    <div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600">
+                                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    </div>
+                                                    <p class="text-gray-600 dark:text-gray-400 font-bold uppercase tracking-widest text-xs">Format file tidak mendukung pratinjau langsung</p>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -358,7 +409,7 @@
             </div>
 
             <!-- Section 4: Validasi & Tindakan -->
-            <div class="bg-white dark:bg-gray-800 rounded-3xl border border-purple-100 dark:border-purple-900 shadow-xl shadow-purple-500/5 overflow-hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-3xl border border-purple-100 dark:border-purple-900 shadow-xl shadow-purple-500/5 relative">
                 <div class="bg-gradient-to-r from-purple-600 to-indigo-700 px-6 py-4 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white">

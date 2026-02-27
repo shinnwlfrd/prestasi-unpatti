@@ -53,7 +53,7 @@
                                                 PDF</span>
                                         @elseif($sk->file_type === 'link')
                                             <span
-                                                class="px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-full">Link
+                                                class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-cyan-600 dark:text-cyan-400 rounded-full">Link
                                                 Eksternal</span>
                                         @endif
                                     </td>
@@ -79,7 +79,7 @@
                                                 </a>
                                             @elseif($sk->file_type === 'link')
                                                 <a href="{{ $sk->external_link }}" target="_blank"
-                                                    class="p-2 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 rounded-lg transition-colors"
+                                                    class="p-2 text-cyan-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
                                                     title="Buka Link">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

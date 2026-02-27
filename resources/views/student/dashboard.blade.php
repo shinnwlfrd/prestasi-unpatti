@@ -42,10 +42,14 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
                         <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
                             <span class="text-xs text-gray-500 dark:text-gray-400">Fakultas</span>
                             <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->faculty ?? '-' }}</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Jurusan</span>
+                            <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->department ?? '-' }}</p>
                         </div>
                         <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
                             <span class="text-xs text-gray-500 dark:text-gray-400">Program Studi</span>

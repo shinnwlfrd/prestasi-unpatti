@@ -46,7 +46,22 @@ Route::get('/generate-sample-pdf', function () {
     return $pdf->download('prestasi_mahasiswa_dokumen_sample.pdf');
 })->name('generate.sample.pdf');
 
-
+// API Routes for AJAX
+Route::prefix('api')->name('api.')->group(function () {
+    Route::middleware(['auth'])->group(function () {
+        // Search mahasiswa from SIAKAD (for dropdown)
+        Route::get('/siakad/mahasiswa/search', [
+            \App\Http\Controllers\Api\SiakadMahasiswaController::class,
+            'search'
+        ])->name('siakad.mahasiswa.search');
+        
+        // Get mahasiswa detail by ID
+        Route::get('/siakad/mahasiswa/{id}', [
+            \App\Http\Controllers\Api\SiakadMahasiswaController::class,
+            'show'
+        ])->name('siakad.mahasiswa.show');
+    });
+});
 
 // Route Mahasiswa (dilindungi oleh middleware khusus)
 Route::middleware(['auth.student'])->group(function () {

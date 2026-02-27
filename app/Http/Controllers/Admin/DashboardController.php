@@ -60,6 +60,10 @@ class DashboardController extends Controller
         $isActivePeriod = $selectedPeriod && $selectedPeriod->is_active;
         $isInactivePeriod = $selectedPeriod && !$selectedPeriod->is_active;
 
+        // Define active period for anomalies, Peringatan Sistem, and Antrean Terlama
+        // These sections always use active period regardless of selected period filter
+        $activePeriodForAnomalies = $activePeriod ? $activePeriod->id : null;
+
         // Helper for inclusive status counts
         $getInclusiveCount = function ($statuses, $pId = null) {
             return StudentAchievement::whereIn('validation_status', $statuses)
@@ -130,28 +134,28 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        // University Pending Queue (top 5 oldest)
+        // University Pending Queue (top 5 oldest) - Always use active period
         $universityPending = StudentAchievement::with(['student', 'achievement.category', 'facultyValidator'])
             ->universityPending()
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($activePeriodForAnomalies, fn($q) => $q->where('academic_period_id', $activePeriodForAnomalies))
             ->orderBy('faculty_validated_at', 'asc')
             ->take(5)
             ->get();
 
-        // Resubmission Queue (top 5 oldest) - replaces appeal queue
+        // Resubmission Queue (top 5 oldest) - replaces appeal queue - Always use active period
         $resubmissionQueue = StudentAchievement::with(['student', 'achievement.category'])
             ->where('is_resubmission', true)
             ->whereIn('validation_status', ['submitted', 'faculty_review'])
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($activePeriodForAnomalies, fn($q) => $q->where('academic_period_id', $activePeriodForAnomalies))
             ->orderBy('last_resubmitted_at', 'asc')
             ->take(5)
             ->get();
 
-        // Pending Review (urgent - older than 7 days)
+        // Pending Review (urgent - older than 7 days) - Always use active period
         $urgentPending = StudentAchievement::with(['student', 'achievement.category'])
             ->where('validation_status', 'Menunggu')
             ->where('submitted_at', '<', now()->subDays(7))
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($activePeriodForAnomalies, fn($q) => $q->where('academic_period_id', $activePeriodForAnomalies))
             ->orderBy('submitted_at', 'asc')
             ->take(5)
             ->get();
@@ -185,10 +189,28 @@ class DashboardController extends Controller
         $facultyComparison = $this->getFacultyComparison($periodId);
         $categoryDistribution = $this->getCategoryDistribution($periodId);
         $topProgramStudies = $this->getProgramStudyRanking($periodId);
-        // Context-aware anomalies
-        $alertContext = $this->resolveAlertContext($selectedPeriod);
-        $anomalies = $this->getContextAwareAnomalies($alertContext, $periodId);
-        $globalBreakdown = ($alertContext === 'global') ? $this->getGlobalAnomalyBreakdown() : [];
+        
+        // Context-aware anomalies - Always use active period for Kualitas Data, Peringatan Sistem, and Antrean Terlama
+        // This ensures consistency across all three sections regardless of selected period filter
+        $alertContext = $activePeriod ? 'active' : 'global';
+        
+        if ($activePeriodForAnomalies) {
+            // Use active period for anomaly detection
+            $anomalies = $this->getContextAwareAnomalies($alertContext, $activePeriodForAnomalies);
+            $globalBreakdown = [];
+        } else {
+            // No active period - skip anomaly detection
+            $anomalies = [
+                'sla_breach' => ['count' => 0, 'items' => []],
+                'missing_documents' => ['count' => 0, 'items' => []],
+                'duplicates' => ['count' => 0, 'items' => []],
+                'abandoned_drafts' => ['count' => 0, 'items' => []],
+                'total_count' => 0,
+                'context' => 'global',
+            ];
+            $globalBreakdown = [];
+        }
+        
         // systemActivities removed – Log Aktivitas Sistem panel has been removed
         $masterData = $this->getMasterDataSummary();
 
@@ -625,6 +647,7 @@ class DashboardController extends Controller
             ->when($periodId, fn($q) => $q->where('student_achievements.academic_period_id', $periodId))
             ->groupBy('students.faculty', 'students.program_study')
             ->orderByDesc('total')
+            ->limit(20)  // PERFORMANCE: Limit to top 20 program studies
             ->get();
     }
 
@@ -698,10 +721,12 @@ class DashboardController extends Controller
             'Fakultas Pertanian' => 'FP',
         ];
 
+        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review', 'appeal_submitted'];
+
         $results = \DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
             ->selectRaw("COALESCE(students.faculty, 'N/A') as faculty, COUNT(*) as count")
-            ->where('student_achievements.validation_status', 'Menunggu')
+            ->whereIn('student_achievements.validation_status', $pendingStatuses)
             ->when($periodId, fn($q) => $q->where('student_achievements.academic_period_id', $periodId))
             ->groupBy('students.faculty')
             ->orderByDesc('count')
@@ -716,8 +741,10 @@ class DashboardController extends Controller
 
     protected function getCriticalQueue($periodId = null, $limit = 5)
     {
+        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review', 'appeal_submitted'];
+
         $items = StudentAchievement::with(['student', 'achievement.category'])
-            ->where('validation_status', 'Menunggu')
+            ->whereIn('validation_status', $pendingStatuses)
             ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
             ->orderBy('created_at', 'asc')
             ->take($limit)
@@ -766,7 +793,7 @@ class DashboardController extends Controller
 
         $actualPeriodId = ($periodId && $periodId !== 'all') ? (int) $periodId : null;
 
-        $validTypes = ['sla_breach', 'duplicates', 'no_docs', 'abandoned_drafts'];
+        $validTypes = ['sla_breach', 'duplicates', 'no_docs', 'missing_documents', 'abandoned_drafts'];
         if (!in_array($type, $validTypes)) {
             return response()->json(['error' => 'Invalid anomaly type'], 400);
         }
@@ -895,7 +922,7 @@ class DashboardController extends Controller
     {
         $anomalies = $this->getAnomalies($context, $periodId);
         $anomalies['total_count'] = $this->getTotalAnomalyCount($anomalies);
-        
+
         return $anomalies;
     }
 
@@ -910,7 +937,7 @@ class DashboardController extends Controller
         foreach ($periods as $period) {
             $context = $period->is_active ? 'active' : 'archive';
             $anomalies = $this->getAnomalies($context, $period->id);
-            
+
             $breakdown[] = [
                 'period_id' => $period->id,
                 'period_name' => $period->name,
@@ -937,11 +964,12 @@ class DashboardController extends Controller
             'sla_breach' => 'sla_breach',
             'duplicates' => 'duplicates',
             'no_docs' => 'missing_documents',
+            'missing_documents' => 'missing_documents',
             'abandoned_drafts' => 'abandoned_drafts',
         ];
 
         $key = $typeMap[$type] ?? null;
-        
+
         if (!$key || !isset($anomalies[$key])) {
             return ['count' => 0, 'items' => []];
         }

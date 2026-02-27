@@ -36,7 +36,23 @@ class ProfileController extends Controller
         // Check if user email exists in students table (mahasiswa role)
         $student = \App\Models\Student::where('email', $user->email)->first();
         
-        if ($student) {
+        // If not in database, check session for SSO student data
+        if (!$student && session('auth_role') === 'student' && session('student_data')) {
+            $studentData = session('student_data');
+            $isCurrent = true;
+            
+            $availableRoles[] = [
+                'id' => 'student_' . $studentData['nim'],
+                'role' => 'mahasiswa',
+                'name' => 'Mahasiswa',
+                'email' => $studentData['email'],
+                'display_name' => $studentData['nama'],
+                'level' => 'Student',
+                'scope' => 'NIM: ' . $studentData['nim'],
+                'position' => null,
+                'current' => $isCurrent
+            ];
+        } elseif ($student) {
             $isCurrent = session('auth_role') === 'student';
             
             $availableRoles[] = [

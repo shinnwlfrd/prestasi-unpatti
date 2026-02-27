@@ -191,8 +191,16 @@ function toastManager() {
 
 // Helper function to show toast from anywhere
 window.showToast = function(type, message, title = null, duration = 5000) {
+    // Support both string message and object format
+    const detail = typeof message === 'object' ? message : {
+        type: type,
+        message: message,
+        title: title,
+        duration: duration
+    };
+    
     window.dispatchEvent(new CustomEvent('notify', {
-        detail: { type, message, title, duration }
+        detail: detail
     }));
 };
 </script>

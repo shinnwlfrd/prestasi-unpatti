@@ -2,38 +2,6 @@
 
 @section('title', 'Dashboard Admin')
 
-{{-- Bell Notification Icon for Navbar --}}
-@section('anomaly_bell')
-    @php
-        $bellAnomalies = $anomalies ?? ['sla_breach' => 0, 'no_docs' => 0, 'duplicates' => 0, 'abandoned_drafts' => 0];
-        $bellTotal = array_sum($bellAnomalies);
-        $bellContext = $alertContext ?? 'active';
-        $bellBadgeColor = match($bellContext) {
-            'active'  => 'bg-red-500',
-            'archive' => 'bg-blue-500',
-            'global'  => 'bg-purple-500',
-        };
-        $bellRingColor = match($bellContext) {
-            'active'  => 'ring-red-400/50',
-            'archive' => 'ring-blue-400/50',
-            'global'  => 'ring-purple-400/50',
-        };
-    @endphp
-    <button onclick="openAnomalyModal()"
-            class="relative p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 border border-gray-200 dark:border-gray-600 group"
-            title="Peringatan Sistem ({{ $bellTotal }} masalah)"
-            id="bellNotificationBtn">
-        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 transition-transform group-hover:rotate-12 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-        </svg>
-        @if($bellTotal > 0)
-            <span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full text-[10px] font-black text-white {{ $bellBadgeColor }} ring-2 {{ $bellRingColor }} shadow-lg animate-pulse">
-                {{ $bellTotal > 99 ? '99+' : $bellTotal }}
-            </span>
-        @endif
-    </button>
-@endsection
-
 @section('content')
     @php
         // Set default values for all variables to prevent undefined errors
@@ -52,7 +20,7 @@
         $levelDistribution = $levelDistribution ?? ['Internasional' => 0, 'Nasional' => 0, 'Universitas' => 0];
         $facultyComparison = $facultyComparison ?? collect();
         $categoryDistribution = $categoryDistribution ?? collect();
-        $anomalies = $anomalies ?? ['duplicates' => 0, 'no_docs' => 0, 'sla_breach' => 0, 'abandoned_drafts' => 0];
+        $anomalies = $anomalies ?? ['duplicates' => ['count' => 0], 'missing_documents' => ['count' => 0], 'sla_breach' => ['count' => 0], 'abandoned_drafts' => ['count' => 0]];
         $activeStats = $activeStats ?? ['daily_trend' => collect(), 'faculty_backlog' => collect(), 'critical_queue' => collect()];
         $totalDistinctStudents = $totalDistinctStudents ?? 0;
         $topStudentsGlobal = $topStudentsGlobal ?? collect();
@@ -957,26 +925,26 @@
                             <div class="dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
                                 <h3 class="dash-chart-title text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Peringatan Sistem</h3>
                                 <div class="space-y-3">
-                                    @if($anomalies['sla_breach'] > 0)
+                                    @if(($anomalies['sla_breach']['count'] ?? 0) > 0)
                                         <div class="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl">
                                             <div class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                                             </div>
                                             <div class="flex-1">
                                                 <p class="dash-alert-title text-[11px] font-black text-red-800 dark:text-red-300">SLA BREACH ALERT</p>
-                                                <p class="dash-alert-text text-[10px] text-red-600 dark:text-red-400">{{ $anomalies['sla_breach'] }} pengajuan menunggu validasi lebih dari 7 hari.</p>
+                                                <p class="dash-alert-text text-[10px] text-red-600 dark:text-red-400">{{ $anomalies['sla_breach']['count'] ?? 0 }} pengajuan menunggu validasi lebih dari 7 hari.</p>
                                             </div>
                                         </div>
                                     @endif
 
-                                    @if($anomalies['abandoned_drafts'] > 0)
+                                    @if(($anomalies['abandoned_drafts']['count'] ?? 0) > 0)
                                         <div class="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 rounded-xl">
                                             <div class="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                             </div>
                                             <div class="flex-1">
                                                 <p class="dash-alert-title text-[11px] font-black text-orange-800 dark:text-orange-300">DRAFT TERBENGKALAI</p>
-                                                <p class="dash-alert-text text-[10px] text-orange-600 dark:text-orange-400">{{ $anomalies['abandoned_drafts'] }} draft tidak diupdate lebih dari 30 hari.</p>
+                                                <p class="dash-alert-text text-[10px] text-orange-600 dark:text-orange-400">{{ $anomalies['abandoned_drafts']['count'] ?? 0 }} draft tidak diupdate lebih dari 30 hari.</p>
                                             </div>
                                             <a href="{{ route('admin.student-achievements', ['status' => 'draft', 'abandoned' => 1]) }}" 
                                                class="px-2.5 py-1 bg-orange-100 dark:bg-orange-800 hover:bg-orange-200 dark:hover:bg-orange-700 text-orange-700 dark:text-orange-200 text-[9px] font-bold rounded-lg transition-colors whitespace-nowrap">
@@ -998,7 +966,7 @@
                                         </div>
                                     @endif
 
-                                    @if($anomalies['sla_breach'] == 0 && $anomalies['abandoned_drafts'] == 0 && $inactiveFaculties == 0)
+                                    @if(($anomalies['sla_breach']['count'] ?? 0) == 0 && ($anomalies['abandoned_drafts']['count'] ?? 0) == 0 && $inactiveFaculties == 0)
                                         <div class="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-xl">
                                             <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -1961,7 +1929,25 @@
                                         <p class="text-[10px] text-gray-500 mt-1">Audit anomali dan keaslian data</p>
                                     </div>
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                                        <!-- SLA Breach -->
+                                        <div class="flex flex-col p-4 rounded-lg bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-800/20 hover:shadow-md transition-shadow">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <span class="text-xs font-semibold text-rose-800 dark:text-rose-300">SLA Breach</span>
+                                                <svg class="w-5 h-5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="text-2xl font-black text-rose-700 dark:text-rose-300 mb-2">{{ $anomalies['sla_breach']['count'] ?? 0 }}</div>
+                                            <button onclick="showAnomalyDetail('sla_breach', {{ $anomalies['sla_breach']['count'] ?? 0 }})" 
+                                               class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 hover:underline uppercase tracking-wider">
+                                                Detail
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+
                                         <!-- Duplikasi -->
                                         <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
                                             <div class="flex items-center justify-between mb-3">
@@ -1970,8 +1956,8 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                                 </svg>
                                             </div>
-                                            <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['duplicates'] }}</div>
-                                            <button onclick="openAnomalyModal('duplicates')" 
+                                            <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['duplicates']['count'] ?? 0 }}</div>
+                                            <button onclick="showAnomalyDetail('duplicates', {{ $anomalies['duplicates']['count'] ?? 0 }})" 
                                                class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider">
                                                 Detail
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1988,8 +1974,8 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                 </svg>
                                             </div>
-                                            <div class="text-2xl font-black text-amber-700 dark:text-amber-300 mb-2">{{ $anomalies['no_docs'] }}</div>
-                                            <button onclick="openAnomalyModal('no_docs')" 
+                                            <div class="text-2xl font-black text-amber-700 dark:text-amber-300 mb-2">{{ $anomalies['missing_documents']['count'] ?? 0 }}</div>
+                                            <button onclick="showAnomalyDetail('missing_documents', {{ $anomalies['missing_documents']['count'] ?? 0 }})" 
                                                class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline uppercase tracking-wider">
                                                 Detail
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2006,8 +1992,8 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                 </svg>
                                             </div>
-                                            <div class="text-2xl font-black text-purple-700 dark:text-purple-300 mb-2">{{ $anomalies['abandoned_drafts'] }}</div>
-                                            <button onclick="openAnomalyModal('abandoned_drafts')" 
+                                            <div class="text-2xl font-black text-purple-700 dark:text-purple-300 mb-2">{{ $anomalies['abandoned_drafts']['count'] ?? 0 }}</div>
+                                            <button onclick="showAnomalyDetail('abandoned_drafts', {{ $anomalies['abandoned_drafts']['count'] ?? 0 }})" 
                                                class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline uppercase tracking-wider">
                                                 Detail
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2810,78 +2796,6 @@
                                 });
                             </script>
 
-    <!-- Anomaly Detail Modal -->
-    <div id="anomalyModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
-        <div class="relative top-10 mx-auto p-6 border w-11/12 max-w-6xl shadow-2xl rounded-2xl bg-white dark:bg-gray-800 mb-10">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between pb-5 border-b border-gray-200 dark:border-gray-700">
-                <div>
-                    <h3 id="modalTitle" class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Detail Anomali Data</h3>
-                    <p id="modalSubtitle" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
-                </div>
-                <button onclick="closeAnomalyModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2 transition-all">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="mt-6">
-                <div id="modalLoading" class="text-center py-12">
-                    <svg class="animate-spin h-12 w-12 mx-auto text-blue-600" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p class="mt-3 text-sm text-gray-500 dark:text-gray-400 font-medium">Memuat data...</p>
-                </div>
-
-                <div id="modalContent" class="hidden">
-                    <!-- Content for duplicates (grouped) -->
-                    <div id="duplicatesContent" class="hidden space-y-6">
-                        <!-- Groups will be inserted here -->
-                    </div>
-
-                    <!-- Content for other anomalies (regular table) -->
-                    <div id="regularContent" class="hidden overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900/50 sticky top-0">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">No</th>
-                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">NIM</th>
-                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Nama Mahasiswa</th>
-                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Prestasi</th>
-                                    <th class="px-4 py-3 text-center text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Tanggal Input</th>
-                                    <th class="px-4 py-3 text-center text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="modalTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <!-- Data will be inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div id="modalEmpty" class="hidden text-center py-12">
-                        <div class="mx-auto w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
-                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                        <p class="text-lg font-semibold text-gray-500 dark:text-gray-400 mb-1">Tidak Ada Anomali Data</p>
-                        <p class="text-sm text-gray-400 dark:text-gray-500">Seluruh data prestasi telah memenuhi standar kualitas</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-gray-700 mt-6">
-                <button onclick="closeAnomalyModal()" class="px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-bold transition-colors shadow-sm">
-                    Tutup
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script>
         function openAnomalyModal(type) {
             const modal = document.getElementById('anomalyModal');
@@ -2896,13 +2810,15 @@
 
             // Set title based on type
             const titles = {
+                'sla_breach': 'Pelanggaran SLA (Waktu Proses)',
                 'duplicates': 'Anomali Duplikasi Data',
-                'no_docs': 'Dokumen Tidak Lengkap',
+                'missing_documents': 'Dokumen Tidak Lengkap',
                 'abandoned_drafts': 'Draft Kadaluwarsa'
             };
             const subtitles = {
+                'sla_breach': 'Daftar prestasi yang waktu prosesnya melebihi SLA standar 7 hari kerja',
                 'duplicates': 'Daftar prestasi yang terdeteksi diinput lebih dari satu kali oleh mahasiswa yang sama',
-                'no_docs': 'Daftar prestasi yang belum melampirkan dokumen pendukung wajib',
+                'missing_documents': 'Daftar prestasi yang belum melampirkan dokumen pendukung wajib',
                 'abandoned_drafts': 'Draft prestasi yang tidak diperbarui oleh mahasiswa lebih dari 30 hari'
             };
             modalTitle.textContent = titles[type] || 'Detail Kualitas Data';
@@ -2935,19 +2851,27 @@
                     modalLoading.classList.add('hidden');
                     modalContent.classList.remove('hidden');
 
-                    if (!data || data.length === 0) {
+                    if (!data || !data.data) {
                         modalEmpty.classList.remove('hidden');
                     } else {
-                        modalEmpty.classList.add('hidden');
+                        const anomalyData = data.data;
+                        const items = anomalyData.items || [];
+                        const count = anomalyData.count || 0;
                         
-                        if (type === 'duplicates') {
-                            // Show grouped duplicates
-                            duplicatesContent.classList.remove('hidden');
-                            renderDuplicateGroups(data, duplicatesContent);
+                        if (count === 0 || items.length === 0) {
+                            modalEmpty.classList.remove('hidden');
                         } else {
-                            // Show regular table
-                            regularContent.classList.remove('hidden');
-                            renderRegularTable(data, modalTableBody, type);
+                            modalEmpty.classList.add('hidden');
+                        
+                            if (type === 'duplicates') {
+                                // Show grouped duplicates
+                                duplicatesContent.classList.remove('hidden');
+                                renderDuplicateGroups(items, duplicatesContent);
+                            } else {
+                                // Show regular table
+                                regularContent.classList.remove('hidden');
+                                renderRegularTable(items, modalTableBody, type);
+                            }
                         }
                     }
                 })
@@ -3068,7 +2992,7 @@
             tbody.innerHTML = data.map((item, index) => `
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                     <td class="px-4 py-3 text-sm font-bold text-gray-900 dark:text-gray-100">${index + 1}</td>
-                    <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">${item.nim || '-'}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">${item.student_nim || item.nim || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">${item.student_name || '-'}</td>
                     <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                         <div class="max-w-md truncate" title="${item.achievement_name || '-'}">
@@ -3076,7 +3000,12 @@
                         </div>
                     </td>
                     <td class="px-4 py-3 text-sm text-center text-gray-900 dark:text-gray-100">
-                        ${item.created_at || '-'}
+                        ${type === 'sla_breach' && item.working_days_elapsed 
+                            ? `<span class="px-2 py-1 rounded-full text-xs font-bold ${item.working_days_elapsed > 10 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}">${item.working_days_elapsed} hari kerja</span>`
+                            : type === 'abandoned_drafts' && item.days_abandoned
+                                ? `<span class="px-2 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">${item.days_abandoned} hari</span>`
+                                : (item.submitted_at || item.created_at || '-')
+                        }
                     </td>
                     <td class="px-4 py-3 text-center">
                         <a href="/admin/student-achievements/${item.id}" 
@@ -3135,7 +3064,7 @@
                     showNotification('success', data.message || 'Data berhasil dihapus');
                     
                     // Reload the modal data to reflect changes
-                    const currentType = document.getElementById('anomalyModalTitle')?.dataset.currentType;
+                    const currentType = document.getElementById('modalTitle')?.dataset.currentType;
                     if (currentType) {
                         setTimeout(() => {
                             openAnomalyModal(currentType);
@@ -3398,7 +3327,222 @@
         </div>
     </div>
 
-    {{-- Context-Aware Alert System (Toast + Modal) --}}
-    <x-anomaly-toast :anomalies="$anomalies" :context="$alertContext" />
-    <x-anomaly-notification-modal :anomalies="$anomalies" :context="$alertContext" :globalBreakdown="$globalBreakdown" />
+    <!-- Anomaly Detail Pop-up -->
+    <div id="anomalyPopup" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <div>
+                    <h3 id="popupTitle" class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight"></h3>
+                    <p id="popupSubtitle" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
+                </div>
+                <button onclick="closeAnomalyPopup()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2 transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <!-- Loading State -->
+                <div id="popupLoading" class="text-center py-12">
+                    <svg class="animate-spin h-12 w-12 mx-auto text-blue-600" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-3 text-sm text-gray-500 dark:text-gray-400 font-medium">Memuat data...</p>
+                </div>
+
+                <!-- Content -->
+                <div id="popupContent" class="hidden">
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">No</th>
+                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">NIM</th>
+                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Nama Mahasiswa</th>
+                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Prestasi</th>
+                                    <th class="px-4 py-3 text-center text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Info</th>
+                                    <th class="px-4 py-3 text-center text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="popupTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="popupEmpty" class="hidden text-center py-12">
+                    <div class="mx-auto w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-lg font-semibold text-gray-500 dark:text-gray-400 mb-1">Tidak Ada Data</p>
+                    <p class="text-sm text-gray-400 dark:text-gray-500">Tidak ada prestasi yang terdeteksi untuk kategori ini</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                <button onclick="closeAnomalyPopup()" class="px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-bold transition-colors">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showAnomalyDetail(type, count) {
+            const popup = document.getElementById('anomalyPopup');
+            const title = document.getElementById('popupTitle');
+            const subtitle = document.getElementById('popupSubtitle');
+            const loading = document.getElementById('popupLoading');
+            const content = document.getElementById('popupContent');
+            const empty = document.getElementById('popupEmpty');
+            const tableBody = document.getElementById('popupTableBody');
+
+            const config = {
+                'sla_breach': {
+                    title: 'SLA Breach - Pelanggaran Waktu Proses',
+                    subtitle: 'Daftar prestasi yang waktu prosesnya melebihi SLA standar 7 hari kerja'
+                },
+                'duplicates': {
+                    title: 'Duplikasi Data',
+                    subtitle: 'Daftar prestasi yang terdeteksi diinput lebih dari satu kali oleh mahasiswa yang sama'
+                },
+                'missing_documents': {
+                    title: 'Dokumen Tidak Lengkap',
+                    subtitle: 'Daftar prestasi yang belum melampirkan dokumen pendukung wajib'
+                },
+                'abandoned_drafts': {
+                    title: 'Draft Terbengkalai',
+                    subtitle: 'Draft prestasi yang tidak diperbarui oleh mahasiswa lebih dari 30 hari'
+                }
+            };
+
+            const data = config[type];
+            if (!data) return;
+
+            // Set title and subtitle
+            title.textContent = data.title;
+            subtitle.textContent = data.subtitle;
+
+            // Show popup and loading
+            popup.classList.remove('hidden');
+            loading.classList.remove('hidden');
+            content.classList.add('hidden');
+            empty.classList.add('hidden');
+
+            // Get current period from URL or form
+            const periodSelect = document.querySelector('select[name="period"]');
+            const periodParam = periodSelect ? `?period=${periodSelect.value}` : '';
+
+            // Fetch data
+            fetch(`/admin/api/anomalies/${type}${periodParam}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                    loading.classList.add('hidden');
+                    
+                    const anomalyData = response.data || {};
+                    const items = anomalyData.items || [];
+                    
+                    if (items.length === 0) {
+                        empty.classList.remove('hidden');
+                    } else {
+                        content.classList.remove('hidden');
+                        renderTable(items, tableBody, type);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching anomaly data:', error);
+                    loading.classList.add('hidden');
+                    content.classList.remove('hidden');
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center">
+                                <div class="text-red-600 dark:text-red-400 font-semibold mb-2">Gagal memuat data</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">${error.message}</div>
+                            </td>
+                        </tr>
+                    `;
+                });
+        }
+
+        function renderTable(items, tbody, type) {
+            tbody.innerHTML = items.map((item, index) => {
+                let infoColumn = '';
+                
+                if (type === 'sla_breach' && item.working_days_elapsed) {
+                    const colorClass = item.working_days_elapsed > 10 
+                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
+                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+                    infoColumn = `<span class="px-2 py-1 rounded-full text-xs font-bold ${colorClass}">${item.working_days_elapsed} hari kerja</span>`;
+                } else if (type === 'abandoned_drafts' && item.days_abandoned) {
+                    infoColumn = `<span class="px-2 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">${item.days_abandoned} hari</span>`;
+                } else if (type === 'missing_documents') {
+                    infoColumn = `<span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Tidak ada dokumen</span>`;
+                } else if (type === 'duplicates') {
+                    infoColumn = `<span class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Duplikat</span>`;
+                } else {
+                    infoColumn = item.submitted_at || item.created_at || '-';
+                }
+
+                return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <td class="px-4 py-3 text-sm font-bold text-gray-900 dark:text-gray-100">${index + 1}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">${item.student_nim || item.nim || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">${item.student_name || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                            <div class="max-w-md truncate" title="${item.achievement_name || '-'}">
+                                ${item.achievement_name || '-'}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-center text-gray-900 dark:text-gray-100">
+                            ${infoColumn}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <a href="/admin/student-achievements/${item.id}" 
+                               target="_blank"
+                               class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
+                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                Lihat
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function closeAnomalyPopup() {
+            document.getElementById('anomalyPopup').classList.add('hidden');
+        }
+
+        // Close popup when clicking outside
+        document.getElementById('anomalyPopup')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAnomalyPopup();
+            }
+        });
+
+        // Close popup with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAnomalyPopup();
+            }
+        });
+    </script>
 @endsection
