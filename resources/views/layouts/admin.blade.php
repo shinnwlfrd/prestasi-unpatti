@@ -1,811 +1,555 @@
 <!DOCTYPE html>
 <html lang="id"
     x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarOpen: false, mobileSidebarOpen: false }"
-    x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))"
-    :class="{ 'dark': darkMode }">
+    x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
 
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'Admin') - SIMAPRES</title>
+
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Dark mode script -->
     <script>
         if (localStorage.getItem('darkMode') === 'true') {
             document.documentElement.classList.add('dark');
         }
     </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin') - SIMAPRES</title>
-    <!-- Tailwind CSS CDN - For development only. Consider installing via npm for production -->
+
+    <!-- Admin Color Scheme CSS -->
+    <link rel="stylesheet" href="{{ asset('css/admin-colors.css') }}">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
+
     <style>
         [x-cloak] {
             display: none !important;
         }
 
-        /* Mobile auto-hide navbar */
-        @media (max-width: 1023px) {
-            .mobile-navbar {
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                will-change: transform;
-            }
-            .mobile-navbar.navbar-hidden {
-                transform: translateY(-100%);
-            }
-            .mobile-navbar.navbar-visible {
-                transform: translateY(0);
-            }
+        /* Active Menu Indicator */
+        .menu-active {
+            position: relative;
         }
 
-        /* Desktop Optimizations */
+        .menu-active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: linear-gradient(to bottom, #8b5cf6, #7c3aed);
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* Smooth Transitions */
+        * {
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Background Pattern */
+        .bg-pattern {
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+        }
+
+        .dark .bg-pattern {
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+        }
+
+        /* Dashboard Optimizations */
         @media (min-width: 1024px) {
-            /* Enhanced hover effects */
-            .desktop-card-hover {
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .desktop-card-hover:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            }
-
-            /* Table row hover */
-            .desktop-table-row:hover {
-                background-color: rgba(139, 92, 246, 0.05);
-            }
-
-            /* Smooth scrollbar */
-            .custom-scrollbar::-webkit-scrollbar {
-                width: 10px;
-                height: 10px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.05);
-                border-radius: 5px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-thumb {
-                background: rgba(139, 92, 246, 0.3);
-                border-radius: 5px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: rgba(139, 92, 246, 0.5);
-            }
-
-            /* Dark mode scrollbar */
-            .dark .custom-scrollbar::-webkit-scrollbar-track {
-                background: rgba(255, 255, 255, 0.05);
-            }
-            .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-                background: rgba(139, 92, 246, 0.4);
-            }
-            .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: rgba(139, 92, 246, 0.6);
-            }
-        }
-
-        /* Enhanced Typography */
-        @media (min-width: 1280px) {
-            .desktop-heading-xl {
-                font-size: 2.5rem;
-                line-height: 1.2;
-            }
-            .desktop-heading-lg {
-                font-size: 2rem;
-                line-height: 1.3;
-            }
-        }
-
-        /* ===================================
-           DASHBOARD CARD DESKTOP SCALING
-           =================================== */
-
-        /* Desktop (≥1024px) — Scale up dashboard cards */
-        @media (min-width: 1024px) {
-            /* Dashboard stat cards — bigger padding */
             .dash-card {
-                padding: 1.75rem !important;
-                border-radius: 1rem;
+                padding: 1.5rem;
+                border-radius: 0.75rem;
             }
 
-            /* Dashboard KPI stat value — much bigger numbers */
             .dash-stat-value {
-                font-size: 2.75rem !important;
-                line-height: 1.1;
+                font-size: 2rem;
+                line-height: 1.2;
                 letter-spacing: -0.02em;
+                font-weight: 700;
             }
 
-            /* Dashboard stat label — cleaner & bigger */
             .dash-stat-label {
-                font-size: 0.8125rem !important;
-                letter-spacing: 0.1em;
-                color: #6B7280; /* text-gray-500 */
-                font-weight: 700 !important;
-            }
-            .dark .dash-stat-label {
-                color: #9CA3AF; /* text-gray-400 */
-            }
-
-            /* Dashboard stat sublabel / helper text */
-            .dash-stat-sub {
-                font-size: 0.8125rem !important;
-                color: #6B7280; /* text-gray-500 */
+                font-size: 0.75rem;
+                letter-spacing: 0.025em;
                 font-weight: 500;
             }
-            .dark .dash-stat-sub {
-                color: #9CA3AF; /* text-gray-400 */
-            }
 
-            /* Chart section headings */
-            .dash-chart-title {
-                font-size: 0.9375rem !important;
-                margin-bottom: 1.25rem !important;
-                color: #111827; /* text-gray-900 */
-                font-weight: 800 !important;
-            }
-            .dark .dash-chart-title {
-                color: #F3F4F6; /* text-gray-100 */
-            }
-
-            /* Chart containers — taller */
             .dash-chart-container {
                 height: 20rem !important;
-                min-height: 20rem;
             }
 
-            /* Chart containers large variant */
             .dash-chart-container-lg {
                 height: 24rem !important;
-                min-height: 24rem;
-            }
-
-            /* Warning/alert cards — scale text */
-            .dash-alert-title {
-                font-size: 0.875rem !important;
-            }
-            .dash-alert-text {
-                font-size: 0.8125rem !important;
-            }
-
-            /* Table text inside dashboard */
-            .dash-table th {
-                font-size: 0.8125rem !important;
-                padding-top: 0.875rem !important;
-                padding-bottom: 0.875rem !important;
-            }
-            .dash-table td {
-                font-size: 0.875rem !important;
-                padding-top: 1rem !important;
-                padding-bottom: 1rem !important;
-            }
-
-            /* Ranking list items */
-            .dash-rank-item {
-                padding: 0.625rem 0 !important;
-            }
-            .dash-rank-name {
-                font-size: 0.875rem !important;
-                color: #374151; /* text-gray-700 */
-            }
-            .dark .dash-rank-name {
-                color: #D1D5DB; /* text-gray-300 */
-            }
-            .dash-rank-value {
-                font-size: 0.875rem !important;
-            }
-
-            /* Activity log items */
-            .dash-activity-item {
-                padding: 1.25rem 1.5rem !important;
-            }
-            .dash-activity-user {
-                font-size: 0.9375rem !important;
-            }
-            .dash-activity-desc {
-                font-size: 0.875rem !important;
-                color: #4B5563; /* text-gray-600 */
-            }
-            .dark .dash-activity-desc {
-                color: #9CA3AF; /* text-gray-400 */
-            }
-            .dash-activity-time {
-                font-size: 0.8125rem !important;
-            }
-
-            /* Insight cards */
-            .dash-insight-item {
-                padding: 1.25rem !important;
-            }
-            .dash-insight-badge {
-                font-size: 0.75rem !important;
-                padding: 0.35rem 0.65rem !important;
-            }
-            .dash-insight-text {
-                font-size: 0.875rem !important;
             }
         }
 
-        /* XL Desktop (≥1280px) — Even larger */
         @media (min-width: 1280px) {
             .dash-card {
-                padding: 2rem !important;
-                border-radius: 1.25rem;
+                padding: 1.75rem !important;
             }
 
             .dash-stat-value {
-                font-size: 3.25rem !important;
-            }
-
-            .dash-stat-label {
-                font-size: 0.875rem !important;
-            }
-
-            .dash-stat-sub {
-                font-size: 0.875rem !important;
-            }
-
-            .dash-chart-title {
-                font-size: 1.0625rem !important;
-                margin-bottom: 1.5rem !important;
+                font-size: 2.5rem !important;
             }
 
             .dash-chart-container {
                 height: 22rem !important;
-                min-height: 22rem;
             }
 
             .dash-chart-container-lg {
                 height: 26rem !important;
-                min-height: 26rem;
-            }
-
-            .dash-alert-title {
-                font-size: 0.9375rem !important;
-            }
-            .dash-alert-text {
-                font-size: 0.875rem !important;
-            }
-
-            .dash-table th {
-                font-size: 0.875rem !important;
-            }
-            .dash-table td {
-                font-size: 0.9375rem !important;
-            }
-
-            .dash-rank-name {
-                font-size: 0.9375rem !important;
-            }
-            .dash-rank-value {
-                font-size: 0.9375rem !important;
-            }
-
-            .dash-activity-item {
-                padding: 1.5rem 2rem !important;
-            }
-            .dash-activity-user {
-                font-size: 1.0625rem !important;
-            }
-            .dash-activity-desc {
-                font-size: 0.9375rem !important;
-            }
-
-            .dash-insight-item {
-                padding: 1.5rem !important;
-            }
-            .dash-insight-text {
-                font-size: 0.9375rem !important;
-                line-height: 1.6;
             }
         }
 
-        /* 2XL Desktop (≥1536px) — Max scaling */
-        @media (min-width: 1536px) {
-            .dash-card {
-                padding: 2.5rem !important;
-                border-radius: 1.5rem;
-            }
+        /* Glass Morphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
 
-            .dash-stat-value {
-                font-size: 3.75rem !important;
-            }
+        .dark .glass {
+            background: rgba(31, 41, 55, 0.8);
+        }
 
-            .dash-stat-label {
-                font-size: 0.875rem !important;
-            }
+        /* Hover Effects */
+        .hover-lift {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
 
-            .dash-stat-sub {
-                font-size: 0.875rem !important;
-            }
-
-            .dash-chart-title {
-                font-size: 1.125rem !important;
-                margin-bottom: 1.75rem !important;
-            }
-
-            .dash-chart-container {
-                height: 24rem !important;
-                min-height: 24rem;
-            }
-
-            .dash-chart-container-lg {
-                height: 28rem !important;
-                min-height: 28rem;
-            }
-
-            .dash-rank-name {
-                font-size: 1rem !important;
-            }
-            .dash-rank-value {
-                font-size: 1rem !important;
-            }
+        .hover-lift:hover {
+            transform: translateY(-1px);
         }
     </style>
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen overflow-x-hidden
-             text-sm md:text-base lg:text-[15px] 2xl:text-[17px]">
-    <div class="min-h-screen">
+
+<body class="bg-gray-50 dark:bg-[#0a0a0a] min-h-screen overflow-x-hidden antialiased">
+    <div class="min-h-screen bg-pattern">
         @php
             $user = auth()->user();
             $currentRole = $user ? $user->getCurrentRole() : null;
-            $isPimpinan = $currentRole && $currentRole->role === 'pimpinan';
-            $routePrefix = $isPimpinan ? 'pimpinan' : 'validator';
         @endphp
+
         <!-- Mobile Sidebar Backdrop -->
         <div x-show="mobileSidebarOpen" x-cloak @click="mobileSidebarOpen = false"
-            class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+            x-transition:enter="transition-opacity duration-200" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity duration-150"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"></div>
 
         <!-- Sidebar -->
-        <aside
-            :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-            class="fixed top-0 left-0 h-screen 
-                    w-56 sm:w-60 md:w-64 lg:w-64 xl:w-72 2xl:w-80 
-                    flex flex-col bg-white dark:bg-gray-800 
-                    border-r border-gray-200 dark:border-gray-700 
-                    transition-all duration-300 z-50">
+        <aside :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'" class="fixed top-0 left-0 h-screen w-64 lg:w-64 xl:w-72
+                      flex flex-col bg-white dark:bg-gray-900 
+                      border-r border-gray-200/50 dark:border-gray-800/50
+                      transition-transform duration-200 z-50">
 
-            <div class="p-3.5 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between flex-shrink-0">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-11 h-11 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20 ring-4 ring-purple-500/10">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <!-- Logo -->
+            <div class="p-5 border-b border-gray-100 dark:border-gray-800/50 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-9 h-9 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/20">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                     </div>
-                    <div class="flex flex-col">
-                        <span class="font-black text-xl text-gray-900 dark:text-white leading-none tracking-tight">SIMAPRES</span>
-                        <span class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest mt-1">Admin Panel</span>
-                    </div>
+                    <span class="font-bold text-lg text-gray-900 dark:text-white">SIMAPRES</span>
                 </div>
                 <button @click="mobileSidebarOpen = false"
-                    class="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
+                    class="lg:hidden p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+
+
+            <!-- Navigation -->
+            <nav class="p-4 space-y-2 overflow-y-auto h-[calc(100vh-70px)]">
                 <a href="{{ route('admin.dashboard') }}"
-                    class="group flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Dashboard</span>
+                    <span>Dashboard</span>
                 </a>
 
-                <!-- Validation System -->
-                <div class="pt-6 pb-2">
-                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Verifikasi</p>
+                <div class="pt-3">
+                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Verifikasi</p>
                 </div>
                 <a href="{{ route('admin.university.index') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.university.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.university.*') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Verifikasi Universitas</span>
+                    <span>Verifikasi Universitas</span>
                 </a>
 
-                <!-- Data Management -->
-                <div class="pt-6 pb-2">
-                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Data</p>
+                <div class="pt-3">
+                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Data</p>
                 </div>
                 <a href="{{ route('admin.students') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.students') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.students') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Mahasiswa</span>
+                    <span>Mahasiswa</span>
                 </a>
                 <a href="{{ route('admin.student-achievements') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.student-achievements') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.student-achievements') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Prestasi</span>
+                    <span>Prestasi</span>
                 </a>
                 <a href="{{ route('admin.validation-logs') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.validation-logs') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.validation-logs') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Log Verifikasi</span>
+                    <span>Log Verifikasi</span>
                 </a>
                 <a href="{{ route('admin.users') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.users') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.users') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Users</span>
+                    <span>Users</span>
                 </a>
 
-                <!-- Master Data -->
-                <div class="pt-6 pb-2">
-                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Master Data</p>
+                <div class="pt-3">
+                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Master Data</p>
                 </div>
                 <a href="{{ route('admin.categories.index') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.categories.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.categories.*') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Kategori</span>
+                    <span>Kategori</span>
                 </a>
                 <a href="{{ route('admin.levels.index') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.levels.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.levels.*') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Level</span>
+                    <span>Level</span>
                 </a>
                 <a href="{{ route('admin.periods.index') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.periods.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.periods.*') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Periode</span>
+                    <span>Periode</span>
                 </a>
                 <a href="{{ route('admin.sk.index') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.sk.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.sk.*') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Manajemen SK</span>
+                    <span>Manajemen SK</span>
                 </a>
 
-                <!-- Actions -->
-                <div class="pt-6 pb-2">
-                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Aksi</p>
+                <div class="pt-3">
+                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Aksi</p>
                 </div>
                 <a href="{{ route('admin.submit.create') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('admin.submit.*') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.submit.*') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Ajukan Prestasi</span>
+                    <span>Ajukan Prestasi</span>
                 </a>
 
-                <!-- Profile -->
-                <div class="pt-6 pb-2">
-                    <p class="px-4 text-[15px] font-black text-gray-400 uppercase tracking-[0.2em]">Akun</p>
+                <div class="pt-3">
+                    <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Akun</p>
                 </div>
                 <a href="{{ route('profile') }}"
-                    class="group flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('profile') ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-purple-600 dark:hover:text-purple-400' }}">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('profile') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span class="text-sm lg:text-[20px]">Profil Saya</span>
+                    <span>Profil Saya</span>
                 </a>
             </nav>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 min-w-0 flex flex-col
-            ml-0 
-            lg:ml-64
-            xl:ml-72 
-            2xl:ml-80
-            min-h-screen 
-            overflow-y-auto
-            bg-gray-50 dark:bg-gray-900
-            transition-all duration-300">
-
+        <main class="lg:ml-64 xl:ml-72 min-h-screen transition-all duration-200">
             <!-- Top Bar -->
-            <header id="mobileNavbar"
-                class="mobile-navbar bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 py-3.5 flex justify-between items-center sticky top-0 z-30 ring-1 ring-black/5 dark:ring-white/5 shadow-sm">
-                <div class="w-full px-4 md:px-6 lg:px-8 xl:px-10 flex justify-between items-center">
-                    <div class="flex items-center gap-4">
-                        <button @click="mobileSidebarOpen = !mobileSidebarOpen"
-                            class="lg:hidden p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+            <header class="glass sticky top-0 z-30 border-b border-gray-200/50 dark:border-gray-800/50">
+                <div class="px-4 lg:px-6 py-4 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <button @click="mobileSidebarOpen = true"
+                            class="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                             <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
-                        <h1 class="text-lg lg:text-xl font-black text-gray-900 dark:text-white tracking-tight">
-                            @yield('title', 'Dashboard')</h1>
+                        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">@yield('title', 'Dashboard')
+                        </h1>
                     </div>
-                    <div class="flex items-center gap-2 sm:gap-4">
-                    <button @click="darkMode = !darkMode"
-                        class="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 border border-gray-200 dark:border-gray-600">
-                        <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                        <svg x-show="darkMode" x-cloak class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    </button>
 
-                    <!-- Role Switcher (Inline for top bar) -->
-                    @php
-                        $user = auth()->user();
-                        $activeRoles = $user ? $user->activeRoles()->get() : collect();
-                        $currentRoleId = session('active_role_id');
-                        $currentRole = $currentRoleId ? $activeRoles->firstWhere('id', $currentRoleId) : $activeRoles->first();
-                    @endphp
-                    @if($activeRoles->count() > 1)
-                        <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open" type="button"
-                                class="flex items-center gap-2 px-3 py-2.5 text-xs font-bold bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors border border-purple-100 dark:border-purple-800">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                                <span
-                                    class="hidden sm:inline uppercase tracking-wider">{{ $currentRole ? $currentRole->getRoleDisplayName() : 'Role' }}</span>
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100"
-                                class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-1.5 z-[60] overflow-hidden">
-                                <div class="px-4 py-3 border-b border-gray-50 dark:border-gray-700">
-                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Ganti Peran</p>
-                                </div>
-                                <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                    <div class="flex items-center gap-2">
+                        <!-- Dark Mode Toggle -->
+                        <button @click="darkMode = !darkMode"
+                            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                            <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            <svg x-show="darkMode" x-cloak class="w-5 h-5 text-yellow-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </button>
+
+                        <!-- Role Switcher -->
+                        @php
+                            $user = auth()->user();
+                            $activeRoles = $user ? $user->activeRoles()->get() : collect();
+                            $currentRoleId = session('active_role_id');
+                            $currentRole = $currentRoleId ? $activeRoles->firstWhere('id', $currentRoleId) : $activeRoles->first();
+                        @endphp
+                        @if($activeRoles->count() > 1)
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = !open" type="button"
+                                    class="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    <span
+                                        class="hidden sm:inline">{{ $currentRole ? $currentRole->getRoleDisplayName() : 'Role' }}</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                <div x-show="open" @click.away="open = false" x-cloak
+                                    x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="opacity-0 scale-95"
+                                    x-transition:enter-end="opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="opacity-100 scale-100"
+                                    x-transition:leave-end="opacity-0 scale-95"
+                                    class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                                     @foreach($activeRoles as $role)
-                                        @if($role->id !== $currentRoleId)
-                                            <form method="POST" action="{{ route('role.switch') }}" class="block">
-                                                @csrf
-                                                <input type="hidden" name="role_id" value="{{ $role->id }}">
-                                                <button type="submit"
-                                                    class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
-                                                    <div class="flex items-center space-x-3">
-                                                        <div
-                                                            class="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform group-hover:scale-110">
-                                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                            </svg>
-                                                        </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ $role->getRoleDisplayName() }}</p>
-                                                            @if($role->level !== 'university')
-                                                                <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                                                                    {{ $role->getScopeDescription() }}</p>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </form>
-                                        @endif
+                                        <form method="POST" action="{{ route('role.switch') }}">
+                                            @csrf
+                                            <input type="hidden" name="role_id" value="{{ $role->id }}">
+                                            <button type="submit"
+                                                class="w-full text-left px-4 py-2 text-sm {{ $currentRole && $currentRole->id === $role->id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50' }} transition-colors">
+                                                {{ $role->getRoleDisplayName() }}
+                                            </button>
+                                        </form>
                                     @endforeach
                                 </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
 
-                    <div class="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600">
-                        <div class="flex flex-col items-end">
-                            <span class="text-xs font-bold text-gray-900 dark:text-white leading-none">{{ auth()->user()->name }}</span>
-                            @if(auth()->user()->last_login_method === 'sso')
-                                <span class="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter mt-1">Verified SSO</span>
-                            @endif
-                        </div>
-                        <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-xs ring-2 ring-white dark:ring-gray-800">
-                            {{ substr(auth()->user()->name, 0, 1) }}
+
+                        <!-- User Menu -->
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open" type="button"
+                                class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group">
+                                <div
+                                    class="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm group-hover:shadow-md transition-shadow">
+                                    {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+                                </div>
+                                <div class="hidden md:block text-left">
+                                    <p class="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+                                        {{ Str::limit(auth()->user()->name ?? 'User', 20) }}
+                                    </p>
+                                    @php
+                                        $currentRole = auth()->user()->getCurrentRole();
+                                    @endphp
+                                    @if($currentRole)
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $currentRole->getRoleDisplayName() }}
+                                        </p>
+                                    @endif
+                                </div>
+                                <svg class="hidden md:block w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <div x-show="open" @click.away="open = false" x-cloak
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                                class="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+                                
+                                <!-- User Info Header -->
+                                <div class="px-5 py-4 bg-gradient-to-br from-primary-50 to-indigo-50 dark:from-primary-900/20 dark:to-indigo-900/20 border-b border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md">
+                                            {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                                {{ auth()->user()->name ?? 'User' }}
+                                            </p>
+                                            <p class="text-xs text-gray-600 dark:text-gray-400 truncate">
+                                                {{ auth()->user()->email ?? '' }}
+                                            </p>
+                                            @php
+                                                $currentRole = auth()->user()->getCurrentRole();
+                                            @endphp
+                                            @if($currentRole)
+                                                <span class="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    {{ $currentRole->getRoleDisplayName() }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Menu Items -->
+                                <div class="py-2">
+                                    <a href="{{ route('profile') }}"
+                                        class="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all duration-150 group">
+                                        <div class="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-400 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-all">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-medium group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">Profil Saya</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">Kelola informasi akun</p>
+                                        </div>
+                                        <svg class="w-4 h-4 text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+
+                                <!-- Logout -->
+                                <div class="border-t border-gray-200 dark:border-gray-700 py-2">
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit"
+                                            class="flex items-center gap-3 w-full px-5 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-150 group">
+                                            <div class="w-9 h-9 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center text-red-600 dark:text-red-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 transition-all">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 text-left">
+                                                <p class="font-medium">Keluar</p>
+                                                <p class="text-xs text-red-500 dark:text-red-400">Logout dari sistem</p>
+                                            </div>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <form
-                        action="{{ auth()->user()->last_login_method === 'sso' ? route('sso.logout') : route('logout') }}"
-                        method="POST">
-                        @csrf
-                        <button type="submit"
-                            class="p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 hover:scale-105 border border-red-100 dark:border-red-900/30 group"
-                            title="Logout{{ auth()->user()->last_login_method === 'sso' ? ' (SSO)' : '' }}">
-                            <svg class="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                        </button>
-                    </form>
                 </div>
             </header>
 
             <!-- Page Content -->
-            <div class="flex-1 w-full p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12">
+            <div class="p-4 lg:p-6">
+                @if(session('success'))
+                    <div
+                        class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-sm text-green-800 dark:text-green-200">{{ session('success') }}</p>
+                        </div>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-sm text-red-800 dark:text-red-200">{{ session('error') }}</p>
+                        </div>
+                    </div>
+                @endif
 
                 @yield('content')
             </div>
         </main>
     </div>
 
-    <!-- Toast Notifications -->
-    <x-toast-notification />
-
-    <!-- Show session notifications -->
-    @if(session('success'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                showToast('success', {!! json_encode(session('success')) !!}, 'Berhasil!');
-            });
-        </script>
-    @endif
-
-    @if(session('error'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                showToast('error', {!! json_encode(session('error')) !!}, 'Terjadi Kesalahan!');
-            });
-        </script>
-    @endif
-
-    @if(session('warning'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                showToast('warning', {!! json_encode(session('warning')) !!}, 'Peringatan!');
-            });
-        </script>
-    @endif
-
-    @if(session('info'))
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                showToast('info', {!! json_encode(session('info')) !!}, 'Informasi');
-            });
-        </script>
-    @endif
-
-    @php /** @var \Illuminate\Support\ViewErrorBag $errors */ @endphp
-    @if($errors->any())
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                @foreach($errors->all() as $error)
-                    showToast('error', {!! json_encode($error) !!}, 'Validasi Gagal');
-                @endforeach
-            });
-        </script>
-    @endif
-
-    {{-- Disabled: instant.page prefetch can cause session race conditions on search/filter --}}
-    {{-- <script src="https://instant.page/5.2.0" type="module"
-        integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"></script> --}}
-
-    {{-- Mobile auto-hide navbar script --}}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const navbar = document.getElementById('mobileNavbar');
-        if (!navbar) return;
-
-        let lastScrollY = window.scrollY;
-        let ticking = false;
-        let tapTimer = null;
-        const SCROLL_THRESHOLD = 5;
-        const TOP_ZONE = 100;
-        const TAP_SHOW_DURATION = 3000; // ms to keep navbar visible after tap
-
-        function isMobile() {
-            return window.innerWidth < 1024;
-        }
-
-        function showNavbar() {
-            navbar.classList.remove('navbar-hidden');
-            navbar.classList.add('navbar-visible');
-        }
-
-        function hideNavbar() {
-            // Don't hide if sidebar is open
-            if (document.querySelector('[x-data]') && 
-                document.querySelector('[x-data]').__x &&
-                document.querySelector('[x-data]').__x.$data.mobileSidebarOpen) {
-                return;
-            }
-            navbar.classList.remove('navbar-visible');
-            navbar.classList.add('navbar-hidden');
-        }
-
-        function onScroll() {
-            if (!isMobile()) {
-                // On desktop, always show and remove mobile classes
-                navbar.classList.remove('navbar-hidden', 'navbar-visible');
-                return;
-            }
-
-            const currentScrollY = window.scrollY;
-            const delta = currentScrollY - lastScrollY;
-
-            // Always show at top of page
-            if (currentScrollY <= TOP_ZONE) {
-                showNavbar();
-                lastScrollY = currentScrollY;
-                return;
-            }
-
-            // Only trigger if scroll distance exceeds threshold
-            if (Math.abs(delta) < SCROLL_THRESHOLD) return;
-
-            if (delta < 0) {
-                // Scrolling UP → show navbar
-                showNavbar();
-            } else {
-                // Scrolling DOWN → hide navbar
-                hideNavbar();
-            }
-
-            lastScrollY = currentScrollY;
-        }
-
-        // Scroll handler with requestAnimationFrame for performance
-        window.addEventListener('scroll', function() {
-            if (!ticking) {
-                window.requestAnimationFrame(function() {
-                    onScroll();
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        }, { passive: true });
-
-        // Tap/touch handler — show navbar on screen tap
-        document.addEventListener('touchstart', function(e) {
-            if (!isMobile()) return;
-
-            // Don't interfere with interactive elements
-            const tag = e.target.tagName.toLowerCase();
-            const isInteractive = tag === 'a' || tag === 'button' || tag === 'input' || 
-                                  tag === 'select' || tag === 'textarea' ||
-                                  e.target.closest('a') || e.target.closest('button') || 
-                                  e.target.closest('form');
-
-            showNavbar();
-
-            // If tapping on non-interactive area, auto-hide after delay
-            if (!isInteractive) {
-                clearTimeout(tapTimer);
-                tapTimer = setTimeout(function() {
-                    if (window.scrollY > TOP_ZONE) {
-                        hideNavbar();
-                    }
-                }, TAP_SHOW_DURATION);
-            }
-        }, { passive: true });
-
-        // Reset on resize (e.g. rotating device)
-        window.addEventListener('resize', function() {
-            if (!isMobile()) {
-                navbar.classList.remove('navbar-hidden', 'navbar-visible');
-            }
-        });
-    });
-    </script>
-    
     @stack('scripts')
 </body>
 

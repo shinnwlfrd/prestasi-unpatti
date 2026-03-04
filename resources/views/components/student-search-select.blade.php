@@ -19,7 +19,7 @@
             <input type="text" x-model="searchQuery" @keydown.enter.prevent="searchStudents()"
                 @focus="showDropdown = true" @click.away="showDropdown = false"
                 placeholder="Ketik nama atau NIM mahasiswa lalu tekan Enter..."
-                class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-2xl py-4 px-10 text-base font-medium focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm {{ $error ? 'border-red-500' : '' }}">
+                class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl py-4 px-10 text-base font-medium focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm {{ $error ? 'border-red-500' : '' }}">
             <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

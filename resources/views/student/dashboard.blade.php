@@ -24,7 +24,7 @@
                     <div class="relative">
                         <img src="{{ $student->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($student->name ?? 'M') . '&background=6366f1&color=fff&size=128' }}"
                             alt="Foto Profil"
-                            class="w-28 h-28 rounded-2xl object-cover border-4 border-indigo-100 dark:border-indigo-900/50 shadow-lg">
+                            class="w-28 h-28 rounded-xl object-cover border-4 border-indigo-100 dark:border-indigo-900/50 shadow-lg">
                         <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-800">
                             <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -341,7 +341,7 @@ window.openDocModal = function(saId, eventName, category, level, certificate, do
                     </svg>
                     Sertifikat Utama
                 </h5>
-                <div class="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 group">
+                <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 group">
                     <div class="aspect-[16/9] relative overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
                         ${isImage 
                             ? `<img src="${previewUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`

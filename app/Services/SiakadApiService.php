@@ -27,16 +27,31 @@ class SiakadApiService
         int $pageSize = 15
     ): array {
         try {
+            // Build query parameters
+            $params = [
+                'page' => $page,
+                'page.size' => $pageSize,
+                'sort' => 'nama_mahasiswa',
+            ];
+
+            // Only add search filter if search query is not empty
+            if (!empty(trim($search))) {
+                $params['filter.search'] = trim($search);
+            }
+
+            // Only add prodi filter if provided
+            if (!empty($idProdi)) {
+                $params['filter.id_prodi'] = $idProdi;
+            }
+
+            // Only add fakultas filter if provided
+            if (!empty($idFakultas)) {
+                $params['filter.id_fakultas'] = $idFakultas;
+            }
+
             $response = Http::timeout(10)
                 ->withHeaders($this->getHeaders())
-                ->get("{$this->baseUrl}/mahasiswa", [
-                    'page' => $page,
-                    'page.size' => $pageSize,
-                    'sort' => 'nama_mahasiswa',
-                    'filter.search' => $search,
-                    'filter.id_prodi' => $idProdi,
-                    'filter.id_fakultas' => $idFakultas,
-                ]);
+                ->get("{$this->baseUrl}/mahasiswa", $params);
 
             if ($response->successful()) {
                 return $response->json();

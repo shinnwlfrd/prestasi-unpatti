@@ -69,9 +69,9 @@
 
             // Theme colors based on role
             $themeColor = $isOperator ? 'emerald' : 'purple';
-            $gradientClass = $isOperator ? 'from-emerald-500 to-teal-600 shadow-emerald-500/20 ring-emerald-500/10' : 'from-purple-600 to-indigo-600 shadow-purple-500/20 ring-purple-500/10';
-            $activeLinkClass = $isOperator ? 'bg-emerald-600 shadow-emerald-200' : 'bg-purple-600 shadow-purple-200';
-            $hoverTextClass = $isOperator ? 'hover:text-emerald-600 dark:hover:text-emerald-400 font-bold' : 'hover:text-purple-600 dark:hover:text-purple-400 font-bold';
+            $gradientClass = $isOperator ? 'bg-emerald-600' : 'bg-purple-600';
+            $activeLinkClass = $isOperator ? 'bg-emerald-600 shadow-sm' : 'bg-purple-600 shadow-sm';
+            $hoverTextClass = $isOperator ? 'hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold' : 'hover:text-purple-600 dark:hover:text-purple-400 font-semibold';
             $roleSwitcherBg = $isOperator ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-100 dark:border-purple-800';
 
             $routePrefix = $isOperator ? 'operator' : 'pimpinan';
@@ -92,7 +92,7 @@
                 class="p-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-3">
                     <div
-                        class="w-10 h-10 bg-gradient-to-br {{ $gradientClass }} rounded-xl flex items-center justify-center shadow-lg ring-4">
+                        class="w-10 h-10 {{ $gradientClass }} rounded-xl flex items-center justify-center shadow-sm">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -100,9 +100,9 @@
                     </div>
                     <div class="flex flex-col">
                         <span
-                            class="font-black text-lg text-gray-900 dark:text-white leading-none tracking-tight">SIMAPRES</span>
+                            class="font-bold text-lg text-gray-900 dark:text-white leading-none tracking-tight">SIMAPRES</span>
                         <span
-                            class="text-[10px] font-bold uppercase tracking-widest mt-1 {{ $isOperator ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400' }}">
+                            class="text-[10px] font-bold uppercase tracking-wider mt-1 {{ $isOperator ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400' }}">
                             {{ $isOperator ? 'Operator' : 'Pimpinan' }} Panel
                         </span>
                     </div>
@@ -129,7 +129,7 @@
                 </a>
 
                 <div class="pt-4 pb-1">
-                    <p class="px-3 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                    <p class="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                         Data{{ $isPimpinan ? ' (ReadOnly)' : '' }}</p>
                 </div>
                 <a href="{{ route($routePrefix . '.students.index') }}"
@@ -144,7 +144,7 @@
 
                 @if($isOperator)
                     <div class="pt-4 pb-1">
-                        <p class="px-3 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Verifikasi</p>
+                        <p class="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Verifikasi</p>
                     </div>
                     <a href="{{ route('validator.pending.index') }}"
                         class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('validator.pending.*') ? $activeLinkClass . ' text-white shadow-lg dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 ' . $hoverTextClass }}">
@@ -179,7 +179,7 @@
 
                 @if($isOperator)
                     <div class="pt-4 pb-1">
-                        <p class="px-3 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Aksi</p>
+                        <p class="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Aksi</p>
                     </div>
                     <a href="{{ route('validator.submit.form') }}"
                         class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('validator.submit.*') ? $activeLinkClass . ' text-white shadow-lg dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 ' . $hoverTextClass }}">
@@ -192,7 +192,7 @@
                 @endif
 
                 <div class="pt-4 pb-1">
-                    <p class="px-3 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Akun</p>
+                    <p class="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Akun</p>
                 </div>
                 <a href="{{ route('profile') }}"
                     class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('profile') ? $activeLinkClass . ' text-white shadow-lg dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 ' . $hoverTextClass }}">
@@ -222,7 +222,7 @@
                                     d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
-                        <h1 class="text-lg font-black text-gray-900 dark:text-white tracking-tight">
+                        <h1 class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
                             @yield('title', 'Dashboard')</h1>
                     </div>
 
@@ -265,10 +265,9 @@
                                     x-transition:enter="transition ease-out duration-100"
                                     x-transition:enter-start="transform opacity-0 scale-95"
                                     x-transition:enter-end="transform opacity-100 scale-100"
-                                    class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 py-1.5 z-[60] overflow-hidden">
+                                    class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1.5 z-[60] overflow-hidden">
                                     <div class="px-4 py-3 border-b border-gray-50 dark:border-gray-700">
-                                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">Ganti
-                                            Peran</p>
+                                        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Ganti Peran</p>
                                     </div>
                                     @foreach($activeRoles as $role)
                                         @if($role->id !== $currentRoleId)
@@ -321,7 +320,7 @@
                             method="POST">
                             @csrf
                             <button type="submit"
-                                class="p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 hover:scale-105 border border-red-100 dark:border-red-900/30 group">
+                                class="p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 border border-red-100 dark:border-red-900/30 group">
                                 <svg class="w-5 h-5 transition-transform group-hover:rotate-12" fill="none"
                                     stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -360,8 +359,8 @@
                 @endif
             @endforeach
 
-            @if($errors->any())
-                @foreach($errors->all() as $error)
+            @if(isset($errors) && (is_object($errors) ? $errors->any() : count($errors) > 0))
+                @foreach((is_object($errors) ? $errors->all() : $errors) as $error)
                     showToast('error', '{{ $error }}');
                 @endforeach
             @endif

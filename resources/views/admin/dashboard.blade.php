@@ -173,10 +173,10 @@
         <!-- Header with Period Filter -->
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-1">
             <div>
-                <h1 class="text-2xl lg:text-3xl xl:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
-                    Dashboard Overview</h1>
-                <p class="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1 font-medium">
-                    Pantau statistik dan performa prestasi mahasiswa secara real-time.
+                <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    Dashboard</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Ringkasan data prestasi mahasiswa.
                 </p>
             </div>
 
@@ -184,7 +184,7 @@
                 <!-- Period Filter -->
                 <form method="GET" action="{{ route('admin.dashboard') }}" class="relative group">
                     <div
-                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-purple-500 transition-colors">
+                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500 dark:text-gray-400 group-focus-within:text-purple-500 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
@@ -192,10 +192,10 @@
                         </svg>
                     </div>
                     <select name="period" onchange="this.form.submit()" class="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 
-                                border border-gray-200 dark:border-gray-700 rounded-xl 
-                                text-sm font-bold text-gray-700 dark:text-gray-200 
-                                focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 
-                                shadow-sm transition-all cursor-pointer appearance-none">
+                                border border-gray-200 dark:border-gray-700 rounded-lg 
+                                text-sm font-medium text-gray-700 dark:text-gray-300 
+                                focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 
+                                transition-colors cursor-pointer appearance-none">
                         <option value="all" {{ request('period') === 'all' || (!request('period') && !isset($selectedPeriod)) ? 'selected' : '' }}>
                             Semua Periode Akademik
                         </option>
@@ -217,169 +217,81 @@
         @if($selectedPeriod)
             @if($isActivePeriod)
                 <!-- Active Period Banner -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border-l-4 border-purple-600 shadow-sm">
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div class="flex items-center gap-5">
-                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl px-5 py-4 border border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0"></span>
                             <div>
-                                <div class="flex items-center gap-3 mb-1">
-                                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-purple-600">
-                                        Periode Aktif Saat Ini
-                                    </span>
-                                    <span class="px-2.5 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 text-[9px] font-black rounded-full border border-green-200 dark:border-green-800/50 uppercase tracking-tighter animate-pulse">
-                                        ● Live
-                                    </span>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $selectedPeriod->name }}</h2>
+                                    <span class="px-2 py-0.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full">Aktif</span>
                                 </div>
-                                <h2 class="text-xl lg:text-2xl font-black text-gray-900 dark:text-white leading-tight uppercase tracking-tight">
-                                    {{ $selectedPeriod->name }}
-                                </h2>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Periode berjalan</p>
                             </div>
                         </div>
-
-                        <div class="flex flex-col lg:items-end gap-1.5 lg:pl-10 lg:border-l border-gray-100 dark:border-gray-700">
-                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-0.5">Rentang Waktu Pelaporan</span>
-                            <div class="flex items-center gap-3 font-bold text-gray-700 dark:text-gray-300">
-                                <span class="px-3 py-1 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm">{{ $selectedPeriod->start_date->format('d M Y') }}</span>
-                                <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                                </svg>
-                                <span class="px-3 py-1 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm">{{ $selectedPeriod->end_date->format('d M Y') }}</span>
-                            </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <span>{{ $selectedPeriod->start_date->format('d M Y') }}</span>
+                            <span class="text-gray-300 dark:text-gray-600">→</span>
+                            <span>{{ $selectedPeriod->end_date->format('d M Y') }}</span>
                         </div>
                     </div>
                 </div>
             @else
-                <!-- Inactive Period Banner - Enhanced -->
-                <div class="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-6 border-2 border-slate-200 dark:border-gray-700 shadow-lg relative overflow-hidden">
-                    <!-- Background Pattern -->
-                    <div class="absolute inset-0 opacity-5">
-                        <div class="absolute inset-0" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, currentColor 10px, currentColor 11px);"></div>
-                    </div>
-                    
-                    <div class="relative z-10">
-                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                            <!-- Left Section -->
-                            <div class="flex items-start gap-5">
-                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center bg-slate-200 dark:bg-gray-700 text-slate-600 dark:text-gray-400 shadow-inner">
-                                    <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                    </svg>
+                <!-- Inactive Period Banner -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl px-5 py-4 border border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <span class="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full flex-shrink-0"></span>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $selectedPeriod->name }}</h2>
+                                    <span class="px-2 py-0.5 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium rounded-full">Arsip</span>
                                 </div>
-                                <div>
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-gray-400">
-                                            📦 Arsip Data Periode
-                                        </span>
-                                        <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[9px] font-black rounded-full border border-amber-200 dark:border-amber-800/50 uppercase tracking-tighter">
-                                            🔒 Read Only
-                                        </span>
-                                    </div>
-                                    <h2 class="text-2xl lg:text-3xl font-black text-slate-800 dark:text-gray-200 leading-tight uppercase tracking-tight mb-2">
-                                        {{ $selectedPeriod->name }}
-                                    </h2>
-                                    <p class="text-sm text-slate-600 dark:text-gray-400 font-medium">
-                                        Data historis periode yang telah berakhir - Tidak dapat diubah
-                                    </p>
-                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Data dikunci — hanya untuk pelaporan</p>
                             </div>
-
-                            <!-- Right Section -->
-                            <div class="flex flex-col gap-4 lg:pl-10 lg:border-l-2 border-slate-300 dark:border-gray-700">
-                                <!-- Date Range -->
-                                <div>
-                                    <span class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest block mb-2">
-                                        📅 Rentang Waktu Periode
-                                    </span>
-                                    <div class="flex items-center gap-3 font-bold text-slate-700 dark:text-gray-300">
-                                        <span class="px-4 py-2 bg-white dark:bg-gray-800 rounded-xl text-sm shadow-sm border border-slate-200 dark:border-gray-700">
-                                            {{ $selectedPeriod->start_date->format('d M Y') }}
-                                        </span>
-                                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                                        </svg>
-                                        <span class="px-4 py-2 bg-white dark:bg-gray-800 rounded-xl text-sm shadow-sm border border-slate-200 dark:border-gray-700">
-                                            {{ $selectedPeriod->end_date->format('d M Y') }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <!-- Archive Info -->
-                                <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-gray-400 bg-white/50 dark:bg-gray-800/50 px-3 py-2 rounded-lg border border-slate-200 dark:border-gray-700">
-                                    <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                                    </svg>
-                                    <span class="font-semibold">Data tersimpan untuk keperluan pelaporan dan analisis historis</span>
-                                </div>
-                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <span>{{ $selectedPeriod->start_date->format('d M Y') }}</span>
+                            <span class="text-gray-300 dark:text-gray-600">→</span>
+                            <span>{{ $selectedPeriod->end_date->format('d M Y') }}</span>
                         </div>
                     </div>
                 </div>
             @endif
         @else
-            <div
-                class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 shadow-xl shadow-blue-500/20 text-white relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                <div class="relative z-10 flex items-center gap-6">
-                    <div
-                        class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
-                        <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+            <div class="bg-white dark:bg-gray-800 rounded-xl px-5 py-4 border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xl lg:text-2xl font-black tracking-tight mb-1">Ringkasan Data Global</h3>
-                        <p class="text-blue-100 text-sm font-medium">Menampilkan agregasi data dari seluruh periode akademik
-                            yang tercatat dalam sistem.</p>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ringkasan Data Global</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Agregasi data dari seluruh periode akademik</p>
                     </div>
                 </div>
             </div>
         @endif
 
         @if($isInactivePeriod)
-            <!-- HEADER SECTION - ARCHIVED PERIOD SUMMARY -->
-            <div class="relative mb-8 pt-4">
-                <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
-                </div>
-                <div class="relative flex justify-start">
-                    <span class="pr-6 bg-gray-50 dark:bg-gray-900 text-sm font-black text-gray-500 dark:text-gray-400 uppercase tracking-[0.3em] flex items-center gap-3">
-                        <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                        </svg>
-                        Ringkasan Final Arsip
-                    </span>
-                </div>
-            </div>
+            <!-- Section Heading -->
+            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-2">Ringkasan Final Arsip</h3>
 
             <!-- BARIS 1 – RINGKASAN AKHIR PERIODE (4 CARD) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Card 1 – Total Prestasi Final -->
-                <div class="dash-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
-                    <div class="absolute -right-6 -bottom-6 text-emerald-500/10 transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500">
-                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                            <path fill-rule="evenodd"
-                                d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-2 mb-3">
-                            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Prestasi Final</p>
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
                         </div>
-                        <p class="text-4xl font-black text-emerald-600 tracking-tight mb-2">{{ number_format($stats['achievements']) }}</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Prestasi Final</p>
+                    </div>
+                    <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight mb-2">{{ number_format($stats['achievements']) }}</p>
                         {{-- Period Comparison Indicator --}}
                         @if(isset($archivedStats['period_growth']) && $archivedStats['period_growth'] !== null)
                             @php $growth = $archivedStats['period_growth']; @endphp
@@ -395,7 +307,7 @@
                                 </div>
                             @endif
                         @elseif(isset($archivedStats['previous_period']) && $archivedStats['previous_period'] === null)
-                            <div class="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-gray-700/30 px-2.5 py-1.5 rounded-lg border border-gray-100 dark:border-gray-700 mb-2">
+                            <div class="flex items-center gap-1.5 text-xs font-medium text-gray-400 bg-gray-50 dark:bg-gray-700/30 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 mb-2">
                                 <span>—</span>
                                 <span>Tidak ada periode sebelumnya</span>
                             </div>
@@ -408,7 +320,7 @@
                 </div>
 
                 <!-- Card 2 – Persentase Nasional & Internasional -->
-                <div class="dash-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                     <div class="absolute -right-6 -bottom-6 text-purple-500/10 transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500">
                         <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
@@ -442,7 +354,7 @@
                 </div>
 
                 <!-- Card 3 – Fakultas Aktif Berprestasi -->
-                <div class="dash-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                     <div class="absolute -right-6 -bottom-6 text-blue-500/10 transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500">
                         <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16l7-2 7 2z" />
@@ -470,13 +382,13 @@
                                 @endphp
                                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-1000 shadow-[0_0_8px_rgba(59,130,246,0.5)]" style="width: {{ $percentage }}%"></div>
                             </div>
-                            <p class="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tighter">{{ round($percentage) }}% Fakultas Berkontribusi</p>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-tighter">{{ round($percentage) }}% Fakultas Berkontribusi</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Card 4 – Rata-rata Waktu Validasi (Final) -->
-                <div class="dash-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                     <div class="absolute -right-6 -bottom-6 text-amber-500/10 transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500">
                         <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
@@ -505,38 +417,38 @@
                             <!-- BARIS 2 – DISTRIBUSI HASIL (3 CARD) -->
                             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-6 mt-6">
                                 <!-- Card 5 – Distribusi Tingkat -->
-                                <div class="lg:col-span-4 dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
-                                    <h3 class="dash-chart-title text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Distribusi Tingkat</h3>
-                                    <div class="dash-chart-container h-64 relative">
+                                <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Distribusi Tingkat</h3>
+                                    <div class="h-64 relative">
                                         <canvas id="archivedLevelChart"></canvas>
                                     </div>
                                 </div>
 
                                 <!-- Card 6 – Distribusi Kategori -->
-                                <div class="lg:col-span-4 dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
-                                    <h3 class="dash-chart-title text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Distribusi Kategori</h3>
-                                    <div class="dash-chart-container h-64 relative">
+                                <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Distribusi Kategori</h3>
+                                    <div class="h-64 relative">
                                         <canvas id="archivedCategoryChart"></canvas>
                                     </div>
                                 </div>
 
                                 <!-- Card 7 – Status Prestasi (Final) -->
-                                <div class="lg:col-span-4 dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
-                                    <h3 class="dash-chart-title text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Status Prestasi (Final)</h3>
-                                    <div class="dash-chart-container h-64 relative">
+                                <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Status Prestasi (Final)</h3>
+                                    <div class="h-64 relative">
                                         <canvas id="archivedStatusChart"></canvas>
                                     </div>
                                     <div class="mt-5 flex justify-center gap-6">
                                         <div class="text-center">
-                                            <p class="dash-stat-sub text-[10px] text-gray-400 font-bold uppercase">Disetujui</p>
+                                            <p class="text-[10px] text-gray-400 font-bold uppercase">Disetujui</p>
                                             <p class="text-xl lg:text-2xl font-black text-emerald-600">{{ $stats['approved'] }}</p>
                                         </div>
                                         <div class="text-center">
-                                            <p class="dash-stat-sub text-[10px] text-gray-400 font-bold uppercase">Ditolak</p>
+                                            <p class="text-[10px] text-gray-400 font-bold uppercase">Ditolak</p>
                                             <p class="text-xl lg:text-2xl font-black text-red-600">{{ $stats['total_rejected'] }}</p>
                                         </div>
                                         <div class="text-center">
-                                            <p class="dash-stat-sub text-[10px] text-gray-400 font-bold uppercase">Dibatalkan</p>
+                                            <p class="text-[10px] text-gray-400 font-bold uppercase">Dibatalkan</p>
                                             <p class="text-xl lg:text-2xl font-black text-amber-600">{{ $archivedStats['expired_count'] ?? 0 }}</p>
                                         </div>
                                     </div>
@@ -546,22 +458,22 @@
                             <!-- BARIS 3 – PERBANDINGAN INTERNAL (3 CARD) -->
                             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
                                 <!-- Card 8 – Prestasi per Fakultas -->
-                                <div class="lg:col-span-6 dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
-                                    <h3 class="dash-chart-title text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Prestasi per Fakultas</h3>
+                                <div class="lg:col-span-6 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Prestasi per Fakultas</h3>
                                     <div class="dash-chart-container-lg h-80 relative">
                                         <canvas id="archivedFacultyChart"></canvas>
                                     </div>
                                 </div>
 
                                 <!-- Card 9 – Prestasi per Program Studi -->
-                                <div class="lg:col-span-3 dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow flex flex-col">
-                                    <h3 class="dash-chart-title text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Top Program Studi</h3>
+                                <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow flex flex-col">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Top Program Studi</h3>
                                     <div class="space-y-4 lg:space-y-5 flex-1">
                                         @foreach($topProgramStudies->take(6) as $prodi)
                                             <div>
                                                 <div class="flex justify-between items-center mb-1.5">
-                                                    <span class="dash-rank-name text-xs font-bold text-gray-700 dark:text-gray-300 truncate w-40">{{ $prodi->prodi }}</span>
-                                                    <span class="dash-rank-value text-xs font-black text-blue-600">{{ $prodi->total }}</span>
+                                                    <span class="text-xs font-bold text-gray-700 dark:text-gray-300 truncate w-40">{{ $prodi->prodi }}</span>
+                                                    <span class="text-xs font-black text-blue-600">{{ $prodi->total }}</span>
                                                 </div>
                                                 <div class="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                                                     <div class="bg-blue-500 h-full" style="width: {{ ($prodi->total / $topProgramStudies->max('total')) * 100 }}%"></div>
@@ -572,8 +484,8 @@
                                 </div>
 
                                 <!-- Card 10 – Rasio Prestasi per Mahasiswa -->
-                                <div class="lg:col-span-3 dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
-                                    <h3 class="dash-chart-title text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Rasio per Mahasiswa (%)</h3>
+                                <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Rasio per Mahasiswa (%)</h3>
                                     <div class="dash-chart-container-lg h-80 relative">
                                         <canvas id="archivedRatioChart"></canvas>
                                     </div>
@@ -583,8 +495,8 @@
                             <!-- BARIS 4 – EVALUASI & KUALITAS DATA (2 CARD) -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <!-- Card 11 – Temuan & Catatan Evaluasi -->
-                                <div class="dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
-                                    <h3 class="dash-chart-title text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
                                         <svg class="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
                                         Temuan & Catatan Evaluasi
                                     </h3>
@@ -592,36 +504,36 @@
                                         @php
                                             $inactiveFaculties = $archivedStats['total_faculties'] - $archivedStats['active_faculties'];
                                         @endphp
-                                        <li class="dash-insight-item flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg">
-                                            <span class="dash-insight-badge p-1 bg-red-100 dark:bg-red-800 text-red-600 dark:text-red-300 rounded text-[10px] uppercase font-bold">Insight</span>
-                                            <span class="dash-insight-text text-xs text-red-800 dark:text-red-300">Terdapat {{ $inactiveFaculties }} fakultas yang tidak mencatatkan prestasi pada periode ini.</span>
+                                        <li class="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                                            <span class="p-1 bg-red-100 dark:bg-red-800 text-red-600 dark:text-red-300 rounded text-[10px] uppercase font-bold">Insight</span>
+                                            <span class="text-xs text-red-800 dark:text-red-300">Terdapat {{ $inactiveFaculties }} fakultas yang tidak mencatatkan prestasi pada periode ini.</span>
                                         </li>
-                                        <li class="dash-insight-item flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
-                                            <span class="dash-insight-badge p-1 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded text-[10px] uppercase font-bold">Insight</span>
-                                            <span class="dash-insight-text text-xs text-blue-800 dark:text-blue-300">Kategori {{ $categoryDistribution->sortByDesc('total')->first()->category ?? 'Utama' }} mendominasi {{ round(($categoryDistribution->max('total') / ($stats['achievements'] ?: 1)) * 100) }}% capaian data.</span>
+                                        <li class="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
+                                            <span class="p-1 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded text-[10px] uppercase font-bold">Insight</span>
+                                            <span class="text-xs text-blue-800 dark:text-blue-300">Kategori {{ $categoryDistribution->sortByDesc('total')->first()->category ?? 'Utama' }} mendominasi {{ round(($categoryDistribution->max('total') / ($stats['achievements'] ?: 1)) * 100) }}% capaian data.</span>
                                         </li>
-                                        <li class="dash-insight-item flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg">
-                                            <span class="dash-insight-badge p-1 bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-300 rounded text-[10px] uppercase font-bold">Audit</span>
-                                            <span class="dash-insight-text text-xs text-amber-800 dark:text-amber-300">Rasio penolakan data sebesar {{ round(($stats['total_rejected'] / ($stats['achievements'] ?: 1)) * 100) }}%, perlu review pedoman pengajuan.</span>
+                                        <li class="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg">
+                                            <span class="p-1 bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-300 rounded text-[10px] uppercase font-bold">Audit</span>
+                                            <span class="text-xs text-amber-800 dark:text-amber-300">Rasio penolakan data sebesar {{ round(($stats['total_rejected'] / ($stats['achievements'] ?: 1)) * 100) }}%, perlu review pedoman pengajuan.</span>
                                         </li>
                                     </ul>
                                     <div class="mt-6 p-4 lg:p-5 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-xl">
-                                        <p class="dash-stat-sub text-[10px] text-gray-400 font-bold uppercase mb-2">Bahan Rapat Evaluasi</p>
-                                        <p class="dash-insight-text text-xs text-gray-500 italic">"Prioritaskan peningkatan partisipasi pada fakultas non-aktif dan standarisasi dokumen pendukung untuk menekan angka penolakan."</p>
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase mb-2">Bahan Rapat Evaluasi</p>
+                                        <p class="text-xs text-gray-500 italic">"Prioritaskan peningkatan partisipasi pada fakultas non-aktif dan standarisasi dokumen pendukung untuk menekan angka penolakan."</p>
                                     </div>
                                 </div>
 
                                 <!-- Card 12 – Ringkasan Data Ditolak -->
-                                <div class="dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow flex flex-col">
-                                    <h3 class="dash-chart-title text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Ringkasan Data Ditolak</h3>
+                                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow flex flex-col">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Ringkasan Data Ditolak</h3>
                                     <div class="flex-1 max-h-[400px] overflow-auto custom-scrollbar pr-2">
                                         <div class="overflow-x-auto custom-scrollbar">
-                                            <table class="dash-table w-full text-left min-w-[600px]">
+                                            <table class="w-full text-left min-w-[600px]">
                                                 <thead class="sticky top-0 bg-white dark:bg-gray-800 z-10">
                                                     <tr>
-                                                        <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fakultas</th>
-                                                        <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Ditolak</th>
-                                                        <th class="pb-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Failure Rate</th>
+                                                        <th class="pb-3 text-xs font-medium text-gray-400 uppercase tracking-widest">Fakultas</th>
+                                                        <th class="pb-3 text-xs font-medium text-gray-400 uppercase tracking-widest text-center">Ditolak</th>
+                                                        <th class="pb-3 text-xs font-medium text-gray-400 uppercase tracking-widest text-right">Failure Rate</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -645,7 +557,7 @@
                             <div class="mt-6 lg:col-span-12">
                             <!-- BARIS 5 – ARSIP & LAPORAN -->
                             <div class="mt-8 lg:col-span-12">
-                                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-2xl overflow-hidden relative group">
+                                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden relative group">
                                     <!-- Decorative Elements -->
                                     <div class="absolute top-0 right-0 w-96 h-96 bg-gray-50 dark:bg-gray-900/40 rounded-full -mr-48 -mt-48 transition-transform group-hover:scale-110 duration-700"></div>
                                     <div class="absolute bottom-0 left-0 w-64 h-64 bg-emerald-50 dark:bg-emerald-900/10 rounded-full -ml-32 -mb-32 transition-transform group-hover:scale-110 duration-700"></div>
@@ -754,7 +666,7 @@
                         <!-- BARIS 1 – STATUS SISTEM SAAT INI (5 CARD) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                             <!-- Card 1 – Total Pengajuan -->
-                            <div class="dash-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                                 <div class="absolute -right-4 -bottom-4 text-gray-500/5 transition-transform group-hover:scale-110 duration-500">
                                     <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z" /></svg>
                                 </div>
@@ -770,7 +682,7 @@
 
                             <!-- Card 2 – Menunggu Validasi -->
                             @php $isOverThreshold = $stats['pending'] > 20; @endphp
-                            <div class="dash-card {{ $isOverThreshold ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700' }} rounded-2xl p-6 border shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                            <div class="{{ $isOverThreshold ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700' }} rounded-2xl p-6 border shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                                 <div class="absolute -right-4 -bottom-4 text-amber-500/5 transition-transform group-hover:scale-110 duration-500">
                                     <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" /></svg>
                                 </div>
@@ -792,7 +704,7 @@
                             </div>
 
                             <!-- Card 3 – Disetujui -->
-                            <div class="dash-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                                 <div class="absolute -right-4 -bottom-4 text-emerald-500/5 transition-transform group-hover:scale-110 duration-500">
                                     <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" /></svg>
                                 </div>
@@ -804,7 +716,7 @@
                             </div>
 
                             <!-- Card 4 – Ditolak -->
-                            <div class="dash-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                                 <div class="absolute -right-4 -bottom-4 text-red-500/5 transition-transform group-hover:scale-110 duration-500">
                                     <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>
                                 </div>
@@ -816,7 +728,7 @@
                             </div>
 
                             <!-- Card 5 – Rata-rata Waktu Validasi -->
-                            <div class="dash-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                                 <div class="absolute -right-4 -bottom-4 text-purple-500/5 transition-transform group-hover:scale-110 duration-500">
                                     <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M11 9.16V2a1 1 0 0 0-2 0v7.26l-3.38 3.38a1 1 0 1 0 1.41 1.41L10 11.41l2.97 2.97a1 1 0 0 0 1.41-1.41L11 9.16z" /></svg>
                                 </div>
@@ -834,7 +746,7 @@
                         <!-- BARIS 2 – DISTRIBUSI PROSES (3 CARD) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 mt-8">
                             <!-- Card 6 – Status Pengajuan -->
-                            <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
                                 <div class="flex items-center justify-between mb-8">
                                     <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Status Pengajuan</h3>
                                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -847,7 +759,7 @@
                             </div>
 
                             <!-- Card 7 – Distribusi Tingkat -->
-                            <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
                                 <div class="flex items-center justify-between mb-8">
                                     <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Tingkat Prestasi</h3>
                                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -860,7 +772,7 @@
                             </div>
 
                             <!-- Card 8 – Distribusi Kategori -->
-                            <div class="sm:col-span-2 lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <div class="sm:col-span-2 lg:col-span-4 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
                                 <div class="flex items-center justify-between mb-8">
                                     <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Top Kategori</h3>
                                     <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -876,7 +788,7 @@
                         <!-- BARIS 3 – MONITORING UNIT (3 CARD) -->
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6 mt-8">
                             <!-- Card 9 – Backlog Validasi per Fakultas -->
-                            <div class="md:col-span-2 xl:col-span-7 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <div class="md:col-span-2 xl:col-span-7 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
                                 <div class="flex items-center justify-between mb-8 px-1">
                                     <div>
                                         <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Backlog per Fakultas</h3>
@@ -892,7 +804,7 @@
                             </div>
 
                             <!-- Card 11 – Fakultas Paling Aktif -->
-                            <div class="xl:col-span-5 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <div class="xl:col-span-5 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
                                 <div class="flex items-center justify-between mb-6">
                                     <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Fakultas Teraktif</h3>
                                     <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
@@ -910,7 +822,7 @@
                                                 </div>
                                                 <span class="text-xs font-black text-blue-600 dark:text-blue-400">{{ number_format($f->total) }}</span>
                                             </div>
-                                            <div class="h-1.5 w-full bg-gray-50 dark:bg-gray-700/50 rounded-full overflow-hidden border border-gray-100 dark:border-gray-700">
+                                            <div class="h-1.5 w-full bg-gray-50 dark:bg-gray-700/50 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700">
                                                 <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)]" style="width: {{ ($f->total / $maxFacultyTotal) * 100 }}%"></div>
                                             </div>
                                         </div>
@@ -919,69 +831,75 @@
                             </div>
                         </div>
 
-                        <!-- BARIS 4 – RISIKO & KUALITAS DATA -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
-                            <!-- Card 12 – Peringatan Sistem -->
-                            <div class="dash-card bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
-                                <h3 class="dash-chart-title text-xs font-bold text-gray-900 dark:text-white uppercase mb-6 tracking-widest">Peringatan Sistem</h3>
-                                <div class="space-y-3">
-                                    @if(($anomalies['sla_breach']['count'] ?? 0) > 0)
-                                        <div class="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl">
-                                            <div class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                            </div>
-                                            <div class="flex-1">
-                                                <p class="dash-alert-title text-[11px] font-black text-red-800 dark:text-red-300">SLA BREACH ALERT</p>
-                                                <p class="dash-alert-text text-[10px] text-red-600 dark:text-red-400">{{ $anomalies['sla_breach']['count'] ?? 0 }} pengajuan menunggu validasi lebih dari 7 hari.</p>
-                                            </div>
-                                        </div>
-                                    @endif
+                        <!-- BARIS 4 – KUALITAS DATA & ANTREAN -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mt-6">
+                            <!-- Card – Kualitas Data (Anomali) -->
+                            <div class="lg:col-span-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
+                                <div class="mb-6">
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Kualitas Data</h3>
+                                    <p class="text-[10px] text-gray-500 mt-1">Audit anomali dan keaslian data</p>
+                                </div>
 
-                                    @if(($anomalies['abandoned_drafts']['count'] ?? 0) > 0)
-                                        <div class="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 rounded-xl">
-                                            <div class="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                            </div>
-                                            <div class="flex-1">
-                                                <p class="dash-alert-title text-[11px] font-black text-orange-800 dark:text-orange-300">DRAFT TERBENGKALAI</p>
-                                                <p class="dash-alert-text text-[10px] text-orange-600 dark:text-orange-400">{{ $anomalies['abandoned_drafts']['count'] ?? 0 }} draft tidak diupdate lebih dari 30 hari.</p>
-                                            </div>
-                                            <a href="{{ route('admin.student-achievements', ['status' => 'draft', 'abandoned' => 1]) }}" 
-                                               class="px-2.5 py-1 bg-orange-100 dark:bg-orange-800 hover:bg-orange-200 dark:hover:bg-orange-700 text-orange-700 dark:text-orange-200 text-[9px] font-bold rounded-lg transition-colors whitespace-nowrap">
-                                                Lihat Data
-                                            </a>
-                                        </div>
-                                    @endif
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-                                    @php $inactiveFaculties = $facultyComparison->where('total', 0)->count(); @endphp
-                                    @if($inactiveFaculties > 0)
-                                        <div class="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-xl">
-                                            <div class="p-2 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            </div>
-                                            <div class="flex-1">
-                                                <p class="dash-alert-title text-[11px] font-black text-amber-800 dark:text-amber-300">PARTISIPASI RENDAH</p>
-                                                <p class="dash-alert-text text-[10px] text-amber-600 dark:text-amber-400">{{ $inactiveFaculties }} fakultas belum mencatat prestasi periode ini.</p>
-                                            </div>
+                                    <!-- Duplikasi -->
+                                    <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-xs font-semibold text-red-800 dark:text-red-300">Duplikasi</span>
+                                            <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                            </svg>
                                         </div>
-                                    @endif
+                                        <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['duplicates']['count'] ?? 0 }}</div>
+                                        <button onclick="showAnomalyDetail('duplicates', {{ $anomalies['duplicates']['count'] ?? 0 }})" 
+                                           class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider">
+                                            Detail
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
 
-                                    @if(($anomalies['sla_breach']['count'] ?? 0) == 0 && ($anomalies['abandoned_drafts']['count'] ?? 0) == 0 && $inactiveFaculties == 0)
-                                        <div class="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 rounded-xl">
-                                            <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                            </div>
-                                            <div class="flex-1">
-                                                <p class="dash-alert-title text-[11px] font-black text-emerald-800 dark:text-emerald-300">SISTEM SEHAT</p>
-                                                <p class="dash-alert-text text-[10px] text-emerald-600 dark:text-emerald-400">Tidak ada anomali atau data bermasalah terdeteksi.</p>
-                                            </div>
+                                    <!-- Tanpa Dokumen -->
+                                    <div class="flex flex-col p-4 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/20 hover:shadow-md transition-shadow">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-xs font-semibold text-amber-800 dark:text-amber-300">Tanpa Dokumen</span>
+                                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
                                         </div>
-                                    @endif
+                                        <div class="text-2xl font-black text-amber-700 dark:text-amber-300 mb-2">{{ $anomalies['missing_documents']['count'] ?? 0 }}</div>
+                                        <button onclick="showAnomalyDetail('missing_documents', {{ $anomalies['missing_documents']['count'] ?? 0 }})" 
+                                           class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline uppercase tracking-wider">
+                                            Detail
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Draft -->
+                                    <div class="flex flex-col p-4 rounded-lg bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/20 hover:shadow-md transition-shadow">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-xs font-semibold text-purple-800 dark:text-purple-300">Draft</span>
+                                            <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="text-2xl font-black text-purple-700 dark:text-purple-300 mb-2">{{ $anomalies['abandoned_drafts']['count'] ?? 0 }}</div>
+                                        <button onclick="showAnomalyDetail('abandoned_drafts', {{ $anomalies['abandoned_drafts']['count'] ?? 0 }})" 
+                                           class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline uppercase tracking-wider">
+                                            Detail
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Card 13 – Antrean Pengajuan Kritis -->
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                            <!-- Card – Antrean Pengajuan Kritis -->
+                            <div class="lg:col-span-7 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden group">
                                 <div class="flex items-center justify-between mb-8">
                                     <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Antrean Terlama</h3>
                                     <div class="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center">
@@ -993,11 +911,11 @@
                                 <div class="sm:hidden space-y-3">
                                     @forelse($activeStats['critical_queue'] as $ach)
                                         @php $days = $ach->waiting_days; @endphp
-                                        <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                                        <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700">
                                             <div class="flex-1 min-w-0">
                                                 <p class="text-xs font-black text-gray-900 dark:text-white truncate">{{ $ach->student->name }}</p>
                                                 <p class="text-[10px] text-gray-500 font-medium truncate mt-0.5">{{ $ach->event_name }}</p>
-                                                <span class="inline-block mt-2 text-[9px] font-black text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full border border-gray-100 dark:border-gray-700">{{ $ach->student->faculty }}</span>
+                                                <span class="inline-block mt-2 text-[9px] font-black text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-0.5 rounded-full border border-gray-200 dark:border-gray-700">{{ $ach->student->faculty }}</span>
                                             </div>
                                             <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
                                                 <span class="px-3 py-1 {{ $days > 7 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-amber-50 text-amber-600 border-amber-100' }} border text-[10px] font-black rounded-lg">
@@ -1062,7 +980,7 @@
 
                             <!-- Row 6: ACTIVE PERIOD REPORT EXPORT -->
                             <div class="mt-8">
-                                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-2xl overflow-hidden relative group">
+                                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden relative group">
                                     <!-- Decorative Elements -->
                                     <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-50 dark:bg-emerald-900/10 rounded-full -mr-48 -mt-48 transition-transform group-hover:scale-110 duration-700"></div>
                                     <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-50 dark:bg-blue-900/10 rounded-full -ml-32 -mb-32 transition-transform group-hover:scale-110 duration-700"></div>
@@ -2119,7 +2037,7 @@
 
                             <!-- Row 6: GLOBAL REPORT EXPORT -->
                             <div class="mt-8">
-                                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-2xl overflow-hidden relative group">
+                                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden relative group">
                                     <!-- Decorative Elements -->
                                     <div class="absolute top-0 right-0 w-96 h-96 bg-blue-50 dark:bg-blue-900/10 rounded-full -mr-48 -mt-48 transition-transform group-hover:scale-110 duration-700"></div>
                                     <div class="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/10 rounded-full -ml-32 -mb-32 transition-transform group-hover:scale-110 duration-700"></div>
@@ -3327,222 +3245,7 @@
         </div>
     </div>
 
-    <!-- Anomaly Detail Pop-up -->
-    <div id="anomalyPopup" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
-            <!-- Header -->
-            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <div>
-                    <h3 id="popupTitle" class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight"></h3>
-                    <p id="popupSubtitle" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
-                </div>
-                <button onclick="closeAnomalyPopup()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2 transition-all">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Body -->
-            <div class="flex-1 overflow-y-auto p-6">
-                <!-- Loading State -->
-                <div id="popupLoading" class="text-center py-12">
-                    <svg class="animate-spin h-12 w-12 mx-auto text-blue-600" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p class="mt-3 text-sm text-gray-500 dark:text-gray-400 font-medium">Memuat data...</p>
-                </div>
-
-                <!-- Content -->
-                <div id="popupContent" class="hidden">
-                    <!-- Table -->
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-900/50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">No</th>
-                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">NIM</th>
-                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Nama Mahasiswa</th>
-                                    <th class="px-4 py-3 text-left text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Prestasi</th>
-                                    <th class="px-4 py-3 text-center text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Info</th>
-                                    <th class="px-4 py-3 text-center text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="popupTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <!-- Data will be inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Empty State -->
-                <div id="popupEmpty" class="hidden text-center py-12">
-                    <div class="mx-auto w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
-                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <p class="text-lg font-semibold text-gray-500 dark:text-gray-400 mb-1">Tidak Ada Data</p>
-                    <p class="text-sm text-gray-400 dark:text-gray-500">Tidak ada prestasi yang terdeteksi untuk kategori ini</p>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-                <button onclick="closeAnomalyPopup()" class="px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-bold transition-colors">
-                    Tutup
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function showAnomalyDetail(type, count) {
-            const popup = document.getElementById('anomalyPopup');
-            const title = document.getElementById('popupTitle');
-            const subtitle = document.getElementById('popupSubtitle');
-            const loading = document.getElementById('popupLoading');
-            const content = document.getElementById('popupContent');
-            const empty = document.getElementById('popupEmpty');
-            const tableBody = document.getElementById('popupTableBody');
-
-            const config = {
-                'sla_breach': {
-                    title: 'SLA Breach - Pelanggaran Waktu Proses',
-                    subtitle: 'Daftar prestasi yang waktu prosesnya melebihi SLA standar 7 hari kerja'
-                },
-                'duplicates': {
-                    title: 'Duplikasi Data',
-                    subtitle: 'Daftar prestasi yang terdeteksi diinput lebih dari satu kali oleh mahasiswa yang sama'
-                },
-                'missing_documents': {
-                    title: 'Dokumen Tidak Lengkap',
-                    subtitle: 'Daftar prestasi yang belum melampirkan dokumen pendukung wajib'
-                },
-                'abandoned_drafts': {
-                    title: 'Draft Terbengkalai',
-                    subtitle: 'Draft prestasi yang tidak diperbarui oleh mahasiswa lebih dari 30 hari'
-                }
-            };
-
-            const data = config[type];
-            if (!data) return;
-
-            // Set title and subtitle
-            title.textContent = data.title;
-            subtitle.textContent = data.subtitle;
-
-            // Show popup and loading
-            popup.classList.remove('hidden');
-            loading.classList.remove('hidden');
-            content.classList.add('hidden');
-            empty.classList.add('hidden');
-
-            // Get current period from URL or form
-            const periodSelect = document.querySelector('select[name="period"]');
-            const periodParam = periodSelect ? `?period=${periodSelect.value}` : '';
-
-            // Fetch data
-            fetch(`/admin/api/anomalies/${type}${periodParam}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(response => {
-                    loading.classList.add('hidden');
-                    
-                    const anomalyData = response.data || {};
-                    const items = anomalyData.items || [];
-                    
-                    if (items.length === 0) {
-                        empty.classList.remove('hidden');
-                    } else {
-                        content.classList.remove('hidden');
-                        renderTable(items, tableBody, type);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching anomaly data:', error);
-                    loading.classList.add('hidden');
-                    content.classList.remove('hidden');
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="6" class="px-4 py-8 text-center">
-                                <div class="text-red-600 dark:text-red-400 font-semibold mb-2">Gagal memuat data</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">${error.message}</div>
-                            </td>
-                        </tr>
-                    `;
-                });
-        }
-
-        function renderTable(items, tbody, type) {
-            tbody.innerHTML = items.map((item, index) => {
-                let infoColumn = '';
-                
-                if (type === 'sla_breach' && item.working_days_elapsed) {
-                    const colorClass = item.working_days_elapsed > 10 
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
-                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-                    infoColumn = `<span class="px-2 py-1 rounded-full text-xs font-bold ${colorClass}">${item.working_days_elapsed} hari kerja</span>`;
-                } else if (type === 'abandoned_drafts' && item.days_abandoned) {
-                    infoColumn = `<span class="px-2 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">${item.days_abandoned} hari</span>`;
-                } else if (type === 'missing_documents') {
-                    infoColumn = `<span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Tidak ada dokumen</span>`;
-                } else if (type === 'duplicates') {
-                    infoColumn = `<span class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">Duplikat</span>`;
-                } else {
-                    infoColumn = item.submitted_at || item.created_at || '-';
-                }
-
-                return `
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <td class="px-4 py-3 text-sm font-bold text-gray-900 dark:text-gray-100">${index + 1}</td>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">${item.student_nim || item.nim || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">${item.student_name || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-                            <div class="max-w-md truncate" title="${item.achievement_name || '-'}">
-                                ${item.achievement_name || '-'}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 text-sm text-center text-gray-900 dark:text-gray-100">
-                            ${infoColumn}
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <a href="/admin/student-achievements/${item.id}" 
-                               target="_blank"
-                               class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
-                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                </svg>
-                                Lihat
-                            </a>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function closeAnomalyPopup() {
-            document.getElementById('anomalyPopup').classList.add('hidden');
-        }
-
-        // Close popup when clicking outside
-        document.getElementById('anomalyPopup')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAnomalyPopup();
-            }
-        });
-
-        // Close popup with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeAnomalyPopup();
-            }
-        });
-    </script>
+    {{-- Specialized Anomaly Detail Modals (Dark Theme) --}}
+    @include('admin.partials.anomaly-detail-modals')
+    @include('admin.partials.anomaly-detail-scripts')
 @endsection

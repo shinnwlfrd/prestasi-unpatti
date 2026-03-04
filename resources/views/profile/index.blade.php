@@ -176,7 +176,7 @@
                 <div class="relative">
                     <img src="{{ $user->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=6366f1&color=fff&size=128' }}"
                         alt="Foto Profil"
-                        class="w-24 h-24 rounded-2xl object-cover border-4 border-indigo-100 dark:border-indigo-900/50 shadow-lg">
+                        class="w-24 h-24 rounded-xl object-cover border-4 border-indigo-100 dark:border-indigo-900/50 shadow-lg">
                     @if($user->last_login_method === 'sso')
                         <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-800"
                             title="Login via SSO">

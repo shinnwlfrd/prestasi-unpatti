@@ -38,7 +38,7 @@ $maxWidthClass = [
              x-transition:leave="ease-in duration-200"
              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
              x-transition:leave-end="opacity-0 scale-95 translate-y-4"
-             class="relative w-full {{ $maxWidthClass }} bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+             class="relative w-full {{ $maxWidthClass }} bg-white dark:bg-slate-800 rounded-xl shadow-2xl overflow-hidden">
             
             <!-- Header -->
             @if($title)

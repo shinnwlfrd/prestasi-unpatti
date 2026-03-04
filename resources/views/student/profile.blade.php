@@ -97,7 +97,7 @@
                 <div class="relative">
                     <img src="{{ $student->photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($student->name ?? 'M') . '&background=6366f1&color=fff&size=128' }}"
                         alt="Foto Profil"
-                        class="w-24 h-24 rounded-2xl object-cover border-4 border-indigo-100 dark:border-indigo-900/50 shadow-lg">
+                        class="w-24 h-24 rounded-xl object-cover border-4 border-indigo-100 dark:border-indigo-900/50 shadow-lg">
                     <div
                         class="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-800">
                         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">

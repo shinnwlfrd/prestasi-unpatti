@@ -34,7 +34,7 @@
                             <input type="text" name="icon" value="{{ old('icon') }}"
                                 placeholder="M12 6.253v13m0-13C10.832..."
                                 class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm">
-                            <p class="text-xs text-gray-500 mt-1">SVG path dari Heroicons</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">SVG path dari Heroicons</p>
                         </div>
 
                         <div>
@@ -50,7 +50,8 @@
                             Tampilan</label>
                         <input type="number" name="order" value="{{ old('order', 0) }}" min="0"
                             class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg">
-                        <p class="text-xs text-gray-500 mt-1">Semakin kecil angka, semakin atas posisinya</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Semakin kecil angka, semakin atas posisinya
+                        </p>
                     </div>
 
                     <div class="flex items-center">

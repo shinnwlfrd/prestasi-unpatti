@@ -14,7 +14,7 @@
 
         <!-- Quick Stats -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 lg:gap-6 xl:gap-8">
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -31,7 +31,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -48,7 +48,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -82,7 +82,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -101,7 +101,7 @@
         </div>
 
         <!-- Search & Filter -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 shadow-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 shadow-sm">
             <form method="GET" action="{{ route('admin.validation-logs') }}" class="space-y-4">
                 <!-- Main Filters Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
@@ -349,7 +349,7 @@
         </div>
 
         <!-- Desktop Table -->
-        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-sm lg:text-base">
                     <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">

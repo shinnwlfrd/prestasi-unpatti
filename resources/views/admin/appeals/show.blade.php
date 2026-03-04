@@ -16,7 +16,7 @@
         </div>
 
         <!-- Appeal Status Banner -->
-        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl lg:rounded-2xl p-6 lg:p-8 xl:p-10">
+        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl lg:rounded-xl p-6 lg:p-8 xl:p-10">
             <div class="flex items-start gap-4">
                 <div
                     class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center flex-shrink-0">
@@ -50,7 +50,7 @@
             <!-- Left Column: Details -->
             <div class="lg:col-span-2 space-y-6 lg:space-y-8">
                 <!-- Achievement Header -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ $achievement->event_name }}</h2>
                     <p class="text-gray-500 dark:text-gray-400 mt-1">{{ $achievement->organizer }}</p>
 
@@ -75,7 +75,7 @@
                 </div>
 
                 <!-- Student Information -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Informasi Mahasiswa</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -102,7 +102,7 @@
                 </div>
 
                 <!-- Faculty Revision Reason -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Alasan Revisi dari Fakultas</h2>
                     <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                         <div class="flex items-start gap-3">
@@ -134,7 +134,7 @@
                 </div>
 
                 <!-- Appeal Reason -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Alasan Banding dari Mahasiswa</h2>
                     <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                         <div class="flex items-start gap-3">
@@ -167,7 +167,7 @@
                 </div>
 
                 <!-- Documents -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
+                <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Dokumen Pendukung</h2>
                     <div class="space-y-3">
                         @forelse($achievement->documents as $document)
@@ -204,7 +204,7 @@
             <div class="space-y-6 lg:space-y-8">
                 <!-- Review Form -->
                 @if($appeal->status === 'pending')
-                    <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Review Banding</h2>
 
                         <form action="{{ route('admin.appeals.review', $appeal) }}" method="POST" class="space-y-4">
@@ -264,7 +264,7 @@
                     </div>
                 @else
                     <!-- Review Result -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 desktop-card-hover">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Hasil Review</h2>
                         <div
                             class="p-4 rounded-lg {{ $appeal->status === 'approved' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800' }}">

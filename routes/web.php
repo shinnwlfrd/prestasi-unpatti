@@ -282,6 +282,7 @@ Route::middleware(['auth', 'multi.role:pimpinan', 'pimpinan.level'])->prefix('pi
     // Dashboard AJAX endpoints
     Route::get('/api/hierarchical-chart-data', [\App\Http\Controllers\Validator\DashboardController::class, 'getHierarchicalChartData'])->name('api.hierarchical-chart-data');
     Route::get('/api/event-participants', [\App\Http\Controllers\Validator\DashboardController::class, 'getEventParticipants'])->name('api.event-participants');
+    Route::get('/api/sla-breach-details', [\App\Http\Controllers\Validator\DashboardController::class, 'getSlaBreachDetails'])->name('sla-breach-details');
 
     // Students (Read-only - same as validator)
     Route::get('/students', [\App\Http\Controllers\Validator\StudentController::class, 'index'])->name('students.index');

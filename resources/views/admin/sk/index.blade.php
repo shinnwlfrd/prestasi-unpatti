@@ -1,3 +1,4 @@
+@php /** @var \Illuminate\Support\ViewErrorBag $errors */ @endphp
 @extends('layouts.admin')
 
 @section('title', 'Manajemen SK')
@@ -512,7 +513,7 @@
                                 class="w-full pl-10 pr-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                 placeholder="Ketik NIM, nama mahasiswa, atau nama lomba lalu tekan Enter...">
                         </div>
-                        <p class="text-[10px] text-gray-500 mt-1 italic">* Tekan Enter untuk mulai mencari</p>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 italic">* Tekan Enter untuk mulai mencari</p>
                     </div>
 
                     <div x-show="loading" class="flex items-center justify-center py-12">

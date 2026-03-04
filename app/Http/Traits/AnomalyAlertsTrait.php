@@ -45,99 +45,35 @@ trait AnomalyAlertsTrait
             $query->where('academic_period_id', $periodId);
         }
 
-        if ($context === 'active') {
-            // For active period: Find pending submissions older than 7 working days
-            $query->whereIn('validation_status', [
-                'Menunggu',
-                'submitted',
-                'faculty_review',
-                'faculty_approved',
-                'university_review',
-                'appeal_submitted'
-            ])
-                ->where(function ($q) {
-                    $q->whereRaw('submitted_at IS NOT NULL')
-                        ->whereRaw('submitted_at <= ?', [
-                            Carbon::now()->subWeekdays(7)->toDateTimeString()
-                        ]);
-                });
-        } elseif ($context === 'archive') {
-            // For archive: Find validated submissions that took > 7 working days
-            $query->whereIn('validation_status', [
-                'Disetujui',
-                'faculty_approved',
-                'university_approved',
-                'appeal_approved',
-                'Ditolak',
-                'faculty_rejected',
-                'university_rejected',
-                'appeal_rejected'
-            ])
-                ->whereRaw('submitted_at IS NOT NULL')
-                ->whereRaw('updated_at IS NOT NULL')
-                ->where(function ($q) {
-                    $dbDriver = DB::getDriverName();
-                    if ($dbDriver === 'pgsql') {
-                        $q->whereRaw('(updated_at::date - submitted_at::date) > 10');
-                    } elseif ($dbDriver === 'sqlite') {
-                        $q->whereRaw('(JULIANDAY(updated_at) - JULIANDAY(submitted_at)) > 10');
-                    } else {
-                        $q->whereRaw('DATEDIFF(updated_at, submitted_at) > 10'); // Approximate 7 working days
-                    }
-                });
-        } else {
-            // Global: Combine both
-            $query->where(function ($q) {
-                $q->where(function ($subQ) {
-                    // Active-like: pending submissions older than 7 working days
-                    $subQ->whereIn('validation_status', [
-                        'Menunggu',
-                        'submitted',
-                        'faculty_review',
-                        'faculty_approved',
-                        'university_review',
-                        'appeal_submitted'
-                    ])
-                        ->whereRaw('submitted_at IS NOT NULL')
-                        ->whereRaw('submitted_at <= ?', [
-                            Carbon::now()->subWeekdays(7)->toDateTimeString()
-                        ]);
-                })->orWhere(function ($subQ) {
-                    // Archive-like: completed submissions that took > 10 calendar days
-                    $dbDriver = DB::getDriverName();
-                    $datediffSql = 'DATEDIFF(updated_at, submitted_at)';
-                    if ($dbDriver === 'pgsql') {
-                        $datediffSql = '(updated_at::date - submitted_at::date)';
-                    } elseif ($dbDriver === 'sqlite') {
-                        $datediffSql = '(JULIANDAY(updated_at) - JULIANDAY(submitted_at))';
-                    }
-
-                    $subQ->whereIn('validation_status', [
-                        'Disetujui',
-                        'faculty_approved',
-                        'university_approved',
-                        'appeal_approved',
-                        'Ditolak',
-                        'faculty_rejected',
-                        'university_rejected',
-                        'appeal_rejected'
-                    ])
-                        ->whereRaw('submitted_at IS NOT NULL')
-                        ->whereRaw('updated_at IS NOT NULL')
-                        ->whereRaw($datediffSql . ' > 10');
-                });
-            });
-        }
+        // SLA Breach: Only count PENDING submissions that are overdue (> 7 days)
+        // Exclude rejected submissions as they are no longer in the validation pipeline
+        $query->whereIn('validation_status', [
+            'Menunggu',
+            'submitted',
+            'faculty_review',
+            'faculty_revision',
+            'university_review',
+            'university_revision',
+            'appeal_submitted'
+        ])
+        ->whereNotIn('validation_status', [
+            'faculty_rejected',
+            'university_rejected',
+            'appeal_rejected'
+        ])
+        ->where(function ($q) {
+            $q->whereRaw('submitted_at IS NOT NULL')
+                ->whereRaw('submitted_at < ?', [
+                    Carbon::now()->subDays(7)->toDateTimeString()
+                ]);
+        });
 
         $results = $query->get();
 
         return [
             'count' => $results->count(),
-            'items' => $results->map(function ($item) use ($context) {
-                $workingDays = $this->calculateWorkingDays(
-                    Carbon::parse($item->submitted_at),
-                    $context === 'active' ? Carbon::now() : Carbon::parse($item->updated_at)
-                );
+            'items' => $results->map(function ($item) {
+                $daysElapsed = (int) Carbon::parse($item->submitted_at)->diffInDays(Carbon::now());
 
                 return [
                     'id' => $item->sa_id,
@@ -146,7 +82,7 @@ trait AnomalyAlertsTrait
                     'achievement_name' => $item->achievement->name ?? $item->event_name,
                     'submitted_at' => $item->submitted_at,
                     'updated_at' => $item->updated_at,
-                    'working_days_elapsed' => $workingDays,
+                    'working_days_elapsed' => $daysElapsed,
                     'status' => $item->validation_status,
                     'period' => $item->academicPeriod->name ?? 'N/A',
                 ];

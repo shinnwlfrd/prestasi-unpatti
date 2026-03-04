@@ -69,7 +69,7 @@ TOAST NOTIFICATION (Auto-appears for 5 seconds)
     <div id="anomalyToast"
         class="fixed top-6 right-6 z-[100] max-w-sm w-full transform translate-x-[120%] transition-transform duration-500 ease-out"
         role="alert">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border {{ $contextColors['border'] }} overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border {{ $contextColors['border'] }} overflow-hidden">
             {{-- Animated top accent line --}}
             <div class="h-1 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 animate-pulse"></div>
             <div class="p-4 flex items-start gap-3">
@@ -133,7 +133,7 @@ ANOMALY MODAL (Full-screen overlay)
 
     {{-- Modal Panel --}}
     <div class="relative flex items-center justify-center min-h-screen p-4">
-        <div class="relative w-full max-w-3xl max-h-[85vh] bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col transform scale-95 opacity-0 transition-all duration-300"
+        <div class="relative w-full max-w-3xl max-h-[85vh] bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden flex flex-col transform scale-95 opacity-0 transition-all duration-300"
             id="anomalyModalPanel">
 
             {{-- Header --}}
@@ -249,7 +249,7 @@ ANOMALY MODAL (Full-screen overlay)
                 {{-- Empty state --}}
                 <div id="anomalyEmpty" class="hidden flex flex-col items-center justify-center py-16">
                     <div
-                        class="w-16 h-16 rounded-2xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-4">
+                        class="w-16 h-16 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-4">
                         <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -449,16 +449,16 @@ JAVASCRIPT ENGINE
                 } catch (err) {
                     loading.classList.add('hidden');
                     container.innerHTML = `
-                    <div class="flex flex-col items-center py-12">
-                        <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-3">
-                            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <p class="text-sm font-bold text-gray-900 dark:text-white">Gagal Memuat</p>
-                        <p class="text-xs text-gray-500 mt-1">${err.message}</p>
-                        <button onclick="switchAnomalyTab('${type}')" class="mt-3 text-xs font-bold text-purple-600 hover:text-purple-700">Coba Lagi</button>
-                    </div>`;
+                        <div class="flex flex-col items-center py-12">
+                            <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-3">
+                                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white">Gagal Memuat</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${err.message}</p>
+                            <button onclick="switchAnomalyTab('${type}')" class="mt-3 text-xs font-bold text-purple-600 hover:text-purple-700">Coba Lagi</button>
+                        </div>`;
                 }
             }
 
@@ -506,27 +506,27 @@ JAVASCRIPT ENGINE
 
                     const actionBtn = context === 'active'
                         ? `<a href="${VERIFY_URL}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors shadow-sm">
-                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                         Proses Sekarang
-                       </a>`
+                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                             Proses Sekarang
+                           </a>`
                         : context === 'archive'
                             ? `<a href="${VERIFY_URL}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
-                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                         Lihat Detail Data
-                       </a>`
+                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                             Lihat Detail Data
+                           </a>`
                             : '';
 
                     return `
-                <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors group">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <span class="inline-flex items-center justify-center px-2 py-1 rounded-lg text-[10px] font-black ${urgency}">${item.business_days}d</span>
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${escHtml(item.student_name)}</p>
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${escHtml(item.achievement_name)} • ${item.submitted_at}</p>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors group">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="inline-flex items-center justify-center px-2 py-1 rounded-lg text-[10px] font-black ${urgency}">${item.business_days}d</span>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${escHtml(item.student_name)}</p>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${escHtml(item.achievement_name)} • ${item.submitted_at}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex-shrink-0 ml-3">${actionBtn}</div>
-                </div>`;
+                        <div class="flex-shrink-0 ml-3">${actionBtn}</div>
+                    </div>`;
                 }).join('');
 
                 return `<div class="space-y-2">${rows}</div>`;
@@ -539,29 +539,29 @@ JAVASCRIPT ENGINE
 
                 let groups = data.map(group => {
                     let records = (group.records || []).map(r => `
-                    <div class="flex items-center justify-between py-2 px-3 ${r.is_oldest ? 'bg-green-50/50 dark:bg-green-900/10 rounded-lg' : ''}">
-                        <div class="flex items-center gap-2 min-w-0">
-                            ${r.is_oldest ? '<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 uppercase">ASLI</span>' : '<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 uppercase">DUPLIKAT</span>'}
-                            <span class="text-xs text-gray-600 dark:text-gray-400">${escHtml(r.nim)}</span>
-                            <span class="text-xs text-gray-400 dark:text-gray-500">•</span>
-                            <span class="text-xs text-gray-500 dark:text-gray-400">${r.created_at}</span>
-                        </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">${escHtml(r.validation_status)}</span>
-                    </div>`).join('');
+                        <div class="flex items-center justify-between py-2 px-3 ${r.is_oldest ? 'bg-green-50/50 dark:bg-green-900/10 rounded-lg' : ''}">
+                            <div class="flex items-center gap-2 min-w-0">
+                                ${r.is_oldest ? '<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 uppercase">ASLI</span>' : '<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 uppercase">DUPLIKAT</span>'}
+                                <span class="text-xs text-gray-600 dark:text-gray-400">${escHtml(r.nim)}</span>
+                                <span class="text-xs text-gray-400 dark:text-gray-500">•</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">${r.created_at}</span>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">${escHtml(r.validation_status)}</span>
+                        </div>`).join('');
 
                     return `
-                <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class="px-4 py-3 bg-orange-50/50 dark:bg-orange-900/10 border-b border-gray-100 dark:border-gray-700">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-bold text-gray-900 dark:text-white">${escHtml(group.student_name)}</p>
-                                <p class="text-[11px] text-gray-500 dark:text-gray-400">${escHtml(group.event_name)} ${group.level ? '• ' + escHtml(group.level) : ''}</p>
+                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="px-4 py-3 bg-orange-50/50 dark:bg-orange-900/10 border-b border-gray-100 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-bold text-gray-900 dark:text-white">${escHtml(group.student_name)}</p>
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400">${escHtml(group.event_name)} ${group.level ? '• ' + escHtml(group.level) : ''}</p>
+                                </div>
+                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-black bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">${group.duplicate_count}x</span>
                             </div>
-                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-black bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">${group.duplicate_count}x</span>
                         </div>
-                    </div>
-                    <div class="divide-y divide-gray-50 dark:divide-gray-700/50">${records}</div>
-                </div>`;
+                        <div class="divide-y divide-gray-50 dark:divide-gray-700/50">${records}</div>
+                    </div>`;
                 }).join('');
 
                 return `<div class="space-y-3">${groups}</div>`;
@@ -577,21 +577,21 @@ JAVASCRIPT ENGINE
                     : `<span class="text-[11px] font-bold text-gray-400 dark:text-gray-500">Arsip</span>`;
 
                 let rows = data.map(item => `
-                <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${escHtml(item.student_name)}</p>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${escHtml(item.achievement_name)}${item.period ? ' • ' + escHtml(item.period) : ''}</p>
+                            </div>
                         </div>
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${escHtml(item.student_name)}</p>
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${escHtml(item.achievement_name)}${item.period ? ' • ' + escHtml(item.period) : ''}</p>
-                        </div>
+                        <div class="flex-shrink-0 ml-3">${actionBtn}</div>
                     </div>
-                    <div class="flex-shrink-0 ml-3">${actionBtn}</div>
-                </div>
-            `).join('');
+                `).join('');
 
                 return `<div class="space-y-2">${rows}</div>`;
             }
@@ -608,23 +608,23 @@ JAVASCRIPT ENGINE
                             : 'text-yellow-600 dark:text-yellow-400';
 
                     return `
-                <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-700/30 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${escHtml(item.student_name)}</p>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${escHtml(item.achievement_name)}${item.period ? ' • ' + escHtml(item.period) : ''}</p>
+                            </div>
                         </div>
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${escHtml(item.student_name)}</p>
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${escHtml(item.achievement_name)}${item.period ? ' • ' + escHtml(item.period) : ''}</p>
+                        <div class="flex-shrink-0 ml-3 text-right">
+                            <span class="text-xs font-black ${daysColor}">${item.days_abandoned} hari</span>
+                            <p class="text-[10px] text-gray-400 mt-0.5">${item.last_updated || ''}</p>
                         </div>
-                    </div>
-                    <div class="flex-shrink-0 ml-3 text-right">
-                        <span class="text-xs font-black ${daysColor}">${item.days_abandoned} hari</span>
-                        <p class="text-[10px] text-gray-400 mt-0.5">${item.last_updated || ''}</p>
-                    </div>
-                </div>`;
+                    </div>`;
                 }).join('');
 
                 return `<div class="space-y-2">${rows}</div>`;
@@ -634,9 +634,9 @@ JAVASCRIPT ENGINE
                 const count = Array.isArray(data) ? data.length : 0;
                 const breakdownHtml = @json($globalBreakdown).length > 0
                     ? `<p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Total <span class="font-black text-purple-600 dark:text-purple-400">${count}</span> ${title} ditemukan di seluruh periode.</p>
-                   <button onclick="switchAnomalyTab('${type}')" class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-xl hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors">
-                     📊 Lihat Breakdown per Periode
-                   </button>`
+                       <button onclick="switchAnomalyTab('${type}')" class="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-xl hover:bg-purple-600 dark:hover:bg-purple-900/40 transition-colors">
+                         📊 Lihat Breakdown per Periode
+                       </button>`
                     : '';
 
                 // Still render the list
@@ -645,30 +645,30 @@ JAVASCRIPT ENGINE
                     listHtml = '<div class="mt-4 space-y-2">';
                     data.forEach(item => {
                         listHtml += `
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40">
-                        <div class="min-w-0">
-                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${escHtml(item.student_name || '')}</p>
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${escHtml(item.achievement_name || item.event_name || '')}</p>
-                        </div>
-                        <div class="flex-shrink-0 ml-3">
-                            <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                                ${item.business_days ? item.business_days + 'd' : item.days_abandoned ? item.days_abandoned + ' hari' : item.duplicate_count ? item.duplicate_count + 'x' : 'Detail'}
-                            </span>
-                        </div>
-                    </div>`;
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/40">
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${escHtml(item.student_name || '')}</p>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">${escHtml(item.achievement_name || item.event_name || '')}</p>
+                            </div>
+                            <div class="flex-shrink-0 ml-3">
+                                <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                                    ${item.business_days ? item.business_days + 'd' : item.days_abandoned ? item.days_abandoned + ' hari' : item.duplicate_count ? item.duplicate_count + 'x' : 'Detail'}
+                                </span>
+                            </div>
+                        </div>`;
                     });
                     listHtml += '</div>';
                 }
 
                 return `
-            <div class="flex flex-col items-center py-6 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-4">
-                    <span class="text-2xl">📊</span>
+                <div class="flex flex-col items-center py-6 text-center">
+                    <div class="w-14 h-14 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center mb-4">
+                        <span class="text-2xl">📊</span>
+                    </div>
+                    <p class="text-lg font-black text-gray-900 dark:text-white">${count} ${title}</p>
+                    ${breakdownHtml}
                 </div>
-                <p class="text-lg font-black text-gray-900 dark:text-white">${count} ${title}</p>
-                ${breakdownHtml}
-            </div>
-            ${listHtml}`;
+                ${listHtml}`;
             }
 
             function escHtml(str) {

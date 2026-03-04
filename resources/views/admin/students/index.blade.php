@@ -19,7 +19,7 @@
 
         <!-- Quick Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 xl:gap-8">
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -34,7 +34,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -50,7 +50,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                         <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -68,7 +68,7 @@
         </div>
 
         <!-- Search & Filter -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-4 lg:p-6 xl:p-8">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-4 lg:p-6 xl:p-8">
             <form method="GET" action="{{ route('admin.students') }}" class="space-y-3 sm:space-y-4">
                 <!-- SIGAP Cascade Filter -->
                 <x-sigap-filter-simple :faculties="$sigapFaculties" :departments="$sigapDepartments"
@@ -128,7 +128,7 @@
         </div>
 
         <!-- Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
             <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
@@ -198,7 +198,7 @@
                         <!-- Detail Akademik -->
                         <div class="space-y-2 text-xs text-gray-600 dark:text-gray-300">
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Fakultas</span>
+                                <span class="text-gray-400 dark:text-gray-500">Fakultas</span>
                                 <span class="text-right font-medium truncate max-w-[60%]">
                                     {{ $s->faculty ?? '-' }}
                                 </span>
@@ -206,7 +206,7 @@
 
                             @if($showDepartment)
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Jurusan</span>
+                                <span class="text-gray-400 dark:text-gray-500">Jurusan</span>
                                 <span class="text-right font-medium truncate max-w-[60%]">
                                     {{ $s->department ?? '-' }}
                                 </span>
@@ -215,7 +215,7 @@
 
                             @if($showProgramStudy)
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Prodi</span>
+                                <span class="text-gray-400 dark:text-gray-500">Prodi</span>
                                 <span class="text-right font-medium truncate max-w-[60%]">
                                     {{ $s->program_study ?? '-' }}
                                 </span>
@@ -223,7 +223,7 @@
                             @endif
 
                             <div class="flex justify-between">
-                                <span class="text-gray-400">Angkatan</span>
+                                <span class="text-gray-400 dark:text-gray-500">Angkatan</span>
                                 <span class="font-medium">
                                     {{ $s->angkatan ?? '-' }}
                                 </span>

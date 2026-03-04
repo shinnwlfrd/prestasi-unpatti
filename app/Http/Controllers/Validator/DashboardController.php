@@ -20,582 +20,94 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
-        $currentRole = $user->getCurrentRole();
-        $isPimpinan = $currentRole && $currentRole->role === 'pimpinan';
-
-        // Get scope based on active route prefix
-        $isPimpinanRoute = request()->routeIs('pimpinan.*');
-
-        if ($isPimpinanRoute) {
-            $level = session('pimpinan_level');
-            $facultyId = session('pimpinan_faculty_id');
-            $departmentId = session('pimpinan_department_id');
-            $programStudyId = session('pimpinan_program_study_id');
-        } else {
-            $level = session('operator_level');
-            $facultyId = session('operator_faculty_id');
-            $departmentId = session('operator_department_id');
-            $programStudyId = session('operator_program_study_id');
-        }
-
-        // Fallback to pimpinan if operator is null (or vice versa) if needed, 
-        // but generally session keys should match the active route context.
-        $level = $level ?? session('operator_level') ?? session('pimpinan_level');
-        $facultyId = $facultyId ?? session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = $departmentId ?? session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = $programStudyId ?? session('operator_program_study_id') ?? session('pimpinan_program_study_id');
-
-        $position = session('pimpinan_position');
-
-        // Get position label and scope name for display
-        $positionLabels = [
-            'rektor' => 'Rektor',
-            'wakil_rektor' => 'Wakil Rektor',
-            'dekan' => 'Dekan',
-            'wakil_dekan' => 'Wakil Dekan',
-            'ketua_jurusan' => 'Ketua Jurusan',
-            'sekretaris_jurusan' => 'Sekretaris Jurusan',
-            'kaprodi' => 'Ketua Program Studi',
-            'sekprodi' => 'Sekretaris Program Studi',
-            'direktur_pps' => 'Direktur Pascasarjana',
-            'super_admin' => 'Super Admin',
-        ];
-        $positionLabel = $positionLabels[$position] ?? ucfirst(str_replace('_', ' ', $position ?? ''));
-
-        // Get scope name based on level
-        $scopeName = '';
-        if ($isPimpinanRoute) {
-            if ($level === 'university' || $position === 'super_admin') {
-                $scopeName = 'Universitas Pattimura';
-            } elseif ($level === 'faculty') {
-                $scopeName = session('pimpinan_faculty_name') ?? 'Fakultas';
-            } elseif ($level === 'department') {
-                $scopeName = session('pimpinan_department_name') ?? 'Jurusan';
-            } elseif ($level === 'program_study') {
-                $scopeName = session('pimpinan_program_study_name') ?? 'Program Studi';
-            } elseif ($level === 'graduate_program') {
-                $scopeName = 'Program Pascasarjana';
-            }
-        } else {
-            // For operator
-            if ($level === 'university') {
-                $scopeName = 'Universitas Pattimura';
-            } elseif ($level === 'faculty') {
-                $scopeName = session('operator_faculty_name') ?? 'Fakultas';
-            } elseif ($level === 'department') {
-                $scopeName = session('operator_department_name') ?? 'Jurusan';
-            } elseif ($level === 'program_study') {
-                $scopeName = session('operator_program_study_name') ?? 'Program Studi';
-            }
-        }
+        $scope = $this->getDashboardScope();
+        $isPimpinan = $scope['isPimpinan'];
+        $level = $scope['level'];
+        $facultyId = $scope['facultyId'];
+        $departmentId = $scope['departmentId'];
+        $programStudyId = $scope['programStudyId'];
+        $position = $scope['position'];
+        $positionLabel = $scope['positionLabel'];
+        $scopeName = $scope['scopeName'];
 
         // Get selected periods (default to current active period)
-        $selectedPeriods = $request->input('periods', []);
-        if (empty($selectedPeriods)) {
-            $activePeriod = AcademicPeriod::where('is_active', true)->first();
-            if ($activePeriod) {
-                $selectedPeriods = [$activePeriod->id];
-            }
-        }
-
-        // Get all periods for selector
+        $selectedPeriods = $this->getSelectedPeriods($request);
         $allPeriods = AcademicPeriod::orderBy('start_date', 'desc')->get();
 
-        // Build base query with scope filtering
+        // Build base queries with scope filtering
         $studentsQuery = Student::query();
         $achievementsQuery = StudentAchievement::query();
 
-        // Apply hierarchical filtering
-        if ($level === 'faculty' && $facultyId) {
-            $studentsQuery->where('faculty_id', $facultyId);
-            $achievementsQuery->whereHas('student', function ($q) use ($facultyId) {
-                $q->where('faculty_id', $facultyId);
-            });
-        } elseif ($level === 'department' && $departmentId) {
-            $studentsQuery->where('department_id', $departmentId);
-            $achievementsQuery->whereHas('student', function ($q) use ($departmentId) {
-                $q->where('department_id', $departmentId);
-            });
-        } elseif ($level === 'program_study' && $programStudyId) {
-            $studentsQuery->where('program_study_id', $programStudyId);
-            $achievementsQuery->whereHas('student', function ($q) use ($programStudyId) {
-                $q->where('program_study_id', $programStudyId);
-            });
-        } elseif ($level === 'graduate_program') {
-            // For PPs - traditionally all magister/doctorate students
-            $studentsQuery->where('faculty', 'Program Pascasarjana');
-            $achievementsQuery->whereHas('student', function ($q) {
-                $q->where('faculty', 'Program Pascasarjana');
-            });
-        } elseif ($level === 'university' || $position === 'super_admin') {
-            // No additional filtering needed for university level
-        }
+        $this->applyScopeFilters($studentsQuery, $level, $facultyId, $departmentId, $programStudyId);
+        $this->applyScopeFilters($achievementsQuery, $level, $facultyId, $departmentId, $programStudyId);
 
         // Filter by selected periods
         if (!empty($selectedPeriods)) {
             $achievementsQuery->whereIn('academic_period_id', $selectedPeriods);
         }
 
-        // Get statistics
+        // Get basic statistics & KPIs
         $totalStudents = $studentsQuery->count();
         $totalAchievements = $achievementsQuery->clone()
             ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
             ->count();
 
-        // Calculate Ratio & Growth for KPI
-        $achievementRatio = $totalStudents > 0 ? $totalAchievements / $totalStudents : 0;
+        $kpiData = $this->getKpiStats($totalStudents, $totalAchievements, $selectedPeriods, $isPimpinan, $level, $facultyId, $departmentId, $programStudyId);
+        $achievementRatio = $kpiData['ratio'];
+        $achievementGrowth = $kpiData['growth'];
+        $urgentPending = $kpiData['urgentPending'];
 
-        $achievementsPrevious = 0;
-        $achievementGrowth = 0;
+        // Status breakdown & Distribution
+        $statusStats = $this->getStatusStats($achievementsQuery);
+        $categoryDistribution = $this->getCategoryDistribution($achievementsQuery, $isPimpinan);
+        $levelDistribution = $this->getLevelDistribution($achievementsQuery, $isPimpinan);
 
-        if (!empty($selectedPeriods)) {
-            // Get the earliest selected period's start date
-            $earliestPeriod = AcademicPeriod::whereIn('id', $selectedPeriods)->orderBy('start_date', 'asc')->first();
+        // Regional KPIs
+        $nationalStats = $this->getNationalKpis($totalAchievements, $levelDistribution);
+        $nationalPercentage = $nationalStats['nationalPercentage'];
+        $internationalPercentage = $nationalStats['internationalPercentage'];
 
-            if ($earliestPeriod) {
-                // Find all periods that ended before this one started
-                $previousPeriod = AcademicPeriod::where('end_date', '<', $earliestPeriod->start_date)
-                    ->orderBy('end_date', 'desc')
-                    ->first();
+        $activeUnitsData = $this->getActiveUnitsKpi($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods);
+        $activeUnitsCount = $activeUnitsData['activeCount'];
+        $totalUnitsCount = $activeUnitsData['totalCount'];
+        $unitLabel = $activeUnitsData['label'];
 
-                if ($previousPeriod) {
-                    $achievementsPrevious = StudentAchievement::query()
-                        ->where('academic_period_id', $previousPeriod->id)
-                        ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
-                        ->whereHas('student', function ($q) use ($level, $facultyId, $departmentId, $programStudyId) {
-                            if ($level === 'faculty' && $facultyId)
-                                $q->where('faculty_id', $facultyId);
-                            elseif ($level === 'department' && $departmentId)
-                                $q->where('department_id', $departmentId);
-                            elseif ($level === 'program_study' && $programStudyId)
-                                $q->where('program_study_id', $programStudyId);
-                        })
-                        ->count();
-
-                    if ($achievementsPrevious > 0) {
-                        $achievementGrowth = (($totalAchievements - $achievementsPrevious) / $achievementsPrevious) * 100;
-                    } else {
-                        $achievementGrowth = $totalAchievements > 0 ? 100 : 0;
-                    }
-                }
-            }
-        }
-
-        // Urgent pending alerts (only for validator, not pimpinan)
-        $urgentPending = !$isPimpinan ? $achievementsQuery->clone()
-            ->where('validation_status', 'submitted')
-            ->where('submitted_at', '<', now()->subDays(7))
-            ->count() : 0;
-
-        // Status breakdown
-        $statusStats = $achievementsQuery->clone()
-            ->select('validation_status', DB::raw('count(*) as total'))
-            ->groupBy('validation_status')
-            ->pluck('total', 'validation_status')
-            ->toArray();
-
-        // Recent activities (for pimpinan, only show approved) - limit to 5 unique events
-        // Group by event to show competitions, not individual students
-        $recentActivities = $achievementsQuery->clone()
-            ->select(
-                'event_name',
-                'organizer',
-                'level',
-                DB::raw('MAX(submitted_at) as latest_submission'),
-                DB::raw('COUNT(DISTINCT student_id) as participant_count'),
-                DB::raw('MIN(sa_id) as first_achievement_id')
-            )
-            ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
-            ->groupBy('event_name', 'organizer', 'level')
-            ->orderBy('latest_submission', 'desc')
-            ->limit(5)
-            ->get();
-
-        // Top 5 students
-        $topStudents = Student::query()
-            ->when($level === 'faculty' && $facultyId, fn($q) => $q->where('faculty_id', $facultyId))
-            ->when($level === 'department' && $departmentId, fn($q) => $q->where('department_id', $departmentId))
-            ->when($level === 'program_study' && $programStudyId, fn($q) => $q->where('program_study_id', $programStudyId))
-            ->withCount([
-                'achievements' => function ($q) use ($selectedPeriods, $isPimpinan) {
-                    if ($isPimpinan) {
-                        $q->whereIn('validation_status', ['faculty_approved', 'university_approved']);
-                    }
-                    if (!empty($selectedPeriods)) {
-                        $q->whereIn('academic_period_id', $selectedPeriods);
-                    }
-                }
-            ])
-            ->orderBy('achievements_count', 'desc')
-            ->limit(5)
-            ->get();
-
-        // Top 3 GPA per angkatan (only for program_study level - Kaprodi)
-        // Limit to 3 most recent angkatan, show all students with same GPA as 3rd rank
-        $topGpaByAngkatan = [];
-        if ($level === 'program_study' && $programStudyId) {
-            $angkatanList = Student::where('program_study_id', $programStudyId)
-                ->select('angkatan')
-                ->distinct()
-                ->orderBy('angkatan', 'desc')
-                ->limit(3) // Only 3 most recent angkatan
-                ->pluck('angkatan');
-
-            foreach ($angkatanList as $angkatan) {
-                // Get top 3 distinct GPA values
-                $topGpaValues = Student::where('program_study_id', $programStudyId)
-                    ->where('angkatan', $angkatan)
-                    ->whereNotNull('gpa')
-                    ->where('gpa', '>', 0)
-                    ->select('gpa')
-                    ->distinct()
-                    ->orderBy('gpa', 'desc')
-                    ->limit(3)
-                    ->pluck('gpa');
-
-                // If we have at least 3 distinct GPA values, get the 3rd one
-                // Otherwise, get all students with top GPAs
-                if ($topGpaValues->count() >= 3) {
-                    $thirdGpa = $topGpaValues->get(2); // 0-indexed, so 2 is the 3rd
-
-                    // Get all students with GPA >= 3rd highest GPA
-                    $topGpaByAngkatan[$angkatan] = Student::where('program_study_id', $programStudyId)
-                        ->where('angkatan', $angkatan)
-                        ->whereNotNull('gpa')
-                        ->where('gpa', '>=', $thirdGpa)
-                        ->orderBy('gpa', 'desc')
-                        ->orderBy('name', 'asc')
-                        ->get();
-                } else {
-                    // Less than 3 distinct GPAs, just get all with top GPAs
-                    $topGpaByAngkatan[$angkatan] = Student::where('program_study_id', $programStudyId)
-                        ->where('angkatan', $angkatan)
-                        ->whereNotNull('gpa')
-                        ->where('gpa', '>', 0)
-                        ->orderBy('gpa', 'desc')
-                        ->orderBy('name', 'asc')
-                        ->get();
-                }
-            }
-        }
-
-        // Achievements per angkatan (cohort)
-        $achievementsByAngkatan = Student::query()
-            ->when($level === 'faculty' && $facultyId, fn($q) => $q->where('faculty_id', $facultyId))
-            ->when($level === 'department' && $departmentId, fn($q) => $q->where('department_id', $departmentId))
-            ->when($level === 'program_study' && $programStudyId, fn($q) => $q->where('program_study_id', $programStudyId))
-            ->select('angkatan')
-            ->selectRaw('count(distinct student_id) as student_count')
-            ->groupBy('angkatan')
-            ->orderBy('angkatan', 'desc')
-            ->get()
-            ->map(function ($item) use ($selectedPeriods, $level, $facultyId, $departmentId, $programStudyId, $isPimpinan) {
-                $achievementsQuery = \App\Models\StudentAchievement::query()
-                    ->whereHas('student', function ($q) use ($item, $level, $facultyId, $departmentId, $programStudyId) {
-                        $q->where('angkatan', $item->angkatan);
-                        if ($level === 'faculty' && $facultyId) {
-                            $q->where('faculty_id', $facultyId);
-                        } elseif ($level === 'department' && $departmentId) {
-                            $q->where('department_id', $departmentId);
-                        } elseif ($level === 'program_study' && $programStudyId) {
-                            $q->where('program_study_id', $programStudyId);
-                        }
-                    });
-
-                if ($isPimpinan) {
-                    $achievementsQuery->whereIn('validation_status', ['faculty_approved', 'university_approved']);
-                }
-
-                if (!empty($selectedPeriods)) {
-                    $achievementsQuery->whereIn('academic_period_id', $selectedPeriods);
-                }
-
-                $item->achievements_count = $achievementsQuery->count();
-                return $item;
-            });
-
-        // Category distribution
-        $categoryDistribution = $achievementsQuery->clone()
-            ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
-            ->join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
-            ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
-            ->select('achievement_categories.name', DB::raw('count(*) as total'))
-            ->groupBy('achievement_categories.id', 'achievement_categories.name')
-            ->orderBy('total', 'desc')
-            ->get();
-
-        // Level distribution
-        $levelDistribution = $achievementsQuery->clone()
-            ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
-            ->select('student_achievements.level as name', DB::raw('count(*) as total'))
-            ->groupBy('student_achievements.level')
-            ->orderBy('total', 'desc')
-            ->get();
-
-        // Calculate Percentages for KPI
-        $nationalCount = $levelDistribution->where('name', 'Nasional')->first()?->total ?? 0;
-        $internationalCount = $levelDistribution->where('name', 'Internasional')->first()?->total ?? 0;
-
-        $nationalPercentage = $totalAchievements > 0 ? ($nationalCount / $totalAchievements) * 100 : 0;
-        $internationalPercentage = $totalAchievements > 0 ? ($internationalCount / $totalAchievements) * 100 : 0;
-
-        // Calculate Active Units KPI (e.g., 7 dari 9 Fakultas)
-        $activeUnitsCount = 0;
-        $totalUnitsCount = 0;
-        $unitLabel = 'Unit';
-
-        if ($level === 'university') {
-            $unitLabel = 'Fakultas';
-            $totalUnitsCount = Student::whereNotNull('faculty_id')->distinct('faculty_id')->count();
-            $activeUnitsCount = StudentAchievement::query()
-                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
-                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
-                ->whereHas('student', fn($q) => $q->whereNotNull('faculty_id'))
-                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-                ->distinct('students.faculty_id')
-                ->count('students.faculty_id');
-        } elseif ($level === 'faculty') {
-            $unitLabel = 'Jurusan';
-            $totalUnitsCount = Student::where('faculty_id', $facultyId)->whereNotNull('department_id')->distinct('department_id')->count();
-            $activeUnitsCount = StudentAchievement::query()
-                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
-                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
-                ->whereHas('student', fn($q) => $q->where('faculty_id', $facultyId)->whereNotNull('department_id'))
-                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-                ->distinct('students.department_id')
-                ->count('students.department_id');
-        } elseif ($level === 'department') {
-            $unitLabel = 'Prodi';
-            $totalUnitsCount = Student::where('department_id', $departmentId)->whereNotNull('program_study_id')->distinct('program_study_id')->count();
-            $activeUnitsCount = \App\Models\StudentAchievement::query()
-                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
-                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
-                ->whereHas('student', fn($q) => $q->where('department_id', $departmentId)->whereNotNull('program_study_id'))
-                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-                ->distinct('students.program_study_id')
-                ->count('students.program_study_id');
-        } elseif ($level === 'program_study') {
-            $unitLabel = 'Angkatan';
-            $totalUnitsCount = Student::where('program_study_id', $programStudyId)->whereNotNull('angkatan')->distinct('angkatan')->count();
-            $activeUnitsCount = \App\Models\StudentAchievement::query()
-                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
-                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
-                ->whereHas('student', fn($q) => $q->where('program_study_id', $programStudyId)->whereNotNull('angkatan'))
-                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-                ->distinct('students.angkatan')
-                ->count('students.angkatan');
-        } elseif ($level === 'graduate_program') {
-            $unitLabel = 'Prodi PPs';
-            $totalUnitsCount = Student::where('faculty', 'Program Pascasarjana')->whereNotNull('program_study_id')->distinct('program_study_id')->count();
-            $activeUnitsCount = \App\Models\StudentAchievement::query()
-                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
-                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
-                ->whereHas('student', fn($q) => $q->where('faculty', 'Program Pascasarjana')->whereNotNull('program_study_id'))
-                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-                ->distinct('students.program_study_id')
-                ->count('students.program_study_id');
-        }
-
-        // Hierarchical comparisons and drill-down data (only for pimpinan)
-        $hierarchicalComparison = [];
+        // Hierarchical comparisons (Pimpinan only)
+        $hierarchicalData = [];
         $categoryByHierarchy = [];
         $levelByHierarchy = [];
         $efficiencyRanking = collect();
+        $hierarchicalComparison = [];
 
         if ($isPimpinan) {
-            // Get hierarchical comparison data based on level
             $hierarchicalComparison = $this->getHierarchicalComparison($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods);
 
-            // Only get detailed hierarchy data if we have comparison data
             if (!empty($hierarchicalComparison)) {
                 $categoryByHierarchy = $this->getCategoryByHierarchy($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods);
                 $levelByHierarchy = $this->getLevelByHierarchy($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods);
-
-                // Calculate Efficiency Ranking (Achievements / Students)
-                $efficiencyRanking = $hierarchicalComparison['items']->map(function ($item) {
-                    $ratio = $item->students_count > 0 ? ($item->achievements_count / $item->students_count) : 0;
-                    return [
-                        'name' => $item->faculty ?? $item->department ?? $item->program_study ?? $item->angkatan_label ?? $item->angkatan ?? 'Unknown',
-                        'ratio' => $ratio,
-                        'achievements' => $item->achievements_count,
-                        'students' => $item->students_count
-                    ];
-                })->sortByDesc('ratio')->values()->take(10);
+                $efficiencyRanking = $this->calculateEfficiencyRanking($hierarchicalComparison);
             }
+            $hierarchicalData = $hierarchicalComparison;
         }
 
-        // Achievements per period
-        $achievementsPerPeriod = AcademicPeriod::query()
-            ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('id', $selectedPeriods))
-            ->withCount([
-                'achievements' => function ($q) use ($level, $facultyId, $departmentId, $programStudyId, $isPimpinan) {
-                    if ($isPimpinan) {
-                        $q->whereIn('validation_status', ['faculty_approved', 'university_approved']);
-                    }
-                    $q->whereHas('student', function ($sq) use ($level, $facultyId, $departmentId, $programStudyId) {
-                        if ($level === 'faculty' && $facultyId) {
-                            $sq->where('faculty_id', $facultyId);
-                        } elseif ($level === 'department' && $departmentId) {
-                            $sq->where('department_id', $departmentId);
-                        } elseif ($level === 'program_study' && $programStudyId) {
-                            $sq->where('program_study_id', $programStudyId);
-                        }
-                    });
-                }
-            ])
-            ->orderBy('start_date')
-            ->get();
+        // Engagement & Trends
+        $recentActivities = $this->getRecentActivities($achievementsQuery, $isPimpinan);
+        $topStudents = $this->getTopStudents($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan);
+        $topGpaByAngkatan = $this->getTopGpaByAngkatan($level, $programStudyId);
+        $achievementsByAngkatan = $this->getAchievementsByAngkatan($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan);
+        $achievementsPerPeriod = $this->getAchievementsPerPeriod($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan);
+        $achievementTrend = $this->getAchievementTrend($level, $facultyId, $departmentId, $programStudyId, $isPimpinan);
 
-        // Trend Data (Last 6 Semesters)
-        $achievementTrend = AcademicPeriod::query()
-            ->orderBy('end_date', 'desc')
-            ->limit(6)
-            ->get()
-            ->reverse()
-            ->map(function ($period) use ($level, $facultyId, $departmentId, $programStudyId, $isPimpinan) {
-                $baseQuery = StudentAchievement::query()
-                    ->where('academic_period_id', $period->id)
-                    ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
-                    ->whereHas('student', function ($sq) use ($level, $facultyId, $departmentId, $programStudyId) {
-                        if ($level === 'faculty' && $facultyId) {
-                            $sq->where('faculty_id', $facultyId);
-                        } elseif ($level === 'department' && $departmentId) {
-                            $sq->where('department_id', $departmentId);
-                        } elseif ($level === 'program_study' && $programStudyId) {
-                            $sq->where('program_study_id', $programStudyId);
-                        }
-                    });
+        // Insights & Pending Tasks
+        $riskIndicators = $this->getRiskIndicators($isPimpinan, $hierarchicalComparison, $selectedPeriods, $achievementGrowth, $level, $facultyId, $departmentId, $programStudyId, $totalUnitsCount, $activeUnitsCount);
 
-                return [
-                    'label' => $period->name_short ?? $period->name,
-                    'academic' => (clone $baseQuery)->whereHas('achievement', fn($q) => $q->where('category_id', 1))->count(),
-                    'non_academic' => (clone $baseQuery)->whereHas('achievement', fn($q) => $q->where('category_id', '!=', 1))->count(),
-                    'total' => (clone $baseQuery)->count()
-                ];
-            })->values();
+        $validatorData = $this->getValidatorData($request, $achievementsQuery, $isPimpinan);
+        $pendingAchievements = $validatorData['pendingAchievements'];
+        $categories = $validatorData['categories'];
+        $levels = $validatorData['levels'];
 
-        // Generate Risk Indicators & Insights
-        $riskIndicators = [];
-
-        if ($isPimpinan) {
-            // 1. Units with 0 national achievements
-            if (!empty($hierarchicalComparison) && isset($hierarchicalComparison['items'])) {
-                $noNational = $hierarchicalComparison['items']->filter(function ($unit) use ($selectedPeriods) {
-                    return \App\Models\StudentAchievement::whereIn('validation_status', ['faculty_approved', 'university_approved'])
-                        ->whereHas('student', function ($q) use ($unit) {
-                            if (isset($unit->faculty_id))
-                                $q->where('faculty_id', $unit->faculty_id);
-                            elseif (isset($unit->department_id))
-                                $q->where('department_id', $unit->department_id);
-                            elseif (isset($unit->program_study_id))
-                                $q->where('program_study_id', $unit->program_study_id);
-                        })
-                        ->whereIn('level', ['Nasional', 'Internasional'])
-                        ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
-                        ->count() === 0;
-                })->take(2);
-
-                foreach ($noNational as $unit) {
-                    $riskIndicators[] = [
-                        'message' => ($unit->faculty ?? $unit->department ?? $unit->program_study) . " belum mencapai target prestasi tingkat Nasional/Internasional pada periode ini.",
-                        'type' => 'warning',
-                        'icon' => 'exclamation-circle'
-                    ];
-                }
-            }
-
-            // 2. Significant achievement drop (>20%)
-            if ($achievementGrowth < -20) {
-                $riskIndicators[] = [
-                    'message' => "Sistem mendeteksi penurunan kuantitas prestasi sebesar " . round(abs($achievementGrowth), 1) . "% dibandingkan periode sebelumnya.",
-                    'type' => 'danger',
-                    'icon' => 'trending-down'
-                ];
-            }
-
-            // 3. Validation bottlenecks (> 7 days)
-            $bottlenecks = StudentAchievement::whereIn('validation_status', ['submitted', 'faculty_review', 'university_review'])
-                ->where('submitted_at', '<', now()->subDays(7))
-                ->whereHas('student', function ($sq) use ($level, $facultyId, $departmentId, $programStudyId) {
-                    if ($level === 'faculty' && $facultyId)
-                        $sq->where('faculty_id', $facultyId);
-                    elseif ($level === 'department' && $departmentId)
-                        $sq->where('department_id', $departmentId);
-                    elseif ($level === 'program_study' && $programStudyId)
-                        $sq->where('program_study_id', $programStudyId);
-                })
-                ->count();
-
-            if ($bottlenecks > 0) {
-                $riskIndicators[] = [
-                    'message' => "Sebanyak {$bottlenecks} pengajuan prestasi melampaui batas waktu validasi (> 7 hari) dan memerlukan tindakan segera.",
-                    'type' => 'danger',
-                    'icon' => 'clock'
-                ];
-            }
-
-            // 4. Low Participation Ratio (< 30% of units active)
-            if ($totalUnitsCount > 0 && ($activeUnitsCount / $totalUnitsCount) < 0.3) {
-                $riskIndicators[] = [
-                    'message' => "Tingkat partisipasi unit aktif baru mencapai " . round(($activeUnitsCount / $totalUnitsCount) * 100) . "%, di bawah target optimal 30%.",
-                    'type' => 'warning',
-                    'icon' => 'users'
-                ];
-            }
-        }
-
-        $riskIndicators = array_slice($riskIndicators, 0, 5);
-
-        // Hierarchical data for pimpinan (avoid duplicate processing)
-        $hierarchicalData = $hierarchicalComparison; // Use already processed data
-
-        // For validator: get pending achievements and filters
-        if (!$isPimpinan) {
-            $pendingQuery = $achievementsQuery->clone()
-                ->with(['student', 'achievement.category', 'documents'])
-                ->where('validation_status', 'submitted');
-
-            // Apply search filter
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $pendingQuery->where(function ($q) use ($search) {
-                    $q->where('event_name', 'ilike', "%{$search}%")
-                        ->orWhereHas('student', function ($sq) use ($search) {
-                            $sq->where('name', 'ilike', "%{$search}%")
-                                ->orWhere('student_id', 'ilike', "%{$search}%");
-                        });
-                });
-            }
-
-            // Apply category filter
-            if ($request->filled('category')) {
-                $pendingQuery->whereHas('achievement', function ($q) use ($request) {
-                    $q->where('category_id', $request->category);
-                });
-            }
-
-            // Apply level filter
-            if ($request->filled('level')) {
-                $pendingQuery->where('level', $request->level);
-            }
-
-            $pendingAchievements = $pendingQuery->orderBy('submitted_at', 'asc')->paginate(15);
-
-            // Get categories and levels for filters
-            $categories = \App\Models\AchievementCategory::orderBy('name')->get();
-            $levels = StudentAchievement::distinct()->pluck('level')->filter()->values()->toArray();
-        } else {
-            // For pimpinan: empty collections
-            $pendingAchievements = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
-            $categories = collect();
-            $levels = [];
-        }
-
-        // Set route prefix based on role
         $routePrefix = $isPimpinan ? 'pimpinan' : 'validator';
 
-        // Use same view for both roles
         return view('validator.dashboard', compact(
             'totalStudents',
             'totalAchievements',
@@ -660,7 +172,7 @@ class DashboardController extends Controller
                     // Total students in this faculty
                     $item->students_count = Student::where('faculty_id', $item->faculty_id)->count();
 
-                    $item->achievements_count = \App\Models\StudentAchievement::query()
+                    $item->achievements_count = StudentAchievement::query()
                         ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                         ->whereHas('student', function ($q) use ($item) {
                             $q->where('faculty_id', $item->faculty_id);
@@ -700,7 +212,7 @@ class DashboardController extends Controller
                 ->map(function ($item) use ($selectedPeriods, $nameMap) {
                     $item->department = $nameMap[$item->department_id] ?? $item->department;
                     $item->students_count = Student::where('department_id', $item->department_id)->count();
-                    $item->achievements_count = \App\Models\StudentAchievement::query()
+                    $item->achievements_count = StudentAchievement::query()
                         ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                         ->whereHas('student', function ($q) use ($item) {
                             $q->where('department_id', $item->department_id);
@@ -740,7 +252,7 @@ class DashboardController extends Controller
                 ->map(function ($item) use ($selectedPeriods, $nameMap) {
                     $item->program_study = $nameMap[$item->program_study_id] ?? $item->program_study;
                     $item->students_count = Student::where('program_study_id', $item->program_study_id)->count();
-                    $item->achievements_count = \App\Models\StudentAchievement::query()
+                    $item->achievements_count = StudentAchievement::query()
                         ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                         ->whereHas('student', function ($q) use ($item) {
                             $q->where('program_study_id', $item->program_study_id);
@@ -783,7 +295,7 @@ class DashboardController extends Controller
                     $item->students_count = Student::where('program_study_id', $programStudyId)
                         ->where('angkatan', $item->angkatan)
                         ->count();
-                    $item->achievements_count = \App\Models\StudentAchievement::query()
+                    $item->achievements_count = StudentAchievement::query()
                         ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                         ->whereHas('student', function ($q) use ($item, $programStudyId) {
                             $q->where('program_study_id', $programStudyId)
@@ -812,7 +324,7 @@ class DashboardController extends Controller
                 ->map(function ($item) use ($selectedPeriods, $nameMap) {
                     $item->program_study = $nameMap[$item->program_study_id] ?? $item->program_study;
                     $item->students_count = Student::where('program_study_id', $item->program_study_id)->count();
-                    $item->achievements_count = \App\Models\StudentAchievement::query()
+                    $item->achievements_count = StudentAchievement::query()
                         ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                         ->whereHas('student', function ($q) use ($item) {
                             $q->where('program_study_id', $item->program_study_id);
@@ -1137,7 +649,7 @@ class DashboardController extends Controller
                     ->map(function ($item) use ($selectedPeriods, $nameMap) {
                         $item->faculty = $nameMap[$item->faculty_id] ?? $item->faculty;
                         $item->students_count = Student::where('faculty_id', $item->faculty_id)->count();
-                        $item->achievements_count = \App\Models\StudentAchievement::query()
+                        $item->achievements_count = StudentAchievement::query()
                             ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                             ->whereHas('student', function ($q) use ($item) {
                                 $q->where('faculty_id', $item->faculty_id);
@@ -1177,7 +689,7 @@ class DashboardController extends Controller
                     ->map(function ($item) use ($selectedPeriods, $nameMap) {
                         $item->department = $nameMap[$item->department_id] ?? $item->department;
                         $item->students_count = Student::where('department_id', $item->department_id)->count();
-                        $item->achievements_count = \App\Models\StudentAchievement::query()
+                        $item->achievements_count = StudentAchievement::query()
                             ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                             ->whereHas('student', function ($q) use ($item) {
                                 $q->where('department_id', $item->department_id);
@@ -1217,7 +729,7 @@ class DashboardController extends Controller
                     ->map(function ($item) use ($selectedPeriods, $nameMap) {
                         $item->program_study = $nameMap[$item->program_study_id] ?? $item->program_study;
                         $item->students_count = Student::where('program_study_id', $item->program_study_id)->count();
-                        $item->achievements_count = \App\Models\StudentAchievement::query()
+                        $item->achievements_count = StudentAchievement::query()
                             ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                             ->whereHas('student', function ($q) use ($item) {
                                 $q->where('program_study_id', $item->program_study_id);
@@ -1258,7 +770,7 @@ class DashboardController extends Controller
                         $item->students_count = Student::where('program_study_id', $programStudyId)
                             ->where('angkatan', $item->angkatan)
                             ->count();
-                        $item->achievements_count = \App\Models\StudentAchievement::query()
+                        $item->achievements_count = StudentAchievement::query()
                             ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                             ->whereHas('student', function ($q) use ($item, $programStudyId) {
                                 $q->where('program_study_id', $programStudyId)
@@ -1299,7 +811,7 @@ class DashboardController extends Controller
                     ->map(function ($item) use ($selectedPeriods, $nameMap) {
                         $item->program_study = $nameMap[$item->program_study_id] ?? $item->program_study;
                         $item->students_count = Student::where('program_study_id', $item->program_study_id)->count();
-                        $item->achievements_count = \App\Models\StudentAchievement::query()
+                        $item->achievements_count = StudentAchievement::query()
                             ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                             ->whereHas('student', function ($q) use ($item) {
                                 $q->where('program_study_id', $item->program_study_id);
@@ -1341,7 +853,7 @@ class DashboardController extends Controller
                     ->map(function ($item) use ($selectedPeriods, $nameMap) {
                         $item->department = $nameMap[$item->department_id] ?? $item->department;
                         $item->students_count = Student::where('department_id', $item->department_id)->count();
-                        $item->achievements_count = \App\Models\StudentAchievement::query()
+                        $item->achievements_count = StudentAchievement::query()
                             ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                             ->whereHas('student', function ($q) use ($item) {
                                 $q->where('department_id', $item->department_id);
@@ -1381,7 +893,7 @@ class DashboardController extends Controller
                     ->map(function ($item) use ($selectedPeriods, $nameMap) {
                         $item->program_study = $nameMap[$item->program_study_id] ?? $item->program_study;
                         $item->students_count = Student::where('program_study_id', $item->program_study_id)->count();
-                        $item->achievements_count = \App\Models\StudentAchievement::query()
+                        $item->achievements_count = StudentAchievement::query()
                             ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                             ->whereHas('student', function ($q) use ($item) {
                                 $q->where('program_study_id', $item->program_study_id);
@@ -1425,7 +937,7 @@ class DashboardController extends Controller
                     ->map(function ($item) use ($selectedPeriods, $nameMap) {
                         $item->program_study = $nameMap[$item->program_study_id] ?? $item->program_study;
                         $item->students_count = Student::where('program_study_id', $item->program_study_id)->count();
-                        $item->achievements_count = \App\Models\StudentAchievement::query()
+                        $item->achievements_count = StudentAchievement::query()
                             ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                             ->whereHas('student', function ($q) use ($item) {
                                 $q->where('program_study_id', $item->program_study_id);
@@ -1542,7 +1054,7 @@ class DashboardController extends Controller
             ->groupBy('department_id')
             ->get()
             ->map(function ($item) use ($selectedPeriods) {
-                $item->achievements_count = \App\Models\StudentAchievement::query()
+                $item->achievements_count = StudentAchievement::query()
                     ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
                     ->whereHas('student', function ($q) use ($item) {
                         $q->where('department_id', $item->department_id);
@@ -1572,4 +1084,608 @@ class DashboardController extends Controller
         return $departments;
     }
 
+    /**
+     * Get dashboard scope and user information
+     */
+    private function getDashboardScope()
+    {
+        $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
+        $isPimpinan = $currentRole && $currentRole->role === 'pimpinan';
+        $isPimpinanRoute = request()->routeIs('pimpinan.*');
+
+        $prefix = $isPimpinanRoute ? 'pimpinan' : 'operator';
+
+        $level = session("{$prefix}_level") ?? session('operator_level') ?? session('pimpinan_level');
+        $facultyId = session("{$prefix}_faculty_id") ?? session('operator_faculty_id') ?? session('pimpinan_faculty_id');
+        $departmentId = session("{$prefix}_department_id") ?? session('operator_department_id') ?? session('pimpinan_department_id');
+        $programStudyId = session("{$prefix}_program_study_id") ?? session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $position = session('pimpinan_position');
+
+        $positionLabels = [
+            'rektor' => 'Rektor',
+            'wakil_rektor' => 'Wakil Rektor',
+            'dekan' => 'Dekan',
+            'wakil_dekan' => 'Wakil Dekan',
+            'ketua_jurusan' => 'Ketua Jurusan',
+            'sekretaris_jurusan' => 'Sekretaris Jurusan',
+            'kaprodi' => 'Ketua Program Studi',
+            'sekprodi' => 'Sekretaris Program Studi',
+            'direktur_pps' => 'Direktur Pascasarjana',
+            'super_admin' => 'Super Admin',
+        ];
+        $positionLabel = $positionLabels[$position] ?? ucfirst(str_replace('_', ' ', $position ?? ''));
+
+        $scopeName = '';
+        if ($level === 'university' || $position === 'super_admin') {
+            $scopeName = 'Universitas Pattimura';
+        } elseif ($level === 'graduate_program') {
+            $scopeName = 'Program Pascasarjana';
+        } else {
+            $scopeName = session("{$prefix}_{$level}_name") ?? ucfirst($level);
+        }
+
+        return compact('user', 'isPimpinan', 'level', 'facultyId', 'departmentId', 'programStudyId', 'position', 'positionLabel', 'scopeName');
+    }
+
+    /**
+     * Get selected academic periods
+     */
+    private function getSelectedPeriods(Request $request)
+    {
+        $selectedPeriods = $request->input('periods', []);
+        if (empty($selectedPeriods)) {
+            $activePeriod = AcademicPeriod::where('is_active', true)->first();
+            if ($activePeriod) {
+                return [$activePeriod->id];
+            }
+        }
+        return $selectedPeriods;
+    }
+
+    /**
+     * Apply hierarchical filters to a query
+     */
+    private function applyScopeFilters($query, $level, $facultyId, $departmentId, $programStudyId)
+    {
+        $isAchievementQuery = $query->getModel() instanceof StudentAchievement;
+
+        if ($level === 'faculty' && $facultyId) {
+            if ($isAchievementQuery) {
+                $query->whereHas('student', fn($q) => $q->where('faculty_id', $facultyId));
+            } else {
+                $query->where('faculty_id', $facultyId);
+            }
+        } elseif ($level === 'department' && $departmentId) {
+            if ($isAchievementQuery) {
+                $query->whereHas('student', fn($q) => $q->where('department_id', $departmentId));
+            } else {
+                $query->where('department_id', $departmentId);
+            }
+        } elseif ($level === 'program_study' && $programStudyId) {
+            if ($isAchievementQuery) {
+                $query->whereHas('student', fn($q) => $q->where('program_study_id', $programStudyId));
+            } else {
+                $query->where('program_study_id', $programStudyId);
+            }
+        } elseif ($level === 'graduate_program') {
+            if ($isAchievementQuery) {
+                $query->whereHas('student', fn($q) => $q->where('faculty', 'Program Pascasarjana'));
+            } else {
+                $query->where('faculty', 'Program Pascasarjana');
+            }
+        }
+    }
+
+    /**
+     * Calculate KPI statistics (Ratio, Growth, Urgent Pending)
+     */
+    private function getKpiStats($totalStudents, $totalAchievements, $selectedPeriods, $isPimpinan, $level, $facultyId, $departmentId, $programStudyId)
+    {
+        $ratio = $totalStudents > 0 ? $totalAchievements / $totalStudents : 0;
+        $growth = 0;
+        $urgentPending = 0;
+
+        if (!empty($selectedPeriods)) {
+            $earliestPeriod = AcademicPeriod::whereIn('id', $selectedPeriods)->orderBy('start_date', 'asc')->first();
+
+            if ($earliestPeriod) {
+                $previousPeriod = AcademicPeriod::where('end_date', '<', $earliestPeriod->start_date)
+                    ->orderBy('end_date', 'desc')
+                    ->first();
+
+                if ($previousPeriod) {
+                    $achievementsPrevious = StudentAchievement::query()
+                        ->where('academic_period_id', $previousPeriod->id)
+                        ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
+                        ->whereHas('student', function ($q) use ($level, $facultyId, $departmentId, $programStudyId) {
+                            if ($level === 'faculty' && $facultyId)
+                                $q->where('faculty_id', $facultyId);
+                            elseif ($level === 'department' && $departmentId)
+                                $q->where('department_id', $departmentId);
+                            elseif ($level === 'program_study' && $programStudyId)
+                                $q->where('program_study_id', $programStudyId);
+                        })
+                        ->count();
+
+                    if ($achievementsPrevious > 0) {
+                        $growth = (($totalAchievements - $achievementsPrevious) / $achievementsPrevious) * 100;
+                    } else {
+                        $growth = $totalAchievements > 0 ? 100 : 0;
+                    }
+                }
+            }
+        }
+
+        if (!$isPimpinan) {
+            $urgentPending = StudentAchievement::query()
+                ->where('validation_status', 'submitted')
+                ->where('submitted_at', '<', now()->subDays(7))
+                ->whereHas('student', function ($q) use ($level, $facultyId, $departmentId, $programStudyId) {
+                    $this->applyScopeFilters($q, $level, $facultyId, $departmentId, $programStudyId);
+                })
+                ->count();
+        }
+
+        return ['ratio' => $ratio, 'growth' => $growth, 'urgentPending' => $urgentPending];
+    }
+
+    /**
+     * Get status distribution stats
+     */
+    private function getStatusStats($query)
+    {
+        return $query->clone()
+            ->select('validation_status', DB::raw('count(*) as total'))
+            ->groupBy('validation_status')
+            ->pluck('total', 'validation_status')
+            ->toArray();
+    }
+
+    /**
+     * Get category distribution stats
+     */
+    private function getCategoryDistribution($query, $isPimpinan)
+    {
+        return $query->clone()
+            ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
+            ->join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
+            ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
+            ->select('achievement_categories.name', DB::raw('count(*) as total'))
+            ->groupBy('achievement_categories.id', 'achievement_categories.name')
+            ->orderBy('total', 'desc')
+            ->get();
+    }
+
+    /**
+     * Get level distribution stats
+     */
+    private function getLevelDistribution($query, $isPimpinan)
+    {
+        return $query->clone()
+            ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
+            ->select('student_achievements.level as name', DB::raw('count(*) as total'))
+            ->groupBy('student_achievements.level')
+            ->orderBy('total', 'desc')
+            ->get();
+    }
+
+    /**
+     * Calculate National & International KPIs
+     */
+    private function getNationalKpis($totalAchievements, $levelDistribution)
+    {
+        $nationalCount = $levelDistribution->where('name', 'Nasional')->first()?->total ?? 0;
+        $internationalCount = $levelDistribution->where('name', 'Internasional')->first()?->total ?? 0;
+
+        return [
+            'nationalPercentage' => $totalAchievements > 0 ? ($nationalCount / $totalAchievements) * 100 : 0,
+            'internationalPercentage' => $totalAchievements > 0 ? ($internationalCount / $totalAchievements) * 100 : 0
+        ];
+    }
+
+    /**
+     * Calculate Active Units KPI
+     */
+    private function getActiveUnitsKpi($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods)
+    {
+        $activeCount = 0;
+        $totalCount = 0;
+        $label = 'Unit';
+
+        if ($level === 'university') {
+            $label = 'Fakultas';
+            $totalCount = Student::whereNotNull('faculty_id')->distinct('faculty_id')->count();
+            $activeCount = StudentAchievement::query()
+                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
+                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
+                ->whereHas('student', fn($q) => $q->whereNotNull('faculty_id'))
+                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+                ->distinct('students.faculty_id')
+                ->count('students.faculty_id');
+        } elseif ($level === 'faculty') {
+            $label = 'Jurusan';
+            $totalCount = Student::where('faculty_id', $facultyId)->whereNotNull('department_id')->distinct('department_id')->count();
+            $activeCount = StudentAchievement::query()
+                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
+                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
+                ->whereHas('student', fn($q) => $q->where('faculty_id', $facultyId)->whereNotNull('department_id'))
+                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+                ->distinct('students.department_id')
+                ->count('students.department_id');
+        } elseif ($level === 'department') {
+            $label = 'Prodi';
+            $totalCount = Student::where('department_id', $departmentId)->whereNotNull('program_study_id')->distinct('program_study_id')->count();
+            $activeCount = StudentAchievement::query()
+                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
+                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
+                ->whereHas('student', fn($q) => $q->where('department_id', $departmentId)->whereNotNull('program_study_id'))
+                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+                ->distinct('students.program_study_id')
+                ->count('students.program_study_id');
+        } elseif ($level === 'program_study') {
+            $label = 'Angkatan';
+            $totalCount = Student::where('program_study_id', $programStudyId)->whereNotNull('angkatan')->distinct('angkatan')->count();
+            $activeCount = StudentAchievement::query()
+                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
+                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
+                ->whereHas('student', fn($q) => $q->where('program_study_id', $programStudyId)->whereNotNull('angkatan'))
+                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+                ->distinct('students.angkatan')
+                ->count('students.angkatan');
+        } elseif ($level === 'graduate_program') {
+            $label = 'Prodi PPs';
+            $totalCount = Student::where('faculty', 'Program Pascasarjana')->whereNotNull('program_study_id')->distinct('program_study_id')->count();
+            $activeCount = StudentAchievement::query()
+                ->whereIn('validation_status', ['faculty_approved', 'university_approved'])
+                ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
+                ->whereHas('student', fn($q) => $q->where('faculty', 'Program Pascasarjana')->whereNotNull('program_study_id'))
+                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+                ->distinct('students.program_study_id')
+                ->count('students.program_study_id');
+        }
+
+        return compact('activeCount', 'totalCount', 'label');
+    }
+
+    /**
+     * Calculate efficiency ranking based on achievement ratio
+     */
+    private function calculateEfficiencyRanking($hierarchicalComparison)
+    {
+        return $hierarchicalComparison['items']->map(function ($item) {
+            $ratio = $item->students_count > 0 ? ($item->achievements_count / $item->students_count) : 0;
+            return [
+                'name' => $item->faculty ?? $item->department ?? $item->program_study ?? $item->angkatan_label ?? $item->angkatan ?? 'Unknown',
+                'ratio' => $ratio,
+                'achievements' => $item->achievements_count,
+                'students' => $item->students_count
+            ];
+        })->sortByDesc('ratio')->values()->take(10);
+    }
+
+    /**
+     * Get recent activities grouped by event
+     */
+    private function getRecentActivities($query, $isPimpinan)
+    {
+        return $query->clone()
+            ->select(
+                'event_name',
+                'organizer',
+                'level',
+                DB::raw('MAX(submitted_at) as latest_submission'),
+                DB::raw('COUNT(DISTINCT student_id) as participant_count'),
+                DB::raw('MIN(sa_id) as first_achievement_id')
+            )
+            ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
+            ->groupBy('event_name', 'organizer', 'level')
+            ->orderBy('latest_submission', 'desc')
+            ->limit(5)
+            ->get();
+    }
+
+    /**
+     * Get top students by achievement count
+     */
+    private function getTopStudents($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan)
+    {
+        $query = Student::query();
+        $this->applyScopeFilters($query, $level, $facultyId, $departmentId, $programStudyId);
+
+        return $query->withCount([
+            'achievements' => function ($q) use ($selectedPeriods, $isPimpinan) {
+                if ($isPimpinan) {
+                    $q->whereIn('validation_status', ['faculty_approved', 'university_approved']);
+                }
+                if (!empty($selectedPeriods)) {
+                    $q->whereIn('academic_period_id', $selectedPeriods);
+                }
+            }
+        ])
+            ->orderBy('achievements_count', 'desc')
+            ->limit(5)
+            ->get();
+    }
+
+    /**
+     * Get top GPA students grouped by angkatan
+     */
+    private function getTopGpaByAngkatan($level, $programStudyId)
+    {
+        $topGpaByAngkatan = [];
+        if ($level === 'program_study' && $programStudyId) {
+            $angkatanList = Student::where('program_study_id', $programStudyId)
+                ->select('angkatan')
+                ->distinct()
+                ->orderBy('angkatan', 'desc')
+                ->limit(3)
+                ->pluck('angkatan');
+
+            foreach ($angkatanList as $angkatan) {
+                $topGpaValues = Student::where('program_study_id', $programStudyId)
+                    ->where('angkatan', $angkatan)
+                    ->whereNotNull('gpa')
+                    ->where('gpa', '>', 0)
+                    ->select('gpa')
+                    ->distinct()
+                    ->orderBy('gpa', 'desc')
+                    ->limit(3)
+                    ->pluck('gpa');
+
+                $thirdGpa = $topGpaValues->get(2) ?? 0;
+
+                $topGpaByAngkatan[$angkatan] = Student::where('program_study_id', $programStudyId)
+                    ->where('angkatan', $angkatan)
+                    ->whereNotNull('gpa')
+                    ->where('gpa', '>=', $thirdGpa)
+                    ->where('gpa', '>', 0)
+                    ->orderBy('gpa', 'desc')
+                    ->orderBy('name', 'asc')
+                    ->get();
+            }
+        }
+        return $topGpaByAngkatan;
+    }
+
+    /**
+     * Get achievement counts per angkatan
+     */
+    private function getAchievementsByAngkatan($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan)
+    {
+        $query = Student::query();
+        $this->applyScopeFilters($query, $level, $facultyId, $departmentId, $programStudyId);
+
+        return $query->select('angkatan')
+            ->selectRaw('count(distinct student_id) as student_count')
+            ->groupBy('angkatan')
+            ->orderBy('angkatan', 'desc')
+            ->get()
+            ->map(function ($item) use ($selectedPeriods, $level, $facultyId, $departmentId, $programStudyId, $isPimpinan) {
+                $achQuery = StudentAchievement::query()
+                    ->whereHas('student', function ($q) use ($item, $level, $facultyId, $departmentId, $programStudyId) {
+                        $q->where('angkatan', $item->angkatan);
+                        $this->applyScopeFilters($q, $level, $facultyId, $departmentId, $programStudyId);
+                    });
+
+                if ($isPimpinan) {
+                    $achQuery->whereIn('validation_status', ['faculty_approved', 'university_approved']);
+                }
+
+                if (!empty($selectedPeriods)) {
+                    $achQuery->whereIn('academic_period_id', $selectedPeriods);
+                }
+
+                $item->achievements_count = $achQuery->count();
+                return $item;
+            });
+    }
+
+    /**
+     * Get achievement counts per period
+     */
+    private function getAchievementsPerPeriod($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan)
+    {
+        return AcademicPeriod::query()
+            ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('id', $selectedPeriods))
+            ->withCount([
+                'achievements' => function ($q) use ($level, $facultyId, $departmentId, $programStudyId, $isPimpinan) {
+                    if ($isPimpinan) {
+                        $q->whereIn('validation_status', ['faculty_approved', 'university_approved']);
+                    }
+                    $q->whereHas('student', function ($sq) use ($level, $facultyId, $departmentId, $programStudyId) {
+                        $this->applyScopeFilters($sq, $level, $facultyId, $departmentId, $programStudyId);
+                    });
+                }
+            ])
+            ->orderBy('start_date')
+            ->get();
+    }
+
+    /**
+     * Get achievement trend data (last 6 semesters)
+     */
+    private function getAchievementTrend($level, $facultyId, $departmentId, $programStudyId, $isPimpinan)
+    {
+        return AcademicPeriod::query()
+            ->orderBy('end_date', 'desc')
+            ->limit(6)
+            ->get()
+            ->reverse()
+            ->map(function ($period) use ($level, $facultyId, $departmentId, $programStudyId, $isPimpinan) {
+                $baseQuery = StudentAchievement::query()
+                    ->where('academic_period_id', $period->id)
+                    ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
+                    ->whereHas('student', function ($sq) use ($level, $facultyId, $departmentId, $programStudyId) {
+                        $this->applyScopeFilters($sq, $level, $facultyId, $departmentId, $programStudyId);
+                    });
+
+                return [
+                    'label' => $period->name_short ?? $period->name,
+                    'academic' => (clone $baseQuery)->whereHas('achievement', fn($q) => $q->where('category_id', 1))->count(),
+                    'non_academic' => (clone $baseQuery)->whereHas('achievement', fn($q) => $q->where('category_id', '!=', 1))->count(),
+                    'total' => (clone $baseQuery)->count()
+                ];
+            })->values();
+    }
+
+    /**
+     * Generate risk indicators and alerts
+     */
+    private function getRiskIndicators($isPimpinan, $hierarchicalComparison, $selectedPeriods, $achievementGrowth, $level, $facultyId, $departmentId, $programStudyId, $totalUnitsCount, $activeUnitsCount)
+    {
+        $riskIndicators = [];
+        if (!$isPimpinan)
+            return $riskIndicators;
+
+        if (!empty($hierarchicalComparison) && isset($hierarchicalComparison['items'])) {
+            $noNational = $hierarchicalComparison['items']->filter(function ($unit) use ($selectedPeriods) {
+                return StudentAchievement::whereIn('validation_status', ['faculty_approved', 'university_approved'])
+                    ->whereHas('student', function ($q) use ($unit) {
+                        if (isset($unit->faculty_id))
+                            $q->where('faculty_id', $unit->faculty_id);
+                        elseif (isset($unit->department_id))
+                            $q->where('department_id', $unit->department_id);
+                        elseif (isset($unit->program_study_id))
+                            $q->where('program_study_id', $unit->program_study_id);
+                    })
+                    ->whereIn('level', ['Nasional', 'Internasional'])
+                    ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
+                    ->count() === 0;
+            })->take(2);
+
+            foreach ($noNational as $unit) {
+                $riskIndicators[] = [
+                    'message' => ($unit->faculty ?? $unit->department ?? $unit->program_study) . " belum mencapai target prestasi tingkat Nasional/Internasional pada periode ini.",
+                    'type' => 'warning',
+                    'icon' => 'exclamation-circle'
+                ];
+            }
+        }
+
+        if ($achievementGrowth < -20) {
+            $riskIndicators[] = [
+                'message' => "Sistem mendeteksi penurunan kuantitas prestasi sebesar " . round(abs($achievementGrowth), 1) . "% dibandingkan periode sebelumnya.",
+                'type' => 'danger',
+                'icon' => 'trending-down'
+            ];
+        }
+
+        $bottlenecks = StudentAchievement::whereIn('validation_status', ['submitted', 'faculty_review', 'university_review', 'faculty_revision', 'university_revision'])
+            ->whereNotIn('validation_status', ['faculty_rejected', 'university_rejected']) // Exclude rejected
+            ->where('submitted_at', '<', now()->subDays(7))
+            ->whereHas('student', function ($sq) use ($level, $facultyId, $departmentId, $programStudyId) {
+                $this->applyScopeFilters($sq, $level, $facultyId, $departmentId, $programStudyId);
+            })->count();
+
+        if ($bottlenecks > 0) {
+            $riskIndicators[] = [
+                'message' => "Sebanyak {$bottlenecks} pengajuan prestasi melampaui batas waktu validasi (> 7 hari).",
+                'type' => 'danger',
+                'icon' => 'clock',
+                'action_url' => route('pimpinan.sla-breach-details') // Add action URL for modal
+            ];
+        }
+
+        if ($totalUnitsCount > 0 && ($activeUnitsCount / $totalUnitsCount) < 0.3) {
+            $riskIndicators[] = [
+                'message' => "Tingkat partisipasi unit aktif baru mencapai " . round(($activeUnitsCount / $totalUnitsCount) * 100) . "%, di bawah target optimal 30%.",
+                'type' => 'warning',
+                'icon' => 'users'
+            ];
+        }
+
+        return array_slice($riskIndicators, 0, 5);
+    }
+
+    /**
+     * Get data for validator search and listing
+     */
+    private function getValidatorData(Request $request, $achievementsQuery, $isPimpinan)
+    {
+        if ($isPimpinan) {
+            return [
+                'pendingAchievements' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15),
+                'categories' => collect(),
+                'levels' => []
+            ];
+        }
+
+        $pendingQuery = $achievementsQuery->clone()
+            ->with(['student', 'achievement.category', 'documents'])
+            ->where('validation_status', 'submitted');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $pendingQuery->where(function ($q) use ($search) {
+                $q->where('event_name', 'ilike', "%{$search}%")
+                    ->orWhereHas('student', function ($sq) use ($search) {
+                        $sq->where('name', 'ilike', "%{$search}%")
+                            ->orWhere('student_id', 'ilike', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('category')) {
+            $pendingQuery->whereHas('achievement', fn($q) => $q->where('category_id', $request->category));
+        }
+
+        if ($request->filled('level')) {
+            $pendingQuery->where('level', $request->level);
+        }
+
+        return [
+            'pendingAchievements' => $pendingQuery->orderBy('submitted_at', 'asc')->paginate(15),
+            'categories' => \App\Models\AchievementCategory::orderBy('name')->get(),
+            'levels' => StudentAchievement::distinct()->pluck('level')->filter()->values()->toArray()
+        ];
+    }
+
+    /**
+     * Get SLA breach details for modal
+     */
+    public function getSlaBreachDetails(Request $request)
+    {
+        $scope = $this->getDashboardScope();
+        $level = $scope['level'];
+        $facultyId = $scope['facultyId'];
+        $departmentId = $scope['departmentId'];
+        $programStudyId = $scope['programStudyId'];
+
+        $selectedPeriods = $this->getSelectedPeriods($request);
+
+        $breaches = StudentAchievement::with(['student', 'achievement.category', 'academicPeriod'])
+            ->whereIn('validation_status', ['submitted', 'faculty_review', 'university_review', 'faculty_revision', 'university_revision'])
+            ->whereNotIn('validation_status', ['faculty_rejected', 'university_rejected'])
+            ->where('submitted_at', '<', now()->subDays(7))
+            ->whereHas('student', function ($sq) use ($level, $facultyId, $departmentId, $programStudyId) {
+                $this->applyScopeFilters($sq, $level, $facultyId, $departmentId, $programStudyId);
+            })
+            ->when(!empty($selectedPeriods), function ($q) use ($selectedPeriods) {
+                $q->whereIn('academic_period_id', $selectedPeriods);
+            })
+            ->orderBy('submitted_at', 'asc')
+            ->get()
+            ->map(function ($achievement) {
+                $daysOverdue = (int) now()->diffInDays($achievement->submitted_at);
+                return [
+                    'sa_id' => $achievement->sa_id,
+                    'student_name' => $achievement->student->name ?? 'N/A',
+                    'student_id' => $achievement->student->student_id ?? 'N/A',
+                    'program_study' => $achievement->student->program_study ?? 'N/A',
+                    'event_name' => $achievement->event_name,
+                    'category' => $achievement->achievement->category->name ?? 'N/A',
+                    'level' => $achievement->level,
+                    'submitted_at' => $achievement->submitted_at->format('d M Y'),
+                    'days_overdue' => $daysOverdue,
+                    'validation_status' => $achievement->validation_status,
+                    'status_label' => $achievement->getStatusLabelAttribute(),
+                ];
+            });
+
+        return response()->json([
+            'total' => $breaches->count(),
+            'breaches' => $breaches
+        ]);
+    }
 }

@@ -484,7 +484,7 @@
                             </template>
                             <option value="Semua Fakultas">Semua Fakultas (Super Validator)</option>
                         </select>
-                        <p x-show="loadingFaculties" class="text-xs text-gray-500 mt-1">
+                        <p x-show="loadingFaculties" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             Memuat data fakultas dari SIGAP...
                         </p>
                     </div>
@@ -548,7 +548,7 @@
                                 </template>
                             </select>
                             <p x-show="form.pimpinan_faculty && filteredDepartments.length === 0"
-                                class="text-xs text-gray-500 mt-1">
+                                class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Tidak ada data jurusan. Silakan input manual atau pilih fakultas lain.
                             </p>
                         </div>
@@ -569,7 +569,7 @@
                                 </template>
                             </select>
                             <p x-show="form.pimpinan_department && filteredPrograms.length === 0"
-                                class="text-xs text-gray-500 mt-1">
+                                class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Tidak ada data program studi. Silakan input manual atau pilih jurusan lain.
                             </p>
                         </div>

@@ -62,9 +62,9 @@ class AchievementSubmissionService
                     $this->uploadDocument(
                         $achievement,
                         $file,
-                        \App\Models\AchievementDocument::TYPE_FOTO_DOKUMENTASI,
+                        AchievementDocument::TYPE_FOTO_DOKUMENTASI,
                         $userId,
-                        \App\Models\AchievementDocument::STATUS_PENDING // Additional docs start as pending
+                        AchievementDocument::STATUS_PENDING // Additional docs start as pending
                     );
                 }
             }

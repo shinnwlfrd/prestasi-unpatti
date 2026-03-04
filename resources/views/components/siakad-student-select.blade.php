@@ -13,9 +13,12 @@
     <!-- Search Input Area -->
     <div class="relative group">
         <div class="relative">
-            <input type="text" x-model="searchQuery" @keydown.enter.prevent="searchStudents()"
-                @focus="showDropdown = true" placeholder="Cari NIM atau Nama lalu tekan Enter..."
-                class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-2xl py-4 px-12 text-base font-medium focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 transition-all shadow-sm @if($error) border-red-500 @endif">
+            <input type="text" x-model="searchQuery" 
+                @keydown.enter.prevent="searchStudents()"
+                @input="if (searchQuery.trim().length === 0) { results = []; hasSearched = false; showDropdown = false; }"
+                @focus="if (searchQuery.trim().length >= 2) showDropdown = true" 
+                placeholder="Cari NIM atau Nama lalu tekan Enter (min. 2 karakter)..."
+                class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-12 text-base font-medium focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 transition-all shadow-sm @if($error) border-red-500 @endif">
 
             <svg class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
@@ -35,7 +38,7 @@
 
         <!-- Dropdown Results -->
         <div x-show="showDropdown && (results.length > 0 || hasSearched)" x-cloak @click.away="showDropdown = false"
-            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
             <div x-show="loading" class="p-8 text-center">
                 <svg class="w-8 h-8 mx-auto text-purple-500 animate-spin mb-3" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -113,7 +116,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        Ketik NIM atau nama lalu tekan Enter untuk mencari mahasiswa dari SIAKAD
+        Ketik minimal 2 karakter (NIM atau nama) lalu tekan Enter untuk mencari mahasiswa dari SIAKAD
     </p>
 
     @if($error)
@@ -157,7 +160,14 @@
 
                     async searchStudents() {
                         const query = this.searchQuery.trim();
-                        if (query.length < 2) return;
+                        
+                        // Require minimum 2 characters
+                        if (query.length < 2) {
+                            this.results = [];
+                            this.hasSearched = false;
+                            this.showDropdown = false;
+                            return;
+                        }
 
                         this.loading = true;
                         this.showDropdown = true;
@@ -174,7 +184,7 @@
                             if (!response.ok) throw new Error('Network error');
 
                             const data = await response.json();
-                            let filteredResults = data.results;
+                            let filteredResults = data.results || [];
 
                             // Priority: If searching with a numeric NIM and there's an exact match, show only that
                             if (query.match(/^[0-9]+$/)) {

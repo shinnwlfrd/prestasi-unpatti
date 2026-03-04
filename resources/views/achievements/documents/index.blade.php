@@ -19,7 +19,7 @@
 @section('content')
     <div x-data="documentUploader()" class="max-w-4xl mx-auto space-y-6">
         <!-- Header with Back Button -->
-        <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300">
+        <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300">
             <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 -mt-20 -mr-20 rounded-full blur-3xl"></div>
             <div class="p-6 relative">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -69,7 +69,7 @@
                 <!-- Info Alert -->
                 <div class="mt-6 flex flex-col md:flex-row gap-4">
                     @if(!isset($isValidatorOrAdmin) || !$isValidatorOrAdmin)
-                        <div class="flex-1 p-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl flex gap-3 shadow-sm">
+                        <div class="flex-1 p-4 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 rounded-xl flex gap-3 shadow-sm">
                             <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -83,7 +83,7 @@
                             </div>
                         </div>
                     @else
-                        <div class="flex-1 p-4 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 rounded-2xl flex gap-3 shadow-sm">
+                        <div class="flex-1 p-4 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 rounded-xl flex gap-3 shadow-sm">
                             <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -99,7 +99,7 @@
                     @endif
 
                     @if($isNonAkademik)
-                        <div class="flex-1 p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-2xl flex gap-3 shadow-sm">
+                        <div class="flex-1 p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 rounded-xl flex gap-3 shadow-sm">
                             <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -121,7 +121,7 @@
         @if(!in_array($achievement->validation_status, ['Disetujui', 'Ditolak']))
             <form id="uploadForm" action="{{ route('achievements.documents.store', $achievement) }}" method="POST"
                 enctype="multipart/form-data"
-                class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-all duration-300"
+                class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm transition-all duration-300"
                 @submit.prevent="submitForm()">
                 @csrf
 
@@ -141,8 +141,8 @@
                             <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
                                 multiple accept=".pdf,.jpg,.jpeg,.png"
                                 @change="handleFileSelect($event)">
-                            <div class="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl p-8 text-center bg-gray-50/30 dark:bg-gray-900/30 group-hover:bg-white dark:group-hover:bg-gray-900 group-hover:border-indigo-400 dark:group-hover:border-indigo-600 transition-all duration-300">
-                                <div class="w-12 h-12 mx-auto bg-indigo-50 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center text-indigo-500 mb-4 transition-transform duration-300 group-hover:scale-110">
+                            <div class="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl p-8 text-center bg-gray-50/30 dark:bg-gray-900/30 group-hover:bg-white dark:group-hover:bg-gray-900 group-hover:border-indigo-400 dark:group-hover:border-indigo-600 transition-all duration-300">
+                                <div class="w-12 h-12 mx-auto bg-indigo-50 dark:bg-indigo-900/50 rounded-xl flex items-center justify-center text-indigo-500 mb-4 transition-transform duration-300 group-hover:scale-110">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
@@ -154,7 +154,7 @@
 
                         <!-- Limit Exceeded Banner -->
                         <div x-show="existingSupportingDocsCount + files.length >= maxFiles" x-cloak
-                            class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-2xl flex items-center gap-3 animate-fade-in">
+                            class="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl flex items-center gap-3 animate-fade-in">
                             <div class="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -232,7 +232,7 @@
                                         </div>
                                     </div>
                                 </template>
-                                <div x-show="externalLinks.length === 0" class="text-center py-6 border border-dashed border-gray-100 dark:border-gray-800 rounded-2xl">
+                                <div x-show="externalLinks.length === 0" class="text-center py-6 border border-dashed border-gray-100 dark:border-gray-800 rounded-xl">
                                     <p class="text-[10px] text-gray-400 font-medium italic">Tidak ada link tambahan</p>
                                 </div>
                             </div>
@@ -241,7 +241,7 @@
                         <!-- Action Buttons -->
                         <div class="pt-4 flex flex-col gap-3">
                             <button type="submit"
-                                class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
+                                class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
                                 :disabled="fileCount === 0 && externalLinks.length === 0 || uploading || !allTypesSelected()">
                                 <template x-if="!uploading">
                                     <div class="flex items-center gap-2">

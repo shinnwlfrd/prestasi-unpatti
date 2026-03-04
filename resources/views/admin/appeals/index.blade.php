@@ -15,7 +15,7 @@
 
         <!-- Statistics -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 xl:gap-8">
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Pending Review</p>
@@ -33,7 +33,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Diterima</p>
@@ -51,7 +51,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Ditolak</p>
@@ -69,7 +69,7 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
+            <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Total Banding</p>
@@ -89,7 +89,7 @@
         </div>
 
         <!-- Filters -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8">
             <form method="GET" action="{{ route('admin.appeals.index') }}"
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
                 <!-- Search -->
@@ -150,7 +150,7 @@
         </div>
 
         <!-- Appeals List -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
             <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>

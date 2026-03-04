@@ -60,9 +60,8 @@ class DashboardController extends Controller
         $isActivePeriod = $selectedPeriod && $selectedPeriod->is_active;
         $isInactivePeriod = $selectedPeriod && !$selectedPeriod->is_active;
 
-        // Define active period for anomalies, Peringatan Sistem, and Antrean Terlama
-        // These sections always use active period regardless of selected period filter
-        $activePeriodForAnomalies = $activePeriod ? $activePeriod->id : null;
+        // Anomalies use the currently selected period
+        // so data shown is always relevant to the viewed period
 
         // Helper for inclusive status counts
         $getInclusiveCount = function ($statuses, $pId = null) {
@@ -134,28 +133,28 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        // University Pending Queue (top 5 oldest) - Always use active period
+        // University Pending Queue (top 5 oldest) - Use selected period
         $universityPending = StudentAchievement::with(['student', 'achievement.category', 'facultyValidator'])
             ->universityPending()
-            ->when($activePeriodForAnomalies, fn($q) => $q->where('academic_period_id', $activePeriodForAnomalies))
+            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
             ->orderBy('faculty_validated_at', 'asc')
             ->take(5)
             ->get();
 
-        // Resubmission Queue (top 5 oldest) - replaces appeal queue - Always use active period
+        // Resubmission Queue (top 5 oldest) - replaces appeal queue - Use selected period
         $resubmissionQueue = StudentAchievement::with(['student', 'achievement.category'])
             ->where('is_resubmission', true)
             ->whereIn('validation_status', ['submitted', 'faculty_review'])
-            ->when($activePeriodForAnomalies, fn($q) => $q->where('academic_period_id', $activePeriodForAnomalies))
+            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
             ->orderBy('last_resubmitted_at', 'asc')
             ->take(5)
             ->get();
 
-        // Pending Review (urgent - older than 7 days) - Always use active period
+        // Pending Review (urgent - older than 7 days) - Use selected period
         $urgentPending = StudentAchievement::with(['student', 'achievement.category'])
             ->where('validation_status', 'Menunggu')
             ->where('submitted_at', '<', now()->subDays(7))
-            ->when($activePeriodForAnomalies, fn($q) => $q->where('academic_period_id', $activePeriodForAnomalies))
+            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
             ->orderBy('submitted_at', 'asc')
             ->take(5)
             ->get();
@@ -189,28 +188,21 @@ class DashboardController extends Controller
         $facultyComparison = $this->getFacultyComparison($periodId);
         $categoryDistribution = $this->getCategoryDistribution($periodId);
         $topProgramStudies = $this->getProgramStudyRanking($periodId);
-        
-        // Context-aware anomalies - Always use active period for Kualitas Data, Peringatan Sistem, and Antrean Terlama
-        // This ensures consistency across all three sections regardless of selected period filter
-        $alertContext = $activePeriod ? 'active' : 'global';
-        
-        if ($activePeriodForAnomalies) {
-            // Use active period for anomaly detection
-            $anomalies = $this->getContextAwareAnomalies($alertContext, $activePeriodForAnomalies);
+
+        // Context-aware anomalies - Use the selected period for Kualitas Data and Antrean Terlama
+        // This ensures data shown is relevant to the currently viewed period
+        $alertContext = $this->resolveAlertContext($selectedPeriod);
+
+        if ($periodId) {
+            // Use selected period for anomaly detection
+            $anomalies = $this->getContextAwareAnomalies($alertContext, (int) $periodId);
             $globalBreakdown = [];
         } else {
-            // No active period - skip anomaly detection
-            $anomalies = [
-                'sla_breach' => ['count' => 0, 'items' => []],
-                'missing_documents' => ['count' => 0, 'items' => []],
-                'duplicates' => ['count' => 0, 'items' => []],
-                'abandoned_drafts' => ['count' => 0, 'items' => []],
-                'total_count' => 0,
-                'context' => 'global',
-            ];
-            $globalBreakdown = [];
+            // Global view or no period selected - use global context
+            $anomalies = $this->getContextAwareAnomalies('global', null);
+            $globalBreakdown = $this->getGlobalAnomalyBreakdown();
         }
-        
+
         // systemActivities removed – Log Aktivitas Sistem panel has been removed
         $masterData = $this->getMasterDataSummary();
 

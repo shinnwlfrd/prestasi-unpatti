@@ -13,7 +13,7 @@
         <!-- Selected SK display when something is selected -->
         <template x-if="selectedSk">
             <div
-                class="w-full bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-500 dark:border-emerald-500 rounded-2xl py-4 px-5 flex items-center justify-between group">
+                class="w-full bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-500 dark:border-emerald-500 rounded-xl py-4 px-5 flex items-center justify-between group">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div
                         class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
@@ -45,7 +45,7 @@
                 <input type="text" x-model="searchQuery" @keydown.enter.prevent="searchSks()"
                     @focus="showDropdown = true" @click.away="showDropdown = false"
                     placeholder="Ketik No. SK atau Judul lalu tekan Enter..."
-                    class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-2xl py-4 px-12 text-base font-medium focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm {{ $error ? 'border-red-500' : '' }}">
+                    class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-12 text-base font-medium focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm {{ $error ? 'border-red-500' : '' }}">
 
                 <svg class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@
 
         <!-- Dropdown Results -->
         <div x-show="showDropdown && !selectedSk && (sks.length > 0 || searchQuery.length >= 2)" x-cloak
-            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
 
             <div x-show="loading" class="p-8 text-center">
                 <svg class="w-8 h-8 mx-auto text-emerald-500 animate-spin mb-3" fill="none" viewBox="0 0 24 24">
