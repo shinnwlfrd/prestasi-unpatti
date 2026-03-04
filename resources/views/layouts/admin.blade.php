@@ -21,9 +21,6 @@
         }
     </script>
 
-    <!-- Admin Color Scheme CSS -->
-    <link rel="stylesheet" href="{{ asset('css/admin-colors.css') }}">
-
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -36,16 +33,16 @@
                     },
                     colors: {
                         primary: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            200: '#ddd6fe',
-                            300: '#c4b5fd',
-                            400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#7c3aed',
-                            700: '#6d28d9',
-                            800: '#5b21b6',
-                            900: '#4c1d95'
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81'
                         }
                     }
                 }
@@ -74,7 +71,7 @@
             transform: translateY(-50%);
             width: 3px;
             height: 60%;
-            background: linear-gradient(to bottom, #8b5cf6, #7c3aed);
+            background: #4f46e5;
             border-radius: 0 3px 3px 0;
         }
 
@@ -83,18 +80,7 @@
             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Background Pattern */
-        .bg-pattern {
-            background-image:
-                radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
-        }
-
-        .dark .bg-pattern {
-            background-image:
-                radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
-        }
+        /* Background Pattern - removed for clean look */
 
         /* Dashboard Optimizations */
         @media (min-width: 1024px) {
@@ -143,31 +129,25 @@
             }
         }
 
-        /* Glass Morphism Effect */
+        /* Glass Effect - simplified */
         .glass {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .dark .glass {
-            background: rgba(31, 41, 55, 0.8);
+            background: rgba(17, 24, 39, 0.95);
         }
 
-        /* Hover Effects */
+        /* Hover Effects - simplified */
         .hover-lift {
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .hover-lift:hover {
-            transform: translateY(-1px);
+            transition: box-shadow 0.15s ease;
         }
     </style>
 </head>
 
 
 <body class="bg-gray-50 dark:bg-[#0a0a0a] min-h-screen overflow-x-hidden antialiased">
-    <div class="min-h-screen bg-pattern">
+    <div class="min-h-screen">
         @php
             $user = auth()->user();
             $currentRole = $user ? $user->getCurrentRole() : null;
@@ -190,7 +170,7 @@
             <div class="p-5 border-b border-gray-100 dark:border-gray-800/50 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div
-                        class="w-9 h-9 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center shadow-lg shadow-primary-500/20">
+                        class="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                 d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -413,7 +393,7 @@
                             <button @click="open = !open" type="button"
                                 class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group">
                                 <div
-                                    class="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm group-hover:shadow-md transition-shadow">
+                                    class="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center text-white text-sm font-bold">
                                     {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
                                 </div>
                                 <div class="hidden md:block text-left">
@@ -444,9 +424,9 @@
                                 class="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
                                 
                                 <!-- User Info Header -->
-                                <div class="px-5 py-4 bg-gradient-to-br from-primary-50 to-indigo-50 dark:from-primary-900/20 dark:to-indigo-900/20 border-b border-gray-200 dark:border-gray-700">
+                                <div class="px-5 py-4 bg-primary-50 dark:bg-primary-900/20 border-b border-gray-200 dark:border-gray-700">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md">
+                                        <div class="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center text-white text-lg font-bold">
                                             {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
                                         </div>
                                         <div class="flex-1 min-w-0">

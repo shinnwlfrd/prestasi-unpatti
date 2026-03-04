@@ -49,12 +49,12 @@
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(16, 185, 129, 0.3);
+            background: rgba(79, 70, 229, 0.3);
             border-radius: 3px;
         }
 
         .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(16, 185, 129, 0.5);
+            background: rgba(79, 70, 229, 0.5);
         }
     </style>
     @stack('styles')
@@ -83,7 +83,7 @@
             <div
                 class="p-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                 d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
@@ -93,7 +93,7 @@
                         <span
                             class="font-bold text-lg text-gray-900 dark:text-white leading-none tracking-tight">SIMAPRES</span>
                         <span
-                            class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mt-1">
+                            class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mt-1">
                             {{ $isPimpinan ? 'Pimpinan' : 'Validator' }}
                         </span>
                     </div>
@@ -111,7 +111,7 @@
             <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
                 @if($isPimpinan)
                     <a href="{{ route($routePrefix . '.dashboard') }}"
-                        class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.dashboard') ? 'bg-emerald-600 text-white shadow-sm font-semibold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                        class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.dashboard') ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-600 dark:hover:text-indigo-400' }}">
                         <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -125,7 +125,7 @@
                     <p class="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Data</p>
                 </div>
                 <a href="{{ route($routePrefix . '.students.index') }}"
-                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.students.*') ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.students.*') ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-600 dark:hover:text-indigo-400' }}">
                     <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -140,7 +140,7 @@
                     </p>
                 </div>
                 <a href="{{ route($routePrefix . '.pending.index') }}"
-                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.pending.*') ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.pending.*') ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-600 dark:hover:text-indigo-400' }}">
                     <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -149,7 +149,7 @@
                     <span class="text-sm">{{ $isPimpinan ? 'Lihat Prestasi' : 'Verifikasi Prestasi' }}</span>
                 </a>
                 <a href="{{ route($routePrefix . '.history') }}"
-                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.history') ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.history') ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-600 dark:hover:text-indigo-400' }}">
                     <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -163,7 +163,7 @@
                         <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Aksi</p>
                     </div>
                     <a href="{{ route('validator.submit.form') }}"
-                        class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('validator.submit.*') ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                        class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('validator.submit.*') ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-600 dark:hover:text-indigo-400' }}">
                         <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -176,7 +176,7 @@
                     <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Dokumen</p>
                 </div>
                 <a href="{{ route($routePrefix . '.sk.index') }}"
-                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.sk.*') ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs($routePrefix . '.sk.*') ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-600 dark:hover:text-indigo-400' }}">
                     <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -189,7 +189,7 @@
                     <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Akun</p>
                 </div>
                 <a href="{{ route('profile') }}"
-                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('profile') ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 dark:shadow-none font-bold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                    class="group flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all duration-200 {{ request()->routeIs('profile') ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-indigo-600 dark:hover:text-indigo-400' }}">
                     <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -286,7 +286,7 @@
                             <button @click="open = !open" type="button"
                                 class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group">
                                 <div
-                                    class="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm group-hover:shadow-md transition-shadow">
+                                    class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-sm font-bold">
                                     {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
                                 </div>
                                 <div class="hidden md:block text-left">
@@ -302,8 +302,10 @@
                                         </p>
                                     @endif
                                 </div>
-                                <svg class="hidden md:block w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                <svg class="hidden md:block w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 
@@ -315,11 +317,13 @@
                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
                                 class="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
-                                
+
                                 <!-- User Info Header -->
-                                <div class="px-5 py-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-b border-gray-200 dark:border-gray-700">
+                                <div
+                                    class="px-5 py-4 bg-indigo-50 dark:bg-indigo-900/20 border-b border-gray-200 dark:border-gray-700">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md">
+                                        <div
+                                            class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-lg font-bold">
                                             {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
                                         </div>
                                         <div class="flex-1 min-w-0">
@@ -333,9 +337,13 @@
                                                 $currentRole = auth()->user()->getCurrentRole();
                                             @endphp
                                             @if($currentRole)
-                                                <span class="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                <span
+                                                    class="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
                                                     {{ $currentRole->getRoleDisplayName() }}
                                                 </span>
@@ -347,19 +355,25 @@
                                 <!-- Menu Items -->
                                 <div class="py-2">
                                     <a href="{{ route('profile') }}"
-                                        class="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all duration-150 group">
-                                        <div class="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-all">
+                                        class="flex items-center gap-3 px-5 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-150 group">
+                                        <div
+                                            class="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-400 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
                                         </div>
                                         <div class="flex-1">
-                                            <p class="font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Profil Saya</p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">Kelola informasi akun</p>
+                                            <p
+                                                class="font-medium group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                Profil Saya</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">Kelola informasi akun
+                                            </p>
                                         </div>
-                                        <svg class="w-4 h-4 text-gray-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        <svg class="w-4 h-4 text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5l7 7-7 7" />
                                         </svg>
                                     </a>
                                 </div>
@@ -370,9 +384,12 @@
                                         @csrf
                                         <button type="submit"
                                             class="flex items-center gap-3 w-full px-5 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-150 group">
-                                            <div class="w-9 h-9 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center text-red-600 dark:text-red-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 transition-all">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            <div
+                                                class="w-9 h-9 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center text-red-600 dark:text-red-400 group-hover:bg-red-100 dark:group-hover:bg-red-900/30 transition-all">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
                                                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                                 </svg>
                                             </div>
