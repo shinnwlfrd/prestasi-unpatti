@@ -12,6 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - SIMAPRES UNPATTI</title>
+    @include('partials.pwa-meta')
     <!-- Tailwind CSS CDN - For development only. Consider installing via npm for production -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -247,13 +248,14 @@
                 @foreach($errors->all() as $error)
                     showToast('error', '{{ $error }}');
                 @endforeach
-                            });
+                                });
         </script>
     @endif
 
     @stack('scripts')
     <script src="https://instant.page/5.2.0" type="module"
         integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"></script>
+    @include('partials.pwa-sw-register')
 </body>
 
 </html>

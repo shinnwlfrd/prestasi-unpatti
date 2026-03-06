@@ -6,6 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Sistem Prestasi UNPATTI</title>
+    @include('partials.pwa-meta')
     <!-- Tailwind CSS CDN - For development only. Consider installing via npm for production -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -255,6 +256,7 @@
             </div>
         </div>
     </div>
+    @include('partials.pwa-sw-register')
 </body>
 
 </html>
