@@ -170,11 +170,8 @@
             <!-- Logo -->
             <div class="p-5 border-b border-gray-100 dark:border-gray-800/50 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
+                    <div class="w-10 h-10 flex items-center justify-center p-0.5">
+                        <img src="{{ asset('img/logo.png') }}" class="w-full h-full object-contain" alt="Logo UNPATTI">
                     </div>
                     <span class="font-bold text-lg text-gray-900 dark:text-white">SIMAPRES</span>
                 </div>
@@ -191,7 +188,7 @@
             <!-- Navigation -->
             <nav class="p-4 space-y-2 overflow-y-auto h-[calc(100vh-70px)]">
                 <a href="{{ route('admin.dashboard') }}"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -329,7 +326,7 @@
                     <div class="flex items-center gap-2">
                         <!-- Dark Mode Toggle -->
                         <button @click="darkMode = !darkMode"
-                            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                            class="p-2 rounded-lg hover:bg-gray-100 shadow-lg dark:hover:bg-gray-800 transition-colors">
                             <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

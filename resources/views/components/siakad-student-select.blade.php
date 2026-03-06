@@ -13,12 +13,10 @@
     <!-- Search Input Area -->
     <div class="relative group">
         <div class="relative">
-            <input type="text" x-model="searchQuery" 
-                @keydown.enter.prevent="searchStudents()"
+            <input type="text" x-model="searchQuery" @keydown.enter.prevent="searchStudents()"
                 @input="if (searchQuery.trim().length === 0) { results = []; hasSearched = false; showDropdown = false; }"
-                @focus="if (searchQuery.trim().length >= 2) showDropdown = true" 
-                placeholder="Cari NIM atau Nama lalu tekan Enter (min. 2 karakter)..."
-                class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-12 text-base font-medium focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 transition-all shadow-sm @if($error) border-red-500 @endif">
+                @focus="if (searchQuery.trim().length >= 2) showDropdown = true" placeholder="Cari NIM/Nama (Enter)..."
+                class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:text-white rounded-lg py-2 sm:py-2.5 px-10 text-xs sm:text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all @if($error) border-red-500 @endif">
 
             <svg class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +61,7 @@
             <div x-show="!loading && results.length > 0" class="max-h-72 overflow-y-auto custom-scrollbar">
                 <template x-for="student in results" :key="student.id">
                     <button type="button" @click="toggleStudent(student)"
-                        class="w-full px-5 py-4 text-left hover:bg-purple-50 dark:hover:bg-purple-900/20 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all flex items-center justify-between group">
+                        class="w-full px-4 py-3 sm:px-5 sm:py-4 text-left hover:bg-purple-50 dark:hover:bg-purple-900/20 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all flex items-center justify-between group">
                         <div class="flex items-center gap-4 overflow-hidden">
                             <div
                                 class="w-10 h-10 bg-gray-100 dark:bg-gray-700 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40 rounded-xl flex items-center justify-center text-gray-400 group-hover:text-purple-600 transition-colors">
@@ -160,7 +158,7 @@
 
                     async searchStudents() {
                         const query = this.searchQuery.trim();
-                        
+
                         // Require minimum 2 characters
                         if (query.length < 2) {
                             this.results = [];
@@ -230,7 +228,7 @@
                             @else
                                 this.selectedStudents =[];
                             @endif
-                                            }
+                                                            }
 
                         this.dispatchChange();
                     },

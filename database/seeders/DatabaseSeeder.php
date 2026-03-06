@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use App\Models\AcademicPeriod;
 use App\Models\Achievement;
 use App\Models\AchievementCategory;
+use App\Models\AchievementDocument;
 use App\Models\AchievementLevel;
+use App\Models\SKAssignment;
 use App\Models\SKDocument;
 use App\Models\SikadCredential;
 use App\Models\Student;
@@ -24,8 +26,8 @@ class DatabaseSeeder extends Seeder
     private array $programs = [];
     private array $users = [];
     private array $students = [];
-    private array $achievements = [];
     private array $skDocuments = [];
+    private array $operatorsByFaculty = [];
 
     /**
      * Seed the application's database.
@@ -57,14 +59,14 @@ class DatabaseSeeder extends Seeder
         // 3. Seed users (admin, operators, pimpinan)
         $this->seedUsers();
 
-        // 4. Seed students (banyak mahasiswa per fakultas)
+        // 4. Seed students
         $this->seedStudents();
         $this->seedTestStudent();
 
         // 5. Seed SK Documents
         $this->seedSKDocuments();
 
-        // 6. Seed student achievements dengan 2-stage validation
+        // 6. Seed student achievements with full 2-stage validation data
         $this->seedStudentAchievements();
 
         $this->command->info('');
@@ -256,7 +258,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->command->info('👥 Seeding users (optimized)...');
 
-        // Pre-hash password once for all users (huge performance boost!)
+        // Pre-hash password once for all users
         $passwordHash = Hash::make('password');
 
         // Super Admin
@@ -338,7 +340,6 @@ class DatabaseSeeder extends Seeder
             ['email' => 'warek2@unpatti.ac.id'],
             [
                 'name' => 'Dr. Wakil Rektor II',
-                'email' => 'warek2@unpatti.ac.id',
                 'password' => $passwordHash,
                 'role' => 'Pimpinan',
             ]
@@ -436,6 +437,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
             $this->users["operator_{$facultyCode}"] = $operator;
+            $this->operatorsByFaculty[$facultyName] = $operator;
 
             // Pimpinan Fakultas (Dekan)
             $pimpinan = User::updateOrCreate(
@@ -532,24 +534,21 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Seed students (banyak mahasiswa per fakultas) - OPTIMIZED
+     * Seed students (batch insert for performance)
      */
     private function seedStudents(): void
     {
         $this->command->info('🎓 Seeding students (optimized batch insert)...');
 
-        $studentsPerFaculty = 50; // 50 mahasiswa per fakultas
+        $studentsPerFaculty = 50;
         $angkatanRange = [2021, 2022, 2023, 2024, 2025];
         $studentCount = 0;
         $facultyCounter = 1;
 
-        // Pre-hash password once (huge performance boost!)
         $passwordHash = Hash::make('password');
-        
-        // Batch arrays
         $studentsBatch = [];
         $credentialsBatch = [];
-        $batchSize = 100; // Insert every 100 records
+        $batchSize = 100;
 
         foreach ($this->faculties as $facultyName => $facultyData) {
             if (!isset($this->departments[$facultyName]) || empty($this->departments[$facultyName])) {
@@ -577,7 +576,6 @@ class DatabaseSeeder extends Seeder
                         $studentId = "{$facultyCode}{$deptCode}{$progCode}{$studentNumber}";
                         $now = now();
 
-                        // Prepare student data
                         $studentsBatch[] = [
                             'student_id' => $studentId,
                             'name' => "Mahasiswa {$program['name']} {$i}",
@@ -594,7 +592,6 @@ class DatabaseSeeder extends Seeder
                             'updated_at' => $now,
                         ];
 
-                        // Prepare credentials data
                         $credentialsBatch[] = [
                             'student_id' => $studentId,
                             'password_hash' => $passwordHash,
@@ -605,7 +602,6 @@ class DatabaseSeeder extends Seeder
 
                         $studentCount++;
 
-                        // Insert in batches
                         if (count($studentsBatch) >= $batchSize) {
                             $this->insertStudentBatch($studentsBatch, $credentialsBatch);
                             $studentsBatch = [];
@@ -622,7 +618,6 @@ class DatabaseSeeder extends Seeder
             $facultyCounter++;
         }
 
-        // Insert remaining records
         if (!empty($studentsBatch)) {
             $this->insertStudentBatch($studentsBatch, $credentialsBatch);
         }
@@ -635,22 +630,30 @@ class DatabaseSeeder extends Seeder
      */
     private function insertStudentBatch(array $students, array $credentials): void
     {
-        // Use upsert for students (update if exists, insert if not)
         Student::upsert(
             $students,
-            ['student_id'], // Unique key
-            ['name', 'email', 'faculty', 'faculty_id', 'department', 'department_id', 
-             'program_study', 'program_study_id', 'angkatan', 'gpa', 'updated_at']
+            ['student_id'],
+            [
+                'name',
+                'email',
+                'faculty',
+                'faculty_id',
+                'department',
+                'department_id',
+                'program_study',
+                'program_study_id',
+                'angkatan',
+                'gpa',
+                'updated_at'
+            ]
         );
 
-        // Use upsert for credentials
         SikadCredential::upsert(
             $credentials,
-            ['student_id'], // Unique key
+            ['student_id'],
             ['password_hash', 'is_active', 'updated_at']
         );
 
-        // Store student IDs for later use
         foreach ($students as $studentData) {
             $this->students[] = (object) $studentData;
         }
@@ -701,7 +704,6 @@ class DatabaseSeeder extends Seeder
 
         $index = 0;
         foreach ($this->faculties as $facultyName => $facultyData) {
-            // SK per fakultas
             for ($i = 1; $i <= 3; $i++) {
                 $year = 2025;
                 $number = str_pad(($index * 10) + $i, 3, '0', STR_PAD_LEFT);
@@ -726,52 +728,64 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * Seed student achievements dengan 2-stage validation - OPTIMIZED
+     * Seed student achievements with FULL 2-stage validation data.
+     * Creates validation logs, SK assignments, documents, and anomaly data.
      */
     private function seedStudentAchievements(): void
     {
-        $this->command->info('🏅 Seeding student achievements (optimized batch insert)...');
+        $this->command->info('🏅 Seeding student achievements with full validation data...');
 
         $achievements = Achievement::all()->toArray();
         $levels = ['Universitas', 'Nasional', 'Internasional'];
-        $statuses = [
-            'Menunggu' => 30,
-            'faculty_approved' => 25,
-            'faculty_rejected' => 10,
-            'university_approved' => 25,
-            'university_rejected' => 10,
+
+        // Realistic status distribution (weights out of 100)
+        $statusWeights = [
+            'draft' => 5,
+            'submitted' => 5,
+            'Menunggu' => 10,
+            'faculty_review' => 5,
+            'faculty_approved' => 15,
+            'faculty_rejected' => 7,
+            'faculty_revision' => 3,
+            'university_review' => 5,
+            'university_approved' => 30,
+            'university_rejected' => 5,
+            'appeal_submitted' => 3,
+            'appeal_approved' => 4,
+            'appeal_rejected' => 3,
         ];
 
-        // Get all periods (not just active)
         $periods = AcademicPeriod::orderBy('start_date', 'desc')->get();
         if ($periods->isEmpty()) {
             $this->command->warn('   ⚠ No academic periods found. Skipping achievements.');
             return;
         }
 
-        $achievementCount = 0;
-        $studentsToProcess = array_slice($this->students, 0, 200);
-        
-        // Batch arrays
-        $achievementsBatch = [];
-        $batchSize = 50;
-
-        // Distribute achievements across periods
-        // 60% to active period, 40% to other periods
         $activePeriod = $periods->firstWhere('is_active', true);
         $inactivePeriods = $periods->where('is_active', false);
 
+        $achievementCount = 0;
+        $studentsToProcess = array_slice($this->students, 0, 120);
+        $adminUser = $this->users['admin'];
+
+        // Track for duplicate anomalies (will create exact duplicates for 5 students)
+        $duplicateStudents = array_slice($studentsToProcess, 0, 5);
+
         foreach ($studentsToProcess as $student) {
+            $studentId = is_object($student) ? $student->student_id : $student['student_id'];
+            $faculty = is_object($student) ? $student->faculty : $student['faculty'];
+            $operator = $this->operatorsByFaculty[$faculty] ?? null;
+
             $numAchievements = rand(1, 3);
 
             for ($i = 0; $i < $numAchievements; $i++) {
                 $achievement = $achievements[array_rand($achievements)];
                 $level = $levels[array_rand($levels)];
-                $status = $this->getRandomStatus($statuses);
-                
-                // Distribute to periods: 60% active, 40% inactive
+                $status = $this->getRandomStatus($statusWeights);
+
+                // Distribute to periods: 65% active, 35% inactive
                 $selectedPeriod = null;
-                if ($activePeriod && rand(1, 100) <= 60) {
+                if ($activePeriod && rand(1, 100) <= 65) {
                     $selectedPeriod = $activePeriod;
                 } elseif ($inactivePeriods->isNotEmpty()) {
                     $selectedPeriod = $inactivePeriods->random();
@@ -779,218 +793,394 @@ class DatabaseSeeder extends Seeder
                     $selectedPeriod = $periods->first();
                 }
 
-                $now = now();
-                
-                // Adjust dates based on period
-                if ($selectedPeriod) {
-                    $periodStart = \Carbon\Carbon::parse($selectedPeriod->start_date);
-                    $periodEnd = \Carbon\Carbon::parse($selectedPeriod->end_date);
-                    
-                    // Event date within period
-                    $eventDate = $periodStart->copy()->addDays(rand(0, $periodStart->diffInDays($periodEnd)));
-                    
-                    // Submitted date after event date
-                    $submittedAt = $eventDate->copy()->addDays(rand(1, 30));
-                    
-                    // For inactive periods, use historical dates
-                    if (!$selectedPeriod->is_active) {
-                        $now = $submittedAt->copy()->addDays(rand(1, 7));
-                    }
-                } else {
-                    $eventDate = $now->copy()->subDays(rand(30, 365));
-                    $submittedAt = $now->copy()->subDays(rand(1, 60));
+                // Calculate realistic dates based on period
+                $periodStart = \Carbon\Carbon::parse($selectedPeriod->start_date);
+                $periodEnd = \Carbon\Carbon::parse($selectedPeriod->end_date);
+                $eventDate = $periodStart->copy()->addDays(rand(0, max(0, $periodStart->diffInDays($periodEnd))));
+
+                // Submitted date after event for non-draft statuses
+                $submittedAt = null;
+                if ($status !== 'draft') {
+                    $submittedAt = $eventDate->copy()->addDays(rand(1, 14));
                 }
 
-                // Prepare achievement data
-                $achievementData = [
-                    'student_id' => is_object($student) ? $student->student_id : $student['student_id'],
+                // Determine validation stage and current_stage based on status
+                [$validationStage, $currentStage] = $this->getStageForStatus($status);
+
+                // Determine validators and dates based on status
+                $facultyValidatorId = null;
+                $facultyValidatedAt = null;
+                $facultyNotes = null;
+                $universityValidatorId = null;
+                $universityValidatedAt = null;
+                $universityNotes = null;
+                $skRequired = $level !== 'Universitas';
+
+                if (in_array($status, ['faculty_approved', 'faculty_rejected', 'faculty_revision', 'university_review', 'university_approved', 'university_rejected', 'appeal_submitted', 'appeal_approved', 'appeal_rejected'])) {
+                    $facultyValidatorId = $operator ? $operator->id : null;
+                    $facultyValidatedAt = $submittedAt ? $submittedAt->copy()->addDays(rand(1, 5)) : null;
+                    $facultyNotes = $this->getFacultyNotes($status);
+                }
+
+                if (in_array($status, ['university_approved', 'university_rejected', 'appeal_submitted', 'appeal_approved', 'appeal_rejected'])) {
+                    $universityValidatorId = $adminUser->id;
+                    $universityValidatedAt = $facultyValidatedAt ? $facultyValidatedAt->copy()->addDays(rand(1, 5)) : null;
+                    $universityNotes = $this->getUniversityNotes($status);
+                }
+
+                // Determine certificate path (some null for missing-docs anomaly)
+                $certificate = null;
+                if ($status !== 'draft') {
+                    $shouldHaveCert = rand(1, 100) <= 85; // 15% will have missing docs
+                    if ($shouldHaveCert) {
+                        $certificate = "certificates/cert_{$studentId}_{$i}.pdf";
+                    }
+                }
+
+                // For SLA breach anomaly: some pending items with old submitted_at
+                if (in_array($status, ['Menunggu', 'submitted', 'faculty_review']) && $submittedAt) {
+                    if (rand(1, 100) <= 40) { // 40% of pending items become SLA breach
+                        $submittedAt = now()->subDays(rand(10, 30)); // > 7 days = SLA breach
+                    }
+                }
+
+                // For abandoned drafts: some drafts with old updated_at
+                $createdAt = $submittedAt ?? $eventDate->copy()->addDays(rand(1, 7));
+                $updatedAt = $createdAt->copy();
+                if ($status === 'draft' && rand(1, 100) <= 60) {
+                    $updatedAt = now()->subDays(rand(35, 90)); // > 30 days = abandoned
+                    $createdAt = $updatedAt->copy()->subDays(rand(1, 10));
+                }
+
+                // Create the achievement record
+                $sa = StudentAchievement::create([
+                    'student_id' => $studentId,
                     'achievement_id' => $achievement['id'],
-                    'academic_period_id' => $selectedPeriod ? $selectedPeriod->id : null,
+                    'academic_period_id' => $selectedPeriod->id,
                     'event_name' => $achievement['name'] . ' ' . $eventDate->format('Y'),
                     'level' => $level,
                     'organizer' => $this->getRandomOrganizer($level),
                     'event_date' => $eventDate,
                     'ranking' => $this->getRandomRanking(),
                     'description' => "Prestasi {$achievement['name']} tingkat {$level}",
-                    'certificate' => "certificates/cert_" . (is_object($student) ? $student->student_id : $student['student_id']) . "_{$i}.pdf",
+                    'certificate' => $certificate,
                     'validation_status' => $status,
+                    'validation_stage' => $validationStage,
+                    'current_stage' => $currentStage,
                     'submitted_by' => rand(0, 1) ? 'student' : 'validator',
                     'submitted_at' => $submittedAt,
-                    'sk_required' => $level !== 'Universitas',
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
+                    'faculty_validator_id' => $facultyValidatorId,
+                    'faculty_validated_at' => $facultyValidatedAt,
+                    'faculty_notes' => $facultyNotes,
+                    'university_validator_id' => $universityValidatorId,
+                    'university_validated_at' => $universityValidatedAt,
+                    'university_notes' => $universityNotes,
+                    'sk_required' => $skRequired,
+                    'created_at' => $createdAt,
+                    'updated_at' => $updatedAt,
+                ]);
 
-                $achievementsBatch[] = $achievementData;
-                $achievementCount++;
+                // Create validation logs based on status
+                $this->createValidationLogs($sa, $status, $operator, $adminUser, $submittedAt, $facultyValidatedAt, $universityValidatedAt);
 
-                // Insert in batches
-                if (count($achievementsBatch) >= $batchSize) {
-                    $this->insertAchievementBatch($achievementsBatch);
-                    $achievementsBatch = [];
+                // Create SK assignment for university_approved
+                if ($status === 'university_approved' && $skRequired) {
+                    $this->createSKAssignment($sa, $faculty, $universityValidatedAt);
                 }
+
+                // Create achievement documents (for non-draft)
+                if ($status !== 'draft') {
+                    $this->createAchievementDocuments($sa, $status, $certificate);
+                }
+
+                $achievementCount++;
             }
         }
 
-        // Insert remaining records
-        if (!empty($achievementsBatch)) {
-            $this->insertAchievementBatch($achievementsBatch);
-        }
+        // Create duplicate achievements for anomaly detection
+        $this->createDuplicateAnomalies($duplicateStudents, $achievements, $activePeriod);
 
         // Show distribution
-        $this->command->info("   ✓ Created {$achievementCount} student achievements");
+        $this->command->info("   ✓ Created {$achievementCount} student achievements (+ duplicates)");
         foreach ($periods as $period) {
             $count = \DB::table('student_achievements')
                 ->where('academic_period_id', $period->id)
                 ->count();
             $this->command->info("      - {$period->name}: {$count} achievements");
         }
-    }
 
-    /**
-     * Insert achievement batch
-     */
-    private function insertAchievementBatch(array $achievements): void
-    {
-        // Use insert instead of upsert for new records (faster)
-        StudentAchievement::insert($achievements);
-    }
-
-    /**
-     * Add validation logs based on status
-     */
-    private function addValidationLogs($sa, $status, $operator, $pimpinan): void
-    {
-        switch ($status) {
-            case 'faculty_approved':
-                // Faculty approval
-                if ($operator) {
-                    ValidationLog::updateOrCreate(
-                        [
-                            'sa_id' => $sa->sa_id,
-                            'validator_id' => $operator->id,
-                            'new_status' => 'faculty_approved',
-                        ],
-                        [
-                            'validation_level' => 'faculty',
-                            'old_status' => 'Menunggu',
-                            'notes' => 'Disetujui oleh operator fakultas',
-                            'validated_at' => now()->subDays(rand(1, 30)),
-                        ]
-                    );
-                }
-                break;
-
-            case 'faculty_rejected':
-                // Faculty rejection
-                if ($operator) {
-                    ValidationLog::updateOrCreate(
-                        [
-                            'sa_id' => $sa->sa_id,
-                            'validator_id' => $operator->id,
-                            'new_status' => 'faculty_rejected',
-                        ],
-                        [
-                            'validation_level' => 'faculty',
-                            'old_status' => 'Menunggu',
-                            'notes' => 'Dokumen tidak lengkap atau tidak sesuai',
-                            'validated_at' => now()->subDays(rand(1, 30)),
-                        ]
-                    );
-                }
-                break;
-
-            case 'university_approved':
-                // Faculty approval
-                if ($operator) {
-                    ValidationLog::updateOrCreate(
-                        [
-                            'sa_id' => $sa->sa_id,
-                            'validator_id' => $operator->id,
-                            'new_status' => 'faculty_approved',
-                        ],
-                        [
-                            'validation_level' => 'faculty',
-                            'old_status' => 'Menunggu',
-                            'notes' => 'Disetujui oleh operator fakultas',
-                            'validated_at' => now()->subDays(rand(15, 45)),
-                        ]
-                    );
-                }
-                // University approval
-                ValidationLog::updateOrCreate(
-                    [
-                        'sa_id' => $sa->sa_id,
-                        'validator_id' => $this->users['admin']->id,
-                        'new_status' => 'university_approved',
-                    ],
-                    [
-                        'validation_level' => 'university',
-                        'old_status' => 'faculty_approved',
-                        'notes' => 'Disetujui oleh admin universitas',
-                        'validated_at' => now()->subDays(rand(1, 14)),
-                    ]
-                );
-                break;
-
-            case 'university_rejected':
-                // Faculty approval
-                if ($operator) {
-                    ValidationLog::updateOrCreate(
-                        [
-                            'sa_id' => $sa->sa_id,
-                            'validator_id' => $operator->id,
-                            'new_status' => 'faculty_approved',
-                        ],
-                        [
-                            'validation_level' => 'faculty',
-                            'old_status' => 'Menunggu',
-                            'notes' => 'Disetujui oleh operator fakultas',
-                            'validated_at' => now()->subDays(rand(15, 45)),
-                        ]
-                    );
-                }
-                // University rejection
-                ValidationLog::updateOrCreate(
-                    [
-                        'sa_id' => $sa->sa_id,
-                        'validator_id' => $this->users['admin']->id,
-                        'new_status' => 'university_rejected',
-                    ],
-                    [
-                        'validation_level' => 'university',
-                        'old_status' => 'faculty_approved',
-                        'notes' => 'Tidak memenuhi kriteria universitas',
-                        'validated_at' => now()->subDays(rand(1, 14)),
-                    ]
-                );
-                break;
+        $statusDistribution = \DB::table('student_achievements')
+            ->select('validation_status', \DB::raw('COUNT(*) as count'))
+            ->groupBy('validation_status')
+            ->orderByDesc('count')
+            ->get();
+        $this->command->info('   📊 Status distribution:');
+        foreach ($statusDistribution as $row) {
+            $this->command->info("      - {$row->validation_status}: {$row->count}");
         }
     }
 
     /**
-     * Assign SK to achievement
+     * Create validation logs based on the achievement status
      */
-    private function assignSK($sa, $faculty): void
+    private function createValidationLogs(
+        StudentAchievement $sa,
+        string $status,
+        ?User $operator,
+        User $admin,
+        ?\Carbon\Carbon $submittedAt,
+        ?\Carbon\Carbon $facultyValidatedAt,
+        ?\Carbon\Carbon $universityValidatedAt
+    ): void {
+        // Faculty-level validation logs
+        if (in_array($status, ['faculty_approved', 'university_review', 'university_approved', 'university_rejected', 'appeal_submitted', 'appeal_approved', 'appeal_rejected']) && $operator) {
+            ValidationLog::create([
+                'sa_id' => $sa->sa_id,
+                'validator_id' => $operator->id,
+                'old_status' => 'Menunggu',
+                'new_status' => 'faculty_approved',
+                'notes' => 'Diverifikasi dan disetujui oleh operator fakultas',
+                'validation_stage' => 'faculty',
+                'validation_level' => 'faculty',
+                'is_stage_transition' => true,
+                'validated_at' => $facultyValidatedAt ?? now()->subDays(rand(5, 30)),
+            ]);
+        }
+
+        if ($status === 'faculty_rejected' && $operator) {
+            ValidationLog::create([
+                'sa_id' => $sa->sa_id,
+                'validator_id' => $operator->id,
+                'old_status' => 'Menunggu',
+                'new_status' => 'faculty_rejected',
+                'notes' => 'Dokumen tidak lengkap atau tidak sesuai kriteria',
+                'validation_stage' => 'faculty',
+                'validation_level' => 'faculty',
+                'is_stage_transition' => false,
+                'validated_at' => $facultyValidatedAt ?? now()->subDays(rand(5, 30)),
+            ]);
+        }
+
+        if ($status === 'faculty_revision' && $operator) {
+            ValidationLog::create([
+                'sa_id' => $sa->sa_id,
+                'validator_id' => $operator->id,
+                'old_status' => 'Menunggu',
+                'new_status' => 'faculty_revision',
+                'notes' => 'Perlu revisi pada dokumen pendukung',
+                'validation_stage' => 'faculty',
+                'validation_level' => 'faculty',
+                'is_stage_transition' => false,
+                'validated_at' => $facultyValidatedAt ?? now()->subDays(rand(5, 30)),
+            ]);
+        }
+
+        // University-level validation logs
+        if (in_array($status, ['university_approved', 'appeal_submitted', 'appeal_approved', 'appeal_rejected'])) {
+            ValidationLog::create([
+                'sa_id' => $sa->sa_id,
+                'validator_id' => $admin->id,
+                'old_status' => 'faculty_approved',
+                'new_status' => 'university_approved',
+                'notes' => 'Diverifikasi dan disetujui oleh admin universitas',
+                'validation_stage' => 'university',
+                'validation_level' => 'university',
+                'is_stage_transition' => true,
+                'validated_at' => $universityValidatedAt ?? now()->subDays(rand(1, 14)),
+            ]);
+        }
+
+        if ($status === 'university_rejected') {
+            // Faculty approved first
+            if ($operator) {
+                ValidationLog::create([
+                    'sa_id' => $sa->sa_id,
+                    'validator_id' => $operator->id,
+                    'old_status' => 'Menunggu',
+                    'new_status' => 'faculty_approved',
+                    'notes' => 'Diverifikasi oleh operator fakultas',
+                    'validation_stage' => 'faculty',
+                    'validation_level' => 'faculty',
+                    'is_stage_transition' => true,
+                    'validated_at' => $facultyValidatedAt ?? now()->subDays(rand(10, 30)),
+                ]);
+            }
+            // Then university rejected
+            ValidationLog::create([
+                'sa_id' => $sa->sa_id,
+                'validator_id' => $admin->id,
+                'old_status' => 'faculty_approved',
+                'new_status' => 'university_rejected',
+                'notes' => 'Tidak memenuhi kriteria universitas',
+                'validation_stage' => 'university',
+                'validation_level' => 'university',
+                'is_stage_transition' => false,
+                'validated_at' => $universityValidatedAt ?? now()->subDays(rand(1, 14)),
+            ]);
+        }
+    }
+
+    /**
+     * Create SK assignment for approved achievements
+     */
+    private function createSKAssignment(StudentAchievement $sa, string $faculty, ?\Carbon\Carbon $approvedAt): void
     {
         if (isset($this->skDocuments[$faculty]) && count($this->skDocuments[$faculty]) > 0) {
             $sk = $this->skDocuments[$faculty][array_rand($this->skDocuments[$faculty])];
 
-            \App\Models\SKAssignment::updateOrCreate(
+            SKAssignment::updateOrCreate(
                 [
                     'sk_id' => $sk->id,
                     'sa_id' => $sa->sa_id,
                 ],
                 [
                     'assigned_by' => $this->users['admin']->id,
-                    'assigned_at' => now()->subDays(rand(1, 14)),
+                    'assigned_at' => $approvedAt ?? now()->subDays(rand(1, 14)),
                 ]
             );
         }
     }
 
     /**
-     * Get random status based on distribution
+     * Create achievement documents for an achievement
+     */
+    private function createAchievementDocuments(StudentAchievement $sa, string $status, ?string $certificate): void
+    {
+        $docStatus = match ($status) {
+            'university_approved', 'appeal_approved' => 'approved',
+            'faculty_rejected', 'university_rejected', 'appeal_rejected' => 'rejected',
+            'faculty_revision' => 'revision',
+            'draft' => 'draft',
+            default => 'pending',
+        };
+
+        // Always create a certificate document entry
+        if ($certificate) {
+            AchievementDocument::create([
+                'sa_id' => $sa->sa_id,
+                'document_type' => 'sertifikat',
+                'file_path' => $certificate,
+                'file_name' => basename($certificate),
+                'file_type' => 'application/pdf',
+                'file_size' => rand(50000, 500000),
+                'status' => $docStatus,
+            ]);
+        }
+
+        // 50% chance to have additional documentation photo
+        if (rand(0, 1)) {
+            AchievementDocument::create([
+                'sa_id' => $sa->sa_id,
+                'document_type' => 'foto_dokumentasi',
+                'file_path' => "documents/foto_{$sa->sa_id}.jpg",
+                'file_name' => "foto_{$sa->sa_id}.jpg",
+                'file_type' => 'image/jpeg',
+                'file_size' => rand(100000, 2000000),
+                'status' => $docStatus,
+            ]);
+        }
+    }
+
+    /**
+     * Create duplicate achievements for anomaly detection
+     */
+    private function createDuplicateAnomalies(array $students, array $achievements, ?AcademicPeriod $period): void
+    {
+        if (!$period || empty($students))
+            return;
+
+        $this->command->info('   🔄 Creating duplicate anomalies...');
+        $dupCount = 0;
+
+        foreach (array_slice($students, 0, 5) as $student) {
+            $studentId = is_object($student) ? $student->student_id : $student['student_id'];
+            $faculty = is_object($student) ? $student->faculty : $student['faculty'];
+
+            // Find an existing achievement for this student to duplicate
+            $existing = StudentAchievement::where('student_id', $studentId)->first();
+            if (!$existing)
+                continue;
+
+            // Create a duplicate with same event_name and level
+            StudentAchievement::create([
+                'student_id' => $studentId,
+                'achievement_id' => $existing->achievement_id,
+                'academic_period_id' => $period->id,
+                'event_name' => $existing->event_name, // Same event_name = duplicate
+                'level' => $existing->level,       // Same level = duplicate
+                'organizer' => $existing->organizer,
+                'event_date' => now()->subDays(rand(10, 60)),
+                'ranking' => $existing->ranking,
+                'description' => $existing->description,
+                'certificate' => "certificates/dup_cert_{$studentId}.pdf",
+                'validation_status' => 'Menunggu',
+                'validation_stage' => 'faculty',
+                'current_stage' => 'faculty',
+                'submitted_by' => 'student',
+                'submitted_at' => now()->subDays(rand(1, 5)),
+                'sk_required' => $existing->level !== 'Universitas',
+            ]);
+            $dupCount++;
+        }
+
+        $this->command->info("   ✓ Created {$dupCount} duplicate anomalies");
+    }
+
+    /**
+     * Get validation stage and current_stage based on status
+     */
+    private function getStageForStatus(string $status): array
+    {
+        return match ($status) {
+            'draft', 'submitted', 'Menunggu', 'faculty_review', 'faculty_rejected', 'faculty_revision'
+            => ['faculty', 'faculty'],
+            'faculty_approved', 'university_review'
+            => ['university', 'university'],
+            'university_approved', 'university_rejected'
+            => ['university', 'completed'],
+            'appeal_submitted', 'appeal_approved', 'appeal_rejected'
+            => ['appeal', 'appeal'],
+            default
+            => ['faculty', 'faculty'],
+        };
+    }
+
+    /**
+     * Get faculty validation notes based on status
+     */
+    private function getFacultyNotes(string $status): ?string
+    {
+        return match ($status) {
+            'faculty_approved', 'university_review', 'university_approved', 'appeal_approved'
+            => 'Dokumen lengkap dan valid. Disetujui untuk tahap universitas.',
+            'faculty_rejected'
+            => 'Dokumen tidak lengkap. Sertifikat asli tidak tersedia.',
+            'faculty_revision'
+            => 'Perbaiki format penanggalan dan lampirkan foto dokumentasi.',
+            'university_rejected'
+            => 'Disetujui di tingkat fakultas.',
+            'appeal_submitted', 'appeal_rejected'
+            => 'Disetujui di tingkat fakultas, ditolak di universitas.',
+            default => null,
+        };
+    }
+
+    /**
+     * Get university validation notes based on status
+     */
+    private function getUniversityNotes(string $status): ?string
+    {
+        return match ($status) {
+            'university_approved', 'appeal_approved'
+            => 'Prestasi diverifikasi dan memenuhi kriteria universitas.',
+            'university_rejected', 'appeal_submitted', 'appeal_rejected'
+            => 'Tidak memenuhi standar minimal prestasi tingkat universitas.',
+            default => null,
+        };
+    }
+
+    /**
+     * Get random status based on weighted distribution
      */
     private function getRandomStatus(array $statuses): string
     {
@@ -1071,7 +1261,9 @@ class DatabaseSeeder extends Seeder
                 ['Students', Student::count()],
                 ['SK Documents', SKDocument::count()],
                 ['Student Achievements', StudentAchievement::count()],
+                ['Achievement Documents', AchievementDocument::count()],
                 ['Validation Logs', ValidationLog::count()],
+                ['SK Assignments', SKAssignment::count()],
             ]
         );
 
@@ -1080,6 +1272,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info("   Admin       : admin@unpatti.ac.id / password");
         $this->command->info("   Operator FT : operator.ft@unpatti.ac.id / password");
         $this->command->info("   Dekan FT    : dekan.ft@unpatti.ac.id / password");
+        $this->command->info("   Mahasiswa   : NIM: 20240101 / password");
         $this->command->info("   Pattern     : operator.{faculty_code}@unpatti.ac.id");
         $this->command->info(str_repeat('=', 70) . "\n");
     }

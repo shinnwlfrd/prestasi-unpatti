@@ -29,11 +29,8 @@
             <div class="text-center">
                 <div class="flex justify-center mb-6">
                     <div
-                        class="w-20 h-20 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                        class="w-20 h-20 bg-white dark:bg-gray-100 rounded-xl flex items-center justify-center shadow-lg p-2">
+                        <img src="{{ asset('img/logo.png') }}" class="w-full h-full object-contain" alt="Logo UNPATTI">
                     </div>
                 </div>
                 <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">

@@ -94,7 +94,7 @@ class DashboardController extends Controller
                 if ($records->isEmpty())
                     return 0;
                 $totalDays = $records->sum(fn($item) => Carbon::parse($item->created_at)->diffInDays(Carbon::parse($item->updated_at)));
-                return round($totalDays / $records->count(), 1);
+                return (int) round($totalDays / $records->count());
             })(),
             'global_status_stats' => [
                 'menunggu' => $getInclusiveCount($pendingStatuses, null),
@@ -384,7 +384,7 @@ class DashboardController extends Controller
             $totalDays = $approvedRecords->sum(function ($item) {
                 return Carbon::parse($item->created_at)->diffInDays(Carbon::parse($item->updated_at));
             });
-            $avgDays = round($totalDays / $approvedRecords->count(), 1);
+            $avgDays = (int) round($totalDays / $approvedRecords->count());
         }
 
         return [
@@ -744,7 +744,7 @@ class DashboardController extends Controller
 
         // Calculate waiting days using Carbon to avoid billion-day bug
         $items->each(function ($item) {
-            $item->waiting_days = Carbon::parse($item->created_at)->diffInDays(now());
+            $item->waiting_days = (int) Carbon::parse($item->created_at)->diffInDays(now());
         });
 
         return $items;

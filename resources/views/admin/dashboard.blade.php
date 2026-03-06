@@ -282,133 +282,156 @@
             <!-- BARIS 1 – RINGKASAN AKHIR PERIODE (4 CARD) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Card 1 – Total Prestasi Final -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Prestasi Final</p>
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col h-full">
+                    <div class="absolute -right-6 -bottom-6 text-emerald-500/10 transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
                     </div>
-                    <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight mb-2">{{ number_format($stats['achievements']) }}</p>
-                        {{-- Period Comparison Indicator --}}
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Prestasi Final</p>
+                        </div>
+                        <p class="text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight mb-3">{{ number_format($stats['achievements']) }}</p>
+                        
                         @if(isset($archivedStats['period_growth']) && $archivedStats['period_growth'] !== null)
                             @php $growth = $archivedStats['period_growth']; @endphp
-                            @if($growth >= 0)
-                                <div class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-800/30 mb-2">
-                                    <span>▲</span>
-                                    <span>+{{ $growth }}% dari periode sebelumnya</span>
-                                </div>
-                            @else
-                                <div class="flex items-center gap-1.5 text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2.5 py-1.5 rounded-lg border border-red-100 dark:border-red-800/30 mb-2">
-                                    <span>▼</span>
-                                    <span>{{ $growth }}% dari periode sebelumnya</span>
-                                </div>
-                            @endif
-                        @elseif(isset($archivedStats['previous_period']) && $archivedStats['previous_period'] === null)
-                            <div class="flex items-center gap-1.5 text-xs font-medium text-gray-400 bg-gray-50 dark:bg-gray-700/30 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 mb-2">
+                            <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg {{ $growth >= 0 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-red-50 text-red-600 dark:bg-red-900/20' }} text-[10px] font-bold mb-3 border {{ $growth >= 0 ? 'border-emerald-100 dark:border-emerald-800/30' : 'border-red-100 dark:border-red-800/30' }}">
+                                <span>{{ $growth >= 0 ? '▲' : '▼' }}</span>
+                                <span>{{ $growth >= 0 ? '+' : '' }}{{ (int)$growth }}% vs sebelumnya</span>
+                            </div>
+                        @else
+                            <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-50 dark:bg-gray-700/30 text-gray-400 text-[10px] font-bold mb-3 border border-gray-200 dark:border-gray-700">
                                 <span>—</span>
-                                <span>Tidak ada periode sebelumnya</span>
+                                <span>Data awal periode</span>
                             </div>
                         @endif
-                        <div class="flex items-center gap-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg">
-                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                            Validasi Selesai & Disahkan
+                        <div class="mt-auto">
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-800/30">
+                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                Validasi Selesai & Disahkan
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card 2 – Persentase Nasional & Internasional -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                <!-- Card 2 – Sebaran Level -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col h-full">
                     <div class="absolute -right-6 -bottom-6 text-purple-500/10 transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500">
                         <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C7.659 4.22 9.615 3.5 10 3.5s2.341.72 3.756 1.821a6.01 6.01 0 011.912 2.706c.346.942.504 2.112.504 3.473s-.158 2.53-.504 3.473a6.01 6.01 0 01-1.912 2.706C12.341 18.78 10.385 19.5 10 19.5s-2.341-.72-3.756-1.821a6.012 6.012 0 01-1.912-2.706c-.346-.942-.504-2.112-.504-3.473s.158-2.531.504-3.473z" clip-rule="evenodd"/>
                         </svg>
                     </div>
-                    <div class="relative z-10">
+                    <div class="relative z-10 flex flex-col h-full">
                         <div class="flex items-center gap-2 mb-4">
                             <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                                 <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clip-rule="evenodd"/>
+                                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-6.732 3.525 1 1 0 01-1.42 0z"/>
                                 </svg>
                             </div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Skala Prestasi</p>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Skala Capaian</p>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-4">
                             @php 
-                                $total = array_sum($levelDistribution);
-                                $nasRatio = $total > 0 ? round(($levelDistribution['Nasional'] / $total) * 100) : 0;
-                                $interRatio = $total > 0 ? round(($levelDistribution['Internasional'] / $total) * 100) : 0;
+                                $total = array_sum($levelDistribution ?? []);
+                                $nasRatio = $total > 0 ? round((($levelDistribution['Nasional'] ?? 0) / $total) * 100) : 0;
+                                $interRatio = $total > 0 ? round((($levelDistribution['Internasional'] ?? 0) / $total) * 100) : 0;
                             @endphp
                             <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3 border border-purple-100 dark:border-purple-800/30">
-                                <p class="text-2xl font-black text-purple-600 dark:text-purple-400">{{ $nasRatio }}%</p>
-                                <p class="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-tighter mt-1">🇮🇩 Nasional</p>
+                                <p class="text-xl font-black text-purple-600 dark:text-purple-400">{{ (int)$nasRatio }}%</p>
+                                <p class="text-[8px] font-black text-gray-500 uppercase tracking-tighter mt-1">Nasional</p>
                             </div>
                             <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-3 border border-indigo-100 dark:border-indigo-800/30">
-                                <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ $interRatio }}%</p>
-                                <p class="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-tighter mt-1">🌍 Internasional</p>
+                                <p class="text-xl font-black text-indigo-600 dark:text-indigo-400">{{ (int)$interRatio }}%</p>
+                                <p class="text-[8px] font-black text-gray-500 uppercase tracking-tighter mt-1">Inter</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-tighter bg-purple-50 dark:bg-purple-900/20 px-2.5 py-1.5 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                Rekap Capaian Utama
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card 3 – Fakultas Aktif Berprestasi -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                <!-- Card 3 – Partisipasi Unit -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col h-full">
                     <div class="absolute -right-6 -bottom-6 text-blue-500/10 transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500">
                         <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16l7-2 7 2z" />
+                            <path d="M12 3L2 12h3v8h14v-8h3L12 3zm0 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
                         </svg>
                     </div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-2 mb-3">
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center gap-2 mb-4">
                             <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                                 <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
                                 </svg>
                             </div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Partisipasi Fakultas</p>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Partisipasi Unit</p>
                         </div>
-                        <div class="flex items-baseline gap-2 mb-3">
-                            <p class="text-4xl font-black text-blue-600 tracking-tight">{{ $archivedStats['active_faculties'] ?? 0 }}</p>
-                            <p class="text-lg font-bold text-gray-400">/ {{ $archivedStats['total_faculties'] ?? 0 }}</p>
-                        </div>
-                        <div class="space-y-2">
-                            <div class="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden border border-gray-200 dark:border-gray-600">
+                        <p class="text-4xl font-black text-blue-600 dark:text-blue-400 tracking-tight mb-2">
+                            {{ $archivedStats['active_faculties'] ?? 0 }}<span class="text-lg text-gray-400 font-bold ml-1">/{{ $archivedStats['total_faculties'] ?? 1 }}</span>
+                        </p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
                                 @php
                                     $totalFac = $archivedStats['total_faculties'] ?? 1;
                                     $activeFac = $archivedStats['active_faculties'] ?? 0;
-                                    $percentage = ($activeFac / $totalFac) * 100;
+                                    $percentage = ($activeFac / ($totalFac ?: 1)) * 100;
                                 @endphp
-                                <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-1000 shadow-[0_0_8px_rgba(59,130,246,0.5)]" style="width: {{ $percentage }}%"></div>
+                                <div class="bg-blue-500 h-full transition-all duration-1000" style="width: {{ $percentage }}%"></div>
                             </div>
-                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-tighter">{{ round($percentage) }}% Fakultas Berkontribusi</p>
+                            <p class="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tighter">{{ (int)$percentage }}% Fakultas Berkontribusi</p>
+                        </div>
+
+                        <div class="mt-auto">
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tighter bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+                                Sebaran Institusi Aktif
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card 4 – Rata-rata Waktu Validasi (Final) -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+                <!-- Card 4 – Efisiensi Proses -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden flex flex-col h-full">
                     <div class="absolute -right-6 -bottom-6 text-amber-500/10 transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500">
-                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
                         </svg>
                     </div>
-                    <div class="relative z-10">
-                        <div class="flex items-center gap-2 mb-3">
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center gap-2 mb-4">
                             <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
                                 </svg>
                             </div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kecepatan Proses</p>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Waktu Validasi</p>
                         </div>
-                        <div class="flex items-baseline gap-2 mb-2">
-                            <p class="text-4xl font-black text-amber-600 tracking-tight">{{ $statistics['avg_time_to_approve'] ?? 0 }}</p>
-                            <p class="text-lg font-bold text-gray-400 uppercase">Hari</p>
+                        <p class="text-4xl font-black text-amber-600 dark:text-amber-400 tracking-tight mb-3">
+                            {{ (int)($stats['avg_approval_days'] ?? 0) }}<span class="text-lg text-gray-400 font-bold ml-1">Hari</span>
+                        </p>
+                        
+                        <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg px-2.5 py-2 border border-amber-100 dark:border-amber-800/30 mb-4">
+                           <p class="text-[8px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-tighter">Siklus Hidup Data Terpendek</p>
                         </div>
-                        <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2 border border-amber-100 dark:border-amber-800/30">
-                            <p class="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-tighter">⚡ Rata-rata Submission → Approval</p>
+
+                        <div class="mt-auto">
+                            <div class="flex items-center gap-2 text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tighter bg-amber-50 dark:bg-amber-900/20 px-2.5 py-1.5 rounded-lg border border-amber-100 dark:border-amber-800/30">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                                Kecepatan Siklus Arsip
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -554,8 +577,6 @@
                             </div>
 
                             <!-- BARIS 5 – ARSIP & LAPORAN -->
-                            <div class="mt-6 lg:col-span-12">
-                            <!-- BARIS 5 – ARSIP & LAPORAN -->
                             <div class="mt-8 lg:col-span-12">
                                 <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden relative group">
                                     <!-- Decorative Elements -->
@@ -658,15 +679,16 @@
                                                 </p>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
                             </div>
-                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         @elseif($isActivePeriod)
-                        <!-- BARIS 1 – STATUS SISTEM SAAT INI (5 CARD) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                            <!-- Card 1 – Total Pengajuan -->
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+            <!-- BARIS 1 – STATUS SISTEM SAAT INI (5 CARD) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                <!-- Card 1 – Total Pengajuan -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
                                 <div class="absolute -right-4 -bottom-4 text-gray-500/5 transition-transform group-hover:scale-110 duration-500">
                                     <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z" /></svg>
                                 </div>
@@ -919,7 +941,7 @@
                                             </div>
                                             <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
                                                 <span class="px-3 py-1 {{ $days > 7 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-amber-50 text-amber-600 border-amber-100' }} border text-[10px] font-black rounded-lg">
-                                                    {{ $days }} Hari
+                                                    {{ (int)$days }} Hari
                                                 </span>
                                                 <a href="{{ route('admin.university.show', $ach->sa_id) }}" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-bold rounded-lg transition-colors shadow-sm">
                                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -956,7 +978,7 @@
                                                     </td>
                                                     <td class="py-4 text-center">
                                                         <span class="inline-flex items-center px-3 py-1.5 {{ $days > 7 ? 'bg-red-50 text-red-600 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/30' : 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/30' }} border text-[11px] font-black rounded-xl">
-                                                            {{ $days }} Hari
+                                                            {{ (int)$days }} Hari
                                                         </span>
                                                     </td>
                                                     <td class="py-4 text-right pr-1">

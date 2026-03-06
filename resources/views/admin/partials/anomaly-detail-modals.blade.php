@@ -139,10 +139,10 @@ MODAL 2 — DUPLIKASI
     aria-modal="true">
     <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeDuplikasiModal()"></div>
     <div
-        class="relative w-full max-w-5xl max-h-[92vh] bg-gray-900 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.5)] border border-gray-800 overflow-hidden flex flex-col animate-modalIn">
+        class="relative w-full max-w-5xl max-h-[92vh] bg-white dark:bg-gray-900 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.5)] border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col animate-modalIn">
         {{-- Header --}}
         <div
-            class="flex-shrink-0 px-6 py-5 bg-gradient-to-r from-orange-950/60 via-gray-900 to-gray-900 border-b border-orange-900/20">
+            class="flex-shrink-0 px-6 py-5 bg-gradient-to-r from-orange-50/80 via-white to-white dark:from-orange-950/60 dark:via-gray-900 dark:to-gray-900 border-b border-orange-100 dark:border-orange-900/20">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <div
@@ -153,12 +153,13 @@ MODAL 2 — DUPLIKASI
                         </svg>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             Duplikasi Data
                             <span id="dupTotalBadge"
-                                class="hidden px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30"></span>
+                                class="hidden px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30"></span>
                         </h2>
-                        <p class="text-xs text-gray-400 mt-0.5">Data terdeteksi ganda berdasarkan NIM, event, dan level
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Data terdeteksi ganda berdasarkan
+                            NIM, event, dan level
                         </p>
                     </div>
                 </div>
@@ -172,7 +173,8 @@ MODAL 2 — DUPLIKASI
         </div>
 
         {{-- Detection Info --}}
-        <div id="dupDetectionInfo" class="hidden flex-shrink-0 px-6 py-3 border-b border-gray-800 bg-orange-950/10">
+        <div id="dupDetectionInfo"
+            class="hidden flex-shrink-0 px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-orange-50 dark:bg-orange-950/10">
             <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,11 +183,12 @@ MODAL 2 — DUPLIKASI
                     </svg>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-orange-300">Sistem Deteksi Otomatis</p>
-                    <p class="text-[11px] text-gray-400 mt-0.5">Duplikasi dideteksi berdasarkan kecocokan field: <span
-                            class="text-orange-400 font-semibold">NIM Mahasiswa</span>, <span
-                            class="text-orange-400 font-semibold">Nama Event</span>, dan <span
-                            class="text-orange-400 font-semibold">Level Prestasi</span>.</p>
+                    <p class="text-xs font-bold text-orange-600 dark:text-orange-300">Sistem Deteksi Otomatis</p>
+                    <p class="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5">Duplikasi dideteksi berdasarkan
+                        kecocokan field: <span class="text-orange-600 dark:text-orange-400 font-semibold">NIM
+                            Mahasiswa</span>, <span class="text-orange-600 dark:text-orange-400 font-semibold">Nama
+                            Event</span>, dan <span class="text-orange-600 dark:text-orange-400 font-semibold">Level
+                            Prestasi</span>.</p>
                 </div>
             </div>
         </div>
@@ -199,13 +202,14 @@ MODAL 2 — DUPLIKASI
             <div id="dupContent" class="hidden space-y-5"></div>
             <div id="dupEmpty" class="hidden flex flex-col items-center justify-center py-16">
                 <div
-                    class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <p class="text-sm font-bold text-white">Tidak Ada Duplikasi</p>
+                <p class="text-sm font-bold text-gray-900 dark:text-white">Tidak Ada Duplikasi</p>
                 <p class="text-xs text-gray-500 mt-1">Semua data unik dan terverifikasi.</p>
             </div>
         </div>

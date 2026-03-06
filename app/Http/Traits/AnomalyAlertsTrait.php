@@ -56,17 +56,17 @@ trait AnomalyAlertsTrait
             'university_revision',
             'appeal_submitted'
         ])
-        ->whereNotIn('validation_status', [
-            'faculty_rejected',
-            'university_rejected',
-            'appeal_rejected'
-        ])
-        ->where(function ($q) {
-            $q->whereRaw('submitted_at IS NOT NULL')
-                ->whereRaw('submitted_at < ?', [
-                    Carbon::now()->subDays(7)->toDateTimeString()
-                ]);
-        });
+            ->whereNotIn('validation_status', [
+                'faculty_rejected',
+                'university_rejected',
+                'appeal_rejected'
+            ])
+            ->where(function ($q) {
+                $q->whereRaw('submitted_at IS NOT NULL')
+                    ->whereRaw('submitted_at < ?', [
+                        Carbon::now()->subDays(7)->toDateTimeString()
+                    ]);
+            });
 
         $results = $query->get();
 
@@ -142,26 +142,32 @@ trait AnomalyAlertsTrait
                 'event_name',
                 'level',
                 DB::raw('COUNT(*) as duplicate_count'),
-                DB::raw($concatSql . ' as ids'),
-                DB::raw('MAX(academic_period_id) as period_id')
+                DB::raw($concatSql . ' as ids')
             )
             ->whereNotNull('event_name')
             ->whereNotNull('level')
             ->groupBy('student_id', 'event_name', 'level')
-            ->havingRaw('COUNT(*) > 1'); // PostgreSQL compatible - use aggregate function directly
+            ->havingRaw('COUNT(*) > 1');
 
         // Apply period filter
         if ($periodId && in_array($context, ['active', 'archive'])) {
             $query->where('academic_period_id', $periodId);
         }
 
-        $results = $query->get();
+        $groups = $query->get();
 
         return [
-            'count' => $results->count(),
-            'items' => $results->map(function ($item) {
-                $firstRecord = StudentAchievement::with(['student', 'academicPeriod'])
-                    ->find(explode(',', $item->ids)[0]);
+            'count' => $groups->count(),
+            'items' => $groups->map(function ($item) {
+                $recordIds = explode(',', $item->ids);
+
+                // Fetch full records for this group
+                $records = StudentAchievement::with(['student', 'academicPeriod'])
+                    ->whereIn('sa_id', $recordIds)
+                    ->orderBy('created_at', 'asc') // Oldest first
+                    ->get();
+
+                $firstRecord = $records->first();
 
                 return [
                     'student_id' => $item->student_id,
@@ -170,7 +176,17 @@ trait AnomalyAlertsTrait
                     'event_name' => $item->event_name,
                     'level' => $item->level,
                     'duplicate_count' => $item->duplicate_count,
-                    'ids' => explode(',', $item->ids),
+                    'records' => $records->map(function ($rec, $index) {
+                        return [
+                            'id' => $rec->sa_id,
+                            'nim' => $rec->student->student_id ?? 'N/A',
+                            'created_at' => $rec->created_at->format('d/m/Y H:i'),
+                            'validation_status' => $rec->validation_status,
+                            'is_oldest' => $index === 0,
+                            'has_certificate' => !empty($rec->certificate),
+                            'period' => $rec->academicPeriod->name ?? 'N/A',
+                        ];
+                    })->toArray(),
                     'period' => $firstRecord->academicPeriod->name ?? 'N/A',
                 ];
             })->toArray(),
@@ -204,7 +220,7 @@ trait AnomalyAlertsTrait
                     'student_nim' => $item->student->student_id ?? 'N/A',
                     'achievement_name' => $item->achievement->name ?? $item->event_name ?? 'Draft Baru',
                     'updated_at' => $item->updated_at,
-                    'days_abandoned' => Carbon::parse($item->updated_at)->diffInDays(Carbon::now()),
+                    'days_abandoned' => (int) Carbon::parse($item->updated_at)->diffInDays(Carbon::now()),
                     'period' => $item->academicPeriod->name ?? 'N/A',
                 ];
             })->toArray(),
