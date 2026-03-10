@@ -1,9 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Detail Prestasi')
-
-@section('content')
-    <div class="space-y-6 lg:space-y-8">
+@section('title', 'Detail Prestasi')@section('content')<div class="space-y-6 lg:space-y-8">
         <!-- Back Button -->
         <div>
             <button onclick="window.history.back()" class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
@@ -24,8 +21,8 @@
                     <div class="flex items-center gap-4 mt-4 flex-wrap">
                         <span class="px-3 py-1 rounded-full text-sm font-semibold
                             {{ $achievement->level === 'Internasional' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' :
-        ($achievement->level === 'Nasional' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-            'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400') }}">
+    ($achievement->level === 'Nasional' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400') }}">
                             {{ $achievement->level }}
                         </span>
                         <span

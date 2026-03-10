@@ -862,7 +862,24 @@
                                     <p class="text-[10px] text-gray-500 mt-1">Audit anomali dan keaslian data</p>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <!-- SLA Breach -->
+                                    <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-xs font-semibold text-red-800 dark:text-red-300">SLA Breach</span>
+                                            <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['sla_breach']['count'] ?? 0 }}</div>
+                                        <button onclick="showAnomalyDetail('sla_breach', {{ $anomalies['sla_breach']['count'] ?? 0 }})" 
+                                           class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider">
+                                            Detail
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </button>
+                                    </div>
 
                                     <!-- Duplikasi -->
                                     <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
@@ -883,16 +900,16 @@
                                     </div>
 
                                     <!-- Tanpa Dokumen -->
-                                    <div class="flex flex-col p-4 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/20 hover:shadow-md transition-shadow">
+                                    <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
                                         <div class="flex items-center justify-between mb-3">
-                                            <span class="text-xs font-semibold text-amber-800 dark:text-amber-300">Tanpa Dokumen</span>
-                                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <span class="text-xs font-semibold text-red-800 dark:text-red-300">Tanpa Dokumen</span>
+                                            <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                             </svg>
                                         </div>
-                                        <div class="text-2xl font-black text-amber-700 dark:text-amber-300 mb-2">{{ $anomalies['missing_documents']['count'] ?? 0 }}</div>
+                                        <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['missing_documents']['count'] ?? 0 }}</div>
                                         <button onclick="showAnomalyDetail('missing_documents', {{ $anomalies['missing_documents']['count'] ?? 0 }})" 
-                                           class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline uppercase tracking-wider">
+                                           class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider">
                                             Detail
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -901,16 +918,16 @@
                                     </div>
 
                                     <!-- Draft -->
-                                    <div class="flex flex-col p-4 rounded-lg bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/20 hover:shadow-md transition-shadow">
+                                    <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
                                         <div class="flex items-center justify-between mb-3">
-                                            <span class="text-xs font-semibold text-purple-800 dark:text-purple-300">Draft</span>
-                                            <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <span class="text-xs font-semibold text-red-800 dark:text-red-300">Draft</span>
+                                            <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                             </svg>
                                         </div>
-                                        <div class="text-2xl font-black text-purple-700 dark:text-purple-300 mb-2">{{ $anomalies['abandoned_drafts']['count'] ?? 0 }}</div>
+                                        <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['abandoned_drafts']['count'] ?? 0 }}</div>
                                         <button onclick="showAnomalyDetail('abandoned_drafts', {{ $anomalies['abandoned_drafts']['count'] ?? 0 }})" 
-                                           class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline uppercase tracking-wider">
+                                           class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider">
                                             Detail
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -1862,8 +1879,7 @@
                                 </div>
 
                                 <!-- Anomali & Data Bermasalah - Col 9-12 (col-span-4) -->
-                                <div
-                                    class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
+                                <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="mb-6">
                                         <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Kualitas Data</h3>
                                         <p class="text-[10px] text-gray-500 mt-1">Audit anomali dan keaslian data</p>
@@ -1871,16 +1887,16 @@
 
                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                                         <!-- SLA Breach -->
-                                        <div class="flex flex-col p-4 rounded-lg bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-800/20 hover:shadow-md transition-shadow">
+                                        <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
                                             <div class="flex items-center justify-between mb-3">
-                                                <span class="text-xs font-semibold text-rose-800 dark:text-rose-300">SLA Breach</span>
-                                                <svg class="w-5 h-5 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <span class="text-xs font-semibold text-red-800 dark:text-red-300">SLA Breach</span>
+                                                <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                 </svg>
                                             </div>
-                                            <div class="text-2xl font-black text-rose-700 dark:text-rose-300 mb-2">{{ $anomalies['sla_breach']['count'] ?? 0 }}</div>
+                                            <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['sla_breach']['count'] ?? 0 }}</div>
                                             <button onclick="showAnomalyDetail('sla_breach', {{ $anomalies['sla_breach']['count'] ?? 0 }})" 
-                                               class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 hover:underline uppercase tracking-wider">
+                                               class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider">
                                                 Detail
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -1907,16 +1923,16 @@
                                         </div>
 
                                         <!-- Tanpa Dokumen -->
-                                        <div class="flex flex-col p-4 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/20 hover:shadow-md transition-shadow">
+                                        <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
                                             <div class="flex items-center justify-between mb-3">
-                                                <span class="text-xs font-semibold text-amber-800 dark:text-amber-300">Tanpa Dokumen</span>
-                                                <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <span class="text-xs font-semibold text-red-800 dark:text-red-300">Tanpa Dokumen</span>
+                                                <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                 </svg>
                                             </div>
-                                            <div class="text-2xl font-black text-amber-700 dark:text-amber-300 mb-2">{{ $anomalies['missing_documents']['count'] ?? 0 }}</div>
+                                            <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['missing_documents']['count'] ?? 0 }}</div>
                                             <button onclick="showAnomalyDetail('missing_documents', {{ $anomalies['missing_documents']['count'] ?? 0 }})" 
-                                               class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline uppercase tracking-wider">
+                                               class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider">
                                                 Detail
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -1925,16 +1941,16 @@
                                         </div>
 
                                         <!-- Draft -->
-                                        <div class="flex flex-col p-4 rounded-lg bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/20 hover:shadow-md transition-shadow">
+                                        <div class="flex flex-col p-4 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/20 hover:shadow-md transition-shadow">
                                             <div class="flex items-center justify-between mb-3">
-                                                <span class="text-xs font-semibold text-purple-800 dark:text-purple-300">Draft</span>
-                                                <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <span class="text-xs font-semibold text-red-800 dark:text-red-300">Draft</span>
+                                                <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                 </svg>
                                             </div>
-                                            <div class="text-2xl font-black text-purple-700 dark:text-purple-300 mb-2">{{ $anomalies['abandoned_drafts']['count'] ?? 0 }}</div>
+                                            <div class="text-2xl font-black text-red-700 dark:text-red-300 mb-2">{{ $anomalies['abandoned_drafts']['count'] ?? 0 }}</div>
                                             <button onclick="showAnomalyDetail('abandoned_drafts', {{ $anomalies['abandoned_drafts']['count'] ?? 0 }})" 
-                                               class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline uppercase tracking-wider">
+                                               class="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 hover:underline uppercase tracking-wider">
                                                 Detail
                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

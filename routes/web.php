@@ -20,6 +20,9 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Panduan Penggunaan (Public - no auth required)
+Route::get('/panduan', [\App\Http\Controllers\GuideController::class, 'index'])->name('guide');
+
 // Route login
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -54,7 +57,7 @@ Route::prefix('api')->name('api.')->group(function () {
             \App\Http\Controllers\Api\SiakadMahasiswaController::class,
             'search'
         ])->name('siakad.mahasiswa.search');
-        
+
         // Get mahasiswa detail by ID
         Route::get('/siakad/mahasiswa/{id}', [
             \App\Http\Controllers\Api\SiakadMahasiswaController::class,
@@ -78,7 +81,7 @@ Route::middleware(['auth.student'])->group(function () {
     // Request Review Ulang (menggantikan fitur banding)
     Route::post('/achievements/{achievement}/request-review', [\App\Http\Controllers\Student\AchievementController::class, 'requestReview'])
         ->name('student.achievement.request-review');
-    
+
     // Delete Achievement (soft delete for rejected achievements)
     Route::delete('/achievements/{achievement}', [\App\Http\Controllers\Student\AchievementController::class, 'destroy'])
         ->name('student.achievement.destroy');
@@ -307,11 +310,11 @@ Route::middleware(['auth', 'multi.role:pimpinan', 'pimpinan.level'])->prefix('pi
 Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard - using new controller
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // API for Dashboard Anomalies
     Route::get('/api/anomalies/{type}', [\App\Http\Controllers\Admin\DashboardController::class, 'getAnomalyDetails'])->name('api.anomalies');
     Route::delete('/api/achievements/{id}', [\App\Http\Controllers\Admin\DashboardController::class, 'deleteAchievement'])->name('api.achievements.delete');
-    
+
     // API for Unit Distribution
     Route::get('/api/unit-distribution', [\App\Http\Controllers\Admin\DashboardController::class, 'getUnitDistribution'])->name('api.unit-distribution');
 
