@@ -33,8 +33,8 @@ class UserManagementService
                 // Determine role type and level based on role field
                 if ($data['role'] === 'Pimpinan') {
                     $roleType = 'pimpinan';
-                    $level = $data['pimpinan_level'];
-                    $position = $data['pimpinan_position'];
+                    $level = 'university'; // Access level like rector
+                    $position = 'rektor';  // Position like rector
                     $facultyName = $data['pimpinan_faculty'] ?? null;
                     $departmentName = $data['pimpinan_department'] ?? null;
                     $programStudyName = $data['pimpinan_program_study'] ?? null;
@@ -47,17 +47,11 @@ class UserManagementService
                     $programStudyName = null;
                 } else {
                     $roleType = 'operator';
-                    $level = 'faculty';
+                    $level = 'university'; // Default to super validator level as requested
                     $position = null;
                     $facultyName = $data['faculty'] ?? null;
                     $departmentName = null;
                     $programStudyName = null;
-
-                    // Handle "Semua Fakultas" case - university level
-                    if (isset($data['faculty']) && $data['faculty'] === 'Semua Fakultas') {
-                        $level = 'university';
-                        $facultyName = null;
-                    }
                 }
 
                 // Create new UserRole
@@ -105,8 +99,8 @@ class UserManagementService
             // Determine role type and level
             if ($data['role'] === 'Pimpinan') {
                 $roleType = 'pimpinan';
-                $level = $data['pimpinan_level'];
-                $position = $data['pimpinan_position'];
+                $level = 'university'; // Access level like rector
+                $position = 'rektor';  // Default position like rector
                 $facultyName = $data['pimpinan_faculty'] ?? null;
                 $departmentName = $data['pimpinan_department'] ?? null;
                 $programStudyName = $data['pimpinan_program_study'] ?? null;
@@ -119,17 +113,11 @@ class UserManagementService
                 $programStudyName = null;
             } else {
                 $roleType = 'operator';
-                $level = 'faculty';
+                $level = 'university'; // Default to super validator level as requested
                 $position = null;
                 $facultyName = $data['faculty'] ?? null;
                 $departmentName = null;
                 $programStudyName = null;
-
-                // Handle "Semua Fakultas" case
-                if (isset($data['faculty']) && $data['faculty'] === 'Semua Fakultas') {
-                    $level = 'university';
-                    $facultyName = null;
-                }
             }
 
             // New users are always active

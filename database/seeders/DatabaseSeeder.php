@@ -297,6 +297,24 @@ class DatabaseSeeder extends Seeder
         );
         $this->users['admin'] = $admin;
 
+        // Super Validator (Operator University Level - can handle all faculties)
+        $superValidator = User::updateOrCreate(
+            ['email' => 'super.validator@unpatti.ac.id'],
+            [
+                'name' => 'Super Validator Unpatti',
+                'password' => $passwordHash,
+                'role' => 'Validator',
+            ]
+        );
+        UserRole::updateOrCreate(
+            ['user_id' => $superValidator->id, 'role' => 'operator'],
+            [
+                'level' => 'university',
+                'is_active' => true,
+            ]
+        );
+        $this->users['super_validator'] = $superValidator;
+
         // Rektor
         $rektor = User::updateOrCreate(
             ['email' => 'rektor@unpatti.ac.id'],

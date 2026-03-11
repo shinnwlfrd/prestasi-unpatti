@@ -21,6 +21,9 @@ class ExportController extends Controller
             return response()->json(['error' => 'No active role found'], 403);
         }
 
+        // Build scope metadata for report headers and filename
+        $scopeInfo = $this->getScopeInfo($currentRole);
+
         // Build query based on role scope
         $query = StudentAchievement::with([
             'student',
@@ -78,7 +81,7 @@ class ExportController extends Controller
 
         // Generate file based on format
         $format = $request->get('format', 'excel');
-        $filename = 'prestasi_mahasiswa_' . date('Y-m-d_His');
+        $filename = 'prestasi_' . $scopeInfo['filename_scope'] . '_' . date('Y-m-d_His');
 
         if ($format === 'csv') {
             $filename .= '.csv';
@@ -87,10 +90,18 @@ class ExportController extends Controller
                 'Content-Disposition' => "attachment; filename=\"$filename\"",
             ];
 
-            $callback = function () use ($achievements) {
+            $callback = function () use ($achievements, $scopeInfo, $user) {
                 $file = fopen('php://output', 'w');
                 // Add BOM for Excel UTF-8 support
                 fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+                // Report header with scope info
+                fputcsv($file, ['LAPORAN PRESTASI MAHASISWA - SIMAPRES UNPATTI']);
+                fputcsv($file, ['Jabatan: ' . $scopeInfo['position_label']]);
+                fputcsv($file, ['Cakupan: ' . $scopeInfo['scope_name']]);
+                fputcsv($file, ['Dicetak oleh: ' . $user->name]);
+                fputcsv($file, ['Tanggal Cetak: ' . now()->format('d/m/Y H:i:s')]);
+                fputcsv($file, []);
 
                 // Comprehensive Header row
                 fputcsv($file, [
@@ -184,11 +195,20 @@ class ExportController extends Controller
                 'Cache-Control' => 'max-age=0',
             ];
 
-            $callback = function () use ($achievements) {
+            $callback = function () use ($achievements, $scopeInfo, $user) {
                 echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
                 echo '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
                 echo '<style>th { background-color: #1f2937; color: white; font-weight: bold; padding: 8px; } td { padding: 6px; border: 1px solid #e5e7eb; }</style>';
                 echo '</head><body>';
+
+                // Report header with scope info
+                echo '<h1>LAPORAN PRESTASI MAHASISWA - SIMAPRES UNPATTI</h1>';
+                echo '<p><strong>Jabatan:</strong> ' . htmlspecialchars($scopeInfo['position_label']) . '</p>';
+                echo '<p><strong>Cakupan:</strong> ' . htmlspecialchars($scopeInfo['scope_name']) . '</p>';
+                echo '<p><strong>Dicetak oleh:</strong> ' . htmlspecialchars($user->name) . '</p>';
+                echo '<p><strong>Tanggal Cetak:</strong> ' . now()->format('d/m/Y H:i:s') . '</p>';
+                echo '<br>';
+
                 echo '<table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
                 
                 // Comprehensive Header
@@ -406,5 +426,54 @@ class ExportController extends Controller
             'admin' => 'Administrator',
             default => $submittedBy ?? '-',
         };
+    }
+
+    /**
+     * Get scope information for report headers and filename
+     */
+    private function getScopeInfo($currentRole): array
+    {
+        $positionLabels = [
+            'rektor' => 'Rektor',
+            'wakil_rektor_1' => 'Wakil Rektor I',
+            'wakil_rektor_2' => 'Wakil Rektor II',
+            'wakil_rektor_3' => 'Wakil Rektor III',
+            'dekan' => 'Dekan',
+            'wakil_dekan' => 'Wakil Dekan',
+            'ketua_jurusan' => 'Ketua Jurusan',
+            'sekretaris_jurusan' => 'Sekretaris Jurusan',
+            'kaprodi' => 'Ketua Program Studi',
+            'sekprodi' => 'Sekretaris Program Studi',
+            'direktur_pps' => 'Direktur Pascasarjana',
+            'kepala_biro_kemahasiswaan' => 'Kepala Biro Kemahasiswaan',
+            'super_admin' => 'Super Admin',
+        ];
+
+        $position = $currentRole->position ?? session('pimpinan_position') ?? null;
+        $positionLabel = $positionLabels[$position] ?? $currentRole->getRoleDisplayName();
+
+        // Build scope name
+        $scopeName = 'Seluruh Universitas';
+        $filenameScope = 'universitas';
+
+        if ($currentRole->isProgramStudyLevel()) {
+            $prodiName = $currentRole->program_study_name ?? session('pimpinan_program_study_name') ?? 'Program Studi';
+            $scopeName = $prodiName;
+            $filenameScope = 'prodi_' . strtolower(str_replace([' ', '-', '.'], '_', substr($prodiName, 0, 30)));
+        } elseif ($currentRole->isDepartmentLevel()) {
+            $deptName = $currentRole->department_name ?? session('pimpinan_department_name') ?? 'Jurusan';
+            $scopeName = $deptName;
+            $filenameScope = 'jur_' . strtolower(str_replace([' ', '-', '.'], '_', substr($deptName, 0, 30)));
+        } elseif ($currentRole->isFacultyLevel()) {
+            $facName = $currentRole->faculty_name ?? session('pimpinan_faculty_name') ?? 'Fakultas';
+            $scopeName = $facName;
+            $filenameScope = 'fak_' . strtolower(str_replace([' ', '-', '.'], '_', substr($facName, 0, 30)));
+        }
+
+        return [
+            'position_label' => $positionLabel,
+            'scope_name' => $scopeName,
+            'filename_scope' => $filenameScope,
+        ];
     }
 }

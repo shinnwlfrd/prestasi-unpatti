@@ -35,6 +35,12 @@ class CheckMultiRole
             return $next($request);
         }
 
+        // Check for virtual role in session (for super admin switching roles)
+        $activeRoleType = session('active_role_type');
+        if ($activeRoleType && in_array($activeRoleType, $roles)) {
+            return $next($request);
+        }
+
         // Check if user has any of the required roles
         if ($user->hasAnyRole($roles)) {
             return $next($request);
@@ -48,6 +54,7 @@ class CheckMultiRole
             'user_legacy_role' => $user->role,
             'required_roles' => $roles,
             'active_roles' => $user->getActiveRoleNames(),
+            'session_active_role_type' => $activeRoleType,
         ]);
 
         return redirect()->route('login')->withErrors([

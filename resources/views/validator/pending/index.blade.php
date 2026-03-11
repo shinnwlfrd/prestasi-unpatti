@@ -189,6 +189,22 @@
                     </select>
                 </div>
 
+                <!-- Faculty (Only for Super Validator) -->
+                @if(isset($faculties) && $faculties->isNotEmpty())
+                <div class="lg:col-span-2">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Fakultas</label>
+                    <select name="faculty"
+                        class="w-full px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
+                        <option value="">Semua Fakultas</option>
+                        @foreach($faculties as $faculty)
+                            <option value="{{ $faculty->id }}" {{ request('faculty') == $faculty->id ? 'selected' : '' }}>
+                                {{ $faculty->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
                 <!-- Sort Date -->
                 <div class="lg:col-span-2">
                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Urutkan</label>

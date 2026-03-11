@@ -14,9 +14,9 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         $query = Student::with([
             'achievements' => function ($q) {
@@ -55,6 +55,10 @@ class StudentController extends Controller
             $query->where('department', 'ilike', "%{$request->department}%");
         }
 
+        if ($request->filled('faculty')) {
+            $query->where('faculty', 'ilike', "%{$request->faculty}%");
+        }
+
         // Sort by achievements count
         $students = $query->withCount([
             'achievements' => function ($q) {
@@ -73,30 +77,74 @@ class StudentController extends Controller
             ->orderBy('angkatan', 'desc')
             ->pluck('angkatan');
 
-        $departmentList = Student::query()
-            ->when($level === 'faculty' && $facultyId, fn($q) => $q->where('faculty_id', $facultyId))
-            ->whereNotNull('department')
-            ->distinct()
-            ->orderBy('department', 'asc')
-            ->pluck('department');
+        // Get faculty list for super validator
+        $facultyList = collect();
+        if ($level === 'university') {
+            $facultyList = Student::query()
+                ->whereNotNull('faculty')
+                ->distinct()
+                ->orderBy('faculty', 'asc')
+                ->pluck('faculty');
+        }
 
-        // Get mapping of Department to Program Study (already group by dept)
-        $prodiMapping = Student::query()
+        // Get all hierarchical mappings
+        $hierarchyData = Student::query()
             ->when($level === 'faculty' && $facultyId, fn($q) => $q->where('faculty_id', $facultyId))
-            ->select('department', 'program_study')
+            ->select('faculty', 'department', 'program_study')
+            ->whereNotNull('faculty')
             ->whereNotNull('department')
             ->whereNotNull('program_study')
             ->distinct()
             ->get();
 
-        $deptToProdi = $prodiMapping->groupBy('department')
-            ->map(fn($items) => $items->pluck('program_study')->unique()->values());
+        // Faculty to Department mapping
+        $facultyToDept = $hierarchyData->groupBy('faculty')
+            ->map(fn($items) => $items->pluck('department')->unique()->sort()->values());
 
-        $prodiToDept = $prodiMapping->pluck('department', 'program_study');
+        // Department to Faculty mapping (reverse) - use groupBy to handle properly
+        $deptToFaculty = [];
+        foreach ($hierarchyData as $item) {
+            if (!isset($deptToFaculty[$item->department])) {
+                $deptToFaculty[$item->department] = $item->faculty;
+            }
+        }
 
-        $allProdis = $prodiMapping->pluck('program_study')->unique()->sort()->values();
+        // Department to Program Study mapping
+        $deptToProdi = $hierarchyData->groupBy('department')
+            ->map(fn($items) => $items->pluck('program_study')->unique()->sort()->values());
 
-        return view('validator.students.index', compact('students', 'angkatanList', 'departmentList', 'deptToProdi', 'prodiToDept', 'allProdis'));
+        // Program Study to Department mapping (reverse) - use groupBy to handle properly
+        $prodiToDept = [];
+        foreach ($hierarchyData as $item) {
+            if (!isset($prodiToDept[$item->program_study])) {
+                $prodiToDept[$item->program_study] = $item->department;
+            }
+        }
+
+        // Program Study to Faculty mapping (direct)
+        $prodiToFaculty = [];
+        foreach ($hierarchyData as $item) {
+            if (!isset($prodiToFaculty[$item->program_study])) {
+                $prodiToFaculty[$item->program_study] = $item->faculty;
+            }
+        }
+
+        // All departments and prodis for fallback
+        $allDepts = $hierarchyData->pluck('department')->unique()->sort()->values();
+        $allProdis = $hierarchyData->pluck('program_study')->unique()->sort()->values();
+
+        return view('validator.students.index', compact(
+            'students', 
+            'angkatanList', 
+            'facultyList', 
+            'facultyToDept',
+            'deptToFaculty',
+            'deptToProdi', 
+            'prodiToDept',
+            'prodiToFaculty',
+            'allDepts',
+            'allProdis'
+        ));
     }
 
     /**
@@ -105,9 +153,9 @@ class StudentController extends Controller
     public function show($studentId)
     {
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         $student = Student::with(['achievements.achievement.category'])
             ->findOrFail($studentId);
@@ -143,9 +191,9 @@ class StudentController extends Controller
     public function search(Request $request)
     {
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         $query = Student::query();
 

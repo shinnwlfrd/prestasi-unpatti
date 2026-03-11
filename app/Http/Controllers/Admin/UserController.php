@@ -203,7 +203,7 @@ class UserController extends Controller
                 \App\Models\UserRole::create([
                     'user_id' => $user->id,
                     'role' => 'operator',
-                    'level' => 'faculty',
+                    'level' => 'university', // Super Validator access
                     'faculty_name' => $faculty,
                     'is_active' => true,
                 ]);
@@ -221,14 +221,14 @@ class UserController extends Controller
                 \App\Models\UserRole::create([
                     'user_id' => $user->id,
                     'role' => 'pimpinan',
-                    'level' => $request->pimpinan_level,
+                    'level' => 'university', // Like Rector access
                     'faculty_name' => $faculty,
                     'faculty_id' => $facultyId,
                     'department_name' => $department,
                     'department_id' => $departmentId,
                     'program_study_name' => $programStudy,
                     'program_study_id' => $programStudyId,
-                    'position' => $position,
+                    'position' => 'rektor', // Position like rektor
                     'is_active' => true,
                 ]);
             }

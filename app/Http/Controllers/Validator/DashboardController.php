@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AcademicPeriod;
 use App\Models\Student;
 use App\Models\StudentAchievement;
+use App\Models\ExecutiveSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -625,11 +626,16 @@ class DashboardController extends Controller
         $departmentId = $departmentId ?? session('operator_department_id') ?? session('pimpinan_department_id');
         $programStudyId = $programStudyId ?? session('operator_program_study_id') ?? session('pimpinan_program_study_id');
 
+        // Ensure empty strings are treated as null to avoid invalid UUID comparisons in Postgres
+        $facultyId = $facultyId ?: null;
+        $departmentId = $departmentId ?: null;
+        $programStudyId = $programStudyId ?: null;
+
         // Get request parameters
         $selectedPeriods = $request->input('periods', []);
         $drillLevel = $request->input('drill_level', 'main'); // main, level1, level2
-        $parentId = $request->input('parent_id');
-        $grandparentId = $request->input('grandparent_id');
+        $parentId = $request->input('parent_id') ?: null;
+        $grandparentId = $request->input('grandparent_id') ?: null;
 
         $data = [];
         $labels = [];
@@ -998,6 +1004,11 @@ class DashboardController extends Controller
         $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
         $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
 
+        // Ensure empty strings are treated as null to avoid invalid UUID comparisons in Postgres
+        $facultyId = $facultyId ?: null;
+        $departmentId = $departmentId ?: null;
+        $programStudyId = $programStudyId ?: null;
+
         $participants = StudentAchievement::query()
             ->with(['student'])
             ->where('event_name', $eventName)
@@ -1101,6 +1112,11 @@ class DashboardController extends Controller
         $departmentId = session("{$prefix}_department_id") ?? session('operator_department_id') ?? session('pimpinan_department_id');
         $programStudyId = session("{$prefix}_program_study_id") ?? session('operator_program_study_id') ?? session('pimpinan_program_study_id');
         $position = session('pimpinan_position');
+
+        // Ensure empty strings are treated as null to avoid invalid UUID comparisons in Postgres
+        $facultyId = $facultyId ?: null;
+        $departmentId = $departmentId ?: null;
+        $programStudyId = $programStudyId ?: null;
 
         $positionLabels = [
             'rektor' => 'Rektor',
@@ -1538,8 +1554,16 @@ class DashboardController extends Controller
         if (!$isPimpinan)
             return $riskIndicators;
 
+        // Fetch settings from database with sensible defaults
+        $settings = ExecutiveSetting::where('category', 'executive_panel')->pluck('value', 'key')->all();
+        
+        $minNational = (int) ($settings['min_national_achievements'] ?? 1);
+        $growthDropThreshold = (float) ($settings['growth_drop_threshold'] ?? 20);
+        $slaDays = (int) ($settings['sla_validation_days'] ?? 7);
+        $participationTarget = (float) (($settings['unit_participation_target'] ?? 30) / 100);
+
         if (!empty($hierarchicalComparison) && isset($hierarchicalComparison['items'])) {
-            $noNational = $hierarchicalComparison['items']->filter(function ($unit) use ($selectedPeriods) {
+            $noNational = $hierarchicalComparison['items']->filter(function ($unit) use ($selectedPeriods, $minNational) {
                 return StudentAchievement::whereIn('validation_status', ['faculty_approved', 'university_approved'])
                     ->whereHas('student', function ($q) use ($unit) {
                         if (isset($unit->faculty_id))
@@ -1551,21 +1575,21 @@ class DashboardController extends Controller
                     })
                     ->whereIn('level', ['Nasional', 'Internasional'])
                     ->when(!empty($selectedPeriods), fn($q) => $q->whereIn('academic_period_id', $selectedPeriods))
-                    ->count() === 0;
+                    ->count() < $minNational;
             })->take(2);
 
             foreach ($noNational as $unit) {
                 $riskIndicators[] = [
-                    'message' => ($unit->faculty ?? $unit->department ?? $unit->program_study) . " belum mencapai target prestasi tingkat Nasional/Internasional pada periode ini.",
+                    'message' => ($unit->faculty ?? $unit->department ?? $unit->program_study) . " belum mencapai target prestasi tingkat Nasional/Internasional ({$minNational}) pada periode ini.",
                     'type' => 'warning',
                     'icon' => 'exclamation-circle'
                 ];
             }
         }
 
-        if ($achievementGrowth < -20) {
+        if ($achievementGrowth < -$growthDropThreshold) {
             $riskIndicators[] = [
-                'message' => "Sistem mendeteksi penurunan kuantitas prestasi sebesar " . round(abs($achievementGrowth), 1) . "% dibandingkan periode sebelumnya.",
+                'message' => "Sistem mendeteksi penurunan kuantitas prestasi sebesar " . round(abs($achievementGrowth), 1) . "% (melebihi ambang batas {$growthDropThreshold}%).",
                 'type' => 'danger',
                 'icon' => 'trending-down'
             ];
@@ -1573,23 +1597,23 @@ class DashboardController extends Controller
 
         $bottlenecks = StudentAchievement::whereIn('validation_status', ['submitted', 'faculty_review', 'university_review', 'faculty_revision', 'university_revision'])
             ->whereNotIn('validation_status', ['faculty_rejected', 'university_rejected']) // Exclude rejected
-            ->where('submitted_at', '<', now()->subDays(7))
+            ->where('submitted_at', '<', now()->subDays($slaDays))
             ->whereHas('student', function ($sq) use ($level, $facultyId, $departmentId, $programStudyId) {
                 $this->applyScopeFilters($sq, $level, $facultyId, $departmentId, $programStudyId);
             })->count();
 
         if ($bottlenecks > 0) {
             $riskIndicators[] = [
-                'message' => "Sebanyak {$bottlenecks} pengajuan prestasi melampaui batas waktu validasi (> 7 hari).",
+                'message' => "Sebanyak {$bottlenecks} pengajuan prestasi melampaui batas waktu validasi (> {$slaDays} hari).",
                 'type' => 'danger',
                 'icon' => 'clock',
                 'action_url' => route('pimpinan.sla-breach-details') // Add action URL for modal
             ];
         }
 
-        if ($totalUnitsCount > 0 && ($activeUnitsCount / $totalUnitsCount) < 0.3) {
+        if ($totalUnitsCount > 0 && ($activeUnitsCount / $totalUnitsCount) < $participationTarget) {
             $riskIndicators[] = [
-                'message' => "Tingkat partisipasi unit aktif baru mencapai " . round(($activeUnitsCount / $totalUnitsCount) * 100) . "%, di bawah target optimal 30%.",
+                'message' => "Tingkat partisipasi unit aktif baru mencapai " . round(($activeUnitsCount / $totalUnitsCount) * 100) . "%, di bawah target optimal " . ($participationTarget * 100) . "%.",
                 'type' => 'warning',
                 'icon' => 'users'
             ];

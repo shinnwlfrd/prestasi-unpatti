@@ -24,99 +24,192 @@
         <!-- Filters -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6" 
          x-data="{ 
+            selectedFaculty: '{{ request('faculty') }}',
             selectedDept: '{{ request('department') }}',
             selectedProdi: '{{ request('program_study') }}',
-            deptToProdi: {{ $deptToProdi->toJson() }},
-            prodiToDept: {{ $prodiToDept->toJson() }},
-            allProdis: {{ $allProdis->toJson() }},
+            facultyToDept: {{ json_encode($facultyToDept) }},
+            deptToProdi: {{ json_encode($deptToProdi) }},
+            deptToFaculty: {{ json_encode($deptToFaculty) }},
+            prodiToDept: {{ json_encode($prodiToDept) }},
+            prodiToFaculty: {{ json_encode($prodiToFaculty) }},
+            allDepts: {{ json_encode($allDepts) }},
+            allProdis: {{ json_encode($allProdis) }},
+            userChangedProdi: false,
+            userChangedDept: false,
             
+            init() {
+                console.log('Initialized with:', {
+                    selectedFaculty: this.selectedFaculty,
+                    selectedDept: this.selectedDept,
+                    selectedProdi: this.selectedProdi,
+                    prodiToDept: this.prodiToDept,
+                    prodiToFaculty: this.prodiToFaculty
+                });
+            },
+            
+            get availableDepts() {
+                // If user manually changed prodi, show all depts
+                if (this.userChangedProdi && this.selectedProdi) {
+                    return this.allDepts;
+                }
+                // Otherwise filter by faculty
+                if (this.selectedFaculty) {
+                    return this.facultyToDept[this.selectedFaculty] || [];
+                }
+                return this.allDepts;
+            },
+
             get availableProdis() {
+                // If user manually changed prodi, show all prodis
+                if (this.userChangedProdi) {
+                    return this.allProdis;
+                }
+                // Otherwise filter by department
                 if (this.selectedDept) {
                     return this.deptToProdi[this.selectedDept] || [];
                 }
                 return this.allProdis;
             },
 
-            updateDept() {
-                if (this.selectedProdi && this.prodiToDept[this.selectedProdi]) {
-                    this.selectedDept = this.prodiToDept[this.selectedProdi];
+            onFacultyChange() {
+                console.log('Faculty changed to:', this.selectedFaculty);
+                this.userChangedProdi = false;
+                this.userChangedDept = false;
+                // Reset department and prodi when faculty changes
+                const availableDepts = this.facultyToDept[this.selectedFaculty] || [];
+                if (this.selectedDept && !availableDepts.includes(this.selectedDept)) {
+                    this.selectedDept = '';
+                    this.selectedProdi = '';
                 }
             },
 
-            updateProdi() {
-                if (this.selectedDept && this.selectedProdi) {
-                    const prodisInDept = this.deptToProdi[this.selectedDept] || [];
-                    if (!prodisInDept.includes(this.selectedProdi)) {
-                        this.selectedProdi = '';
+            onDeptChange() {
+                console.log('Department changed to:', this.selectedDept);
+                this.userChangedDept = true;
+                this.userChangedProdi = false;
+                // Update faculty based on department
+                if (this.selectedDept && this.deptToFaculty[this.selectedDept]) {
+                    this.selectedFaculty = this.deptToFaculty[this.selectedDept];
+                    console.log('Auto-set faculty to:', this.selectedFaculty);
+                }
+                // Reset prodi if not in available list
+                const availableProdis = this.deptToProdi[this.selectedDept] || [];
+                if (this.selectedProdi && !availableProdis.includes(this.selectedProdi)) {
+                    this.selectedProdi = '';
+                }
+            },
+
+            onProdiChange() {
+                console.log('Prodi changed to:', this.selectedProdi);
+                this.userChangedProdi = true;
+                // Update department and faculty based on prodi
+                if (this.selectedProdi) {
+                    if (this.prodiToDept[this.selectedProdi]) {
+                        this.selectedDept = this.prodiToDept[this.selectedProdi];
+                        console.log('Auto-set department to:', this.selectedDept);
                     }
+                    if (this.prodiToFaculty[this.selectedProdi]) {
+                        this.selectedFaculty = this.prodiToFaculty[this.selectedProdi];
+                        console.log('Auto-set faculty to:', this.selectedFaculty);
+                    }
+                } else {
+                    // If prodi is cleared, reset the flag
+                    this.userChangedProdi = false;
                 }
             }
          }">
-        <form method="GET" action="{{ route($routePrefix . '.students.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <!-- Search -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Cari Mahasiswa
-                </label>
-                <input type="text" name="search" value="{{ request('search') }}" 
-                    placeholder="Nama atau NIM..."
-                    class="w-full py-3 text-base rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+        <form method="GET" action="{{ route($routePrefix . '.students.index') }}" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Search -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Cari Mahasiswa
+                    </label>
+                    <input type="text" name="search" value="{{ request('search') }}" 
+                        placeholder="Nama atau NIM..."
+                        class="w-full py-3 text-base rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                </div>
+
+                <!-- Angkatan -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Angkatan
+                    </label>
+                    <select name="angkatan" class="w-full py-3 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="">Semua Angkatan</option>
+                        @foreach($angkatanList as $angkatan)
+                            <option value="{{ $angkatan }}" {{ request('angkatan') == $angkatan ? 'selected' : '' }}>
+                                {{ $angkatan }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
-            <!-- Angkatan -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Angkatan
-                </label>
-                <select name="angkatan" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="">Semua Angkatan</option>
-                    @foreach($angkatanList as $angkatan)
-                        <option value="{{ $angkatan }}" {{ request('angkatan') == $angkatan ? 'selected' : '' }}>
-                            {{ $angkatan }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                @php
+                    $level = session('operator_level') ?? session('pimpinan_level');
+                    $showFacultyFilter = ($level === 'university');
+                @endphp
 
-            <!-- Jurusan (Department) -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Jurusan
-                </label>
-                <select name="department" 
-                        x-model="selectedDept"
-                        @change="updateProdi()"
-                        class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="">Semua Jurusan</option>
-                    @foreach($departmentList as $dept)
-                        <option value="{{ $dept }}">
-                            {{ $dept }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+                @if($showFacultyFilter)
+                    <!-- Fakultas (for Super Validator only) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Fakultas
+                        </label>
+                        <select name="faculty" 
+                                x-model="selectedFaculty"
+                                @change="onFacultyChange()"
+                                class="w-full py-3 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <option value="">Semua Fakultas</option>
+                            @foreach($facultyList as $faculty)
+                                <option value="{{ $faculty }}">
+                                    {{ $faculty }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
-            <!-- Program Study -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Program Studi
-                </label>
-                <select name="program_study" 
-                        x-model="selectedProdi"
-                        @change="updateDept()"
-                        class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    <option value="">Semua Prodi</option>
-                    <template x-for="prodi in availableProdis" :key="prodi">
-                        <option :value="prodi" x-text="prodi" :selected="prodi == selectedProdi"></option>
-                    </template>
-                </select>
-            </div>
+                <!-- Jurusan (Department) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Jurusan
+                    </label>
+                    <select name="department" 
+                            x-model="selectedDept"
+                            @change="onDeptChange()"
+                            class="w-full py-3 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="">Semua Jurusan</option>
+                        <template x-for="dept in availableDepts" :key="dept">
+                            <option :value="dept" x-text="dept" :selected="dept == selectedDept"></option>
+                        </template>
+                    </select>
+                </div>
 
-            <!-- Submit -->
-            <div class="flex items-end">
-                <button type="submit" class="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium">
-                    Filter
-                </button>
+                <!-- Program Study -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Program Studi
+                    </label>
+                    <select name="program_study" 
+                            x-model="selectedProdi"
+                            @change="onProdiChange()"
+                            class="w-full py-3 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="">Semua Prodi</option>
+                        <template x-for="prodi in availableProdis" :key="prodi">
+                            <option :value="prodi" x-text="prodi" :selected="prodi == selectedProdi"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Submit -->
+                <div class="flex items-end">
+                    <button type="submit" class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium">
+                        Filter
+                    </button>
+                </div>
             </div>
         </form>
     </div>

@@ -1,6 +1,6 @@
 @extends('layouts.validator')
 
-@section('title', $isPimpinan ? 'Dashboard Pimpinan' : 'Dashboard Validator')
+@section('title', $isPimpinan ? 'Dashboard Pimpinan' : 'Dashboard Operator')
 
 @push('styles')
     <style>
@@ -332,54 +332,8 @@
                             </div>
                         </div>
 
-                        <!-- Efficiency Ratio Ranking (col-span-3) -->
-                        <div class="col-span-12 lg:col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Efisiensi Capaian Prestasi</h3>
-                                <div class="group relative">
-                                    <svg class="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <div
-                                        class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                        Efisiensi: Jumlah prestasi dibagi populasi mahasiswa. Menunjukkan produktivitas unit.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="space-y-4 max-h-64 overflow-y-auto pr-1">
-                                @forelse($efficiencyRanking as $rank)
-                                    <div class="flex items-center justify-between">
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"
-                                                title="{{ $rank['name'] }}">
-                                                {{ $rank['name'] }}
-                                            </p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ $rank['achievements'] }} Pres / {{ $rank['students'] }} Mhs
-                                            </p>
-                                        </div>
-                                        <div class="ml-2 text-right">
-                                            <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                                                {{ number_format($rank['ratio'], 3) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="flex flex-col items-center justify-center py-8 text-center text-gray-500 dark:text-gray-400">
-                                        <svg class="w-8 h-8 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                        <p class="text-xs">Data tidak tersedia</p>
-                                    </div>
-                                @endforelse
-                            </div>
-                        </div>
-
-                        <!-- Achievement Trend (col-span-3) -->
-                        <div class="col-span-12 lg:col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <!-- Achievement Trend (col-span-6) -->
+                        <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Analisis Tren Pertumbuhan</h3>
                             <div class="relative h-64">
                                 <canvas id="achievementTrendChart"></canvas>
@@ -404,25 +358,73 @@
 
                 <!-- Row 3 - Specialized Distributions -->
                 <div class="grid grid-cols-12 gap-6 mb-6">
-                    <!-- Level Distribution Chart (col-span-4) -->
-                    <div class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Tingkat Capaian</h3>
-                        <div class="relative h-64">
-                            <canvas id="levelDistributionChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Category Distribution Chart (col-span-4) -->
-                    <div class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <!-- Category Distribution Chart (col-span-6) -->
+                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Bidang Prestasi</h3>
                         <div class="relative h-64">
                             <canvas id="categoryDistributionChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Executive Control Panel -->
-                    <div
-                        class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <!-- Level Distribution Chart (col-span-6) -->
+                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Tingkat Capaian</h3>
+                        <div class="relative h-64">
+                            <canvas id="levelDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 4 - Specialized Distributions & Executive Panel -->
+                <div class="grid grid-cols-12 gap-6 mb-6">
+                    <!-- Efficiency Ratio Ranking (col-span-6) -->
+                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Efisiensi Capaian Prestasi</h3>
+                            <div class="group relative">
+                                <svg class="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div
+                                    class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                    Efisiensi: Jumlah prestasi dibagi populasi mahasiswa. Menunjukkan produktivitas unit.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+                            @forelse($efficiencyRanking as $rank)
+                                <div class="flex items-center justify-between">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"
+                                            title="{{ $rank['name'] }}">
+                                            {{ $rank['name'] }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $rank['achievements'] }} Pres / {{ $rank['students'] }} Mhs
+                                        </p>
+                                    </div>
+                                    <div class="ml-2 text-right">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                            {{ number_format($rank['ratio'], 3) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="flex flex-col items-center justify-center py-8 text-center text-gray-500 dark:text-gray-400">
+                                    <svg class="w-8 h-8 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                    <p class="text-xs">Data tidak tersedia</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    <!-- Executive Control Panel (col-span-6) -->
+                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Panel Kendali Eksekutif</h3>
                                
 

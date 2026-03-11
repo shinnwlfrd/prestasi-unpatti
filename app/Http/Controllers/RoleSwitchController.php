@@ -18,8 +18,8 @@ class RoleSwitchController extends Controller
             return redirect()->route('login');
         }
 
-        // Get all active roles for this user from user_roles table
-        $roles = $user->activeRoles()->with('user')->get();
+        // Get available roles for this user (including virtual roles for super_admin)
+        $roles = $user->getSwitchableRoles();
 
         // Check if user email exists in students table (mahasiswa role)
         $student = \App\Models\Student::where('email', $user->email)->first();
@@ -135,6 +135,44 @@ class RoleSwitchController extends Controller
             }
         }
 
+        // Clean role-specific session variables before switching
+        $this->clearRoleSession();
+
+        // Check if switching to virtual validator role (for super admin)
+        if ($role_id === 'virtual_validator_university') {
+            session([
+                'active_role_id' => 'virtual_validator_university',
+                'active_role_type' => 'operator',
+                'operator_level' => 'university',
+            ]);
+
+            $user->update(['role' => 'Validator']);
+
+            return response()->json([
+                'success' => true,
+                'redirect_url' => route('validator.pending.index'),
+                'role' => 'Super Validator',
+            ]);
+        }
+
+        // Check if switching to virtual pimpinan role (for super admin)
+        if ($role_id === 'virtual_pimpinan_university') {
+            session([
+                'active_role_id' => 'virtual_pimpinan_university',
+                'active_role_type' => 'pimpinan',
+                'pimpinan_level' => 'university',
+                'pimpinan_position' => 'super_admin',
+            ]);
+
+            $user->update(['role' => 'Pimpinan']);
+
+            return response()->json([
+                'success' => true,
+                'redirect_url' => route('pimpinan.dashboard'),
+                'role' => 'Pimpinan Universitas',
+            ]);
+        }
+
         // Switching from student to user role
         if (session('auth_role') === 'student') {
             // Clear student session
@@ -209,5 +247,22 @@ class RoleSwitchController extends Controller
         }
 
         return redirect($this->getRedirectUrl($role));
+    }
+    /**
+     * Clear role-specific session variables
+     */
+    private function clearRoleSession()
+    {
+        session()->forget([
+            'operator_level',
+            'operator_faculty_id',
+            'operator_department_id',
+            'operator_program_study_id',
+            'pimpinan_level',
+            'pimpinan_faculty_id',
+            'pimpinan_department_id',
+            'pimpinan_program_study_id',
+            'pimpinan_position'
+        ]);
     }
 }

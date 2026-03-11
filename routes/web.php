@@ -14,6 +14,8 @@ Route::get('/', function () {
             return redirect('/admin');
         } elseif ($role === 'Validator') {
             return redirect()->route('validator.dashboard');
+        } elseif ($role === 'Pimpinan') {
+            return redirect()->route('pimpinan.dashboard');
         }
     }
 
@@ -248,6 +250,7 @@ Route::middleware(['auth', 'multi.role:operator', 'operator.level'])->prefix('va
     // Dashboard AJAX endpoints
     Route::get('/api/hierarchical-chart-data', [\App\Http\Controllers\Validator\DashboardController::class, 'getHierarchicalChartData'])->name('api.hierarchical-chart-data');
     Route::get('/api/event-participants', [\App\Http\Controllers\Validator\DashboardController::class, 'getEventParticipants'])->name('api.event-participants');
+    Route::get('/api/sla-breach-details', [\App\Http\Controllers\Validator\DashboardController::class, 'getSlaBreachDetails'])->name('sla-breach-details');
 
     // Students
     Route::get('/students', [\App\Http\Controllers\Validator\StudentController::class, 'index'])->name('students.index');
@@ -373,4 +376,8 @@ Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->na
 
     // Export Achievements
     Route::get('/export/achievements', [\App\Http\Controllers\Admin\ExportController::class, 'exportAchievements'])->name('export.achievements');
+
+    // Executive Panel Settings
+    Route::get('/settings/executive', [\App\Http\Controllers\Admin\ExecutiveSettingController::class, 'index'])->name('settings.executive');
+    Route::post('/settings/executive', [\App\Http\Controllers\Admin\ExecutiveSettingController::class, 'update'])->name('settings.executive.update');
 });

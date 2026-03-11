@@ -12,7 +12,7 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Validator Panel') - SIMAPRES</title>
+    <title>@yield('title', 'Operator Panel') - SIMAPRES</title>
     @include('partials.pwa-meta')
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,6 +45,9 @@
 
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         [x-cloak] {
@@ -157,10 +160,14 @@
                     </div>
                     <div class="flex flex-col">
                         <span class="font-bold text-lg text-gray-900 dark:text-white leading-none">SIMAPRES</span>
-                        <span
-                            class="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider mt-1">
-                            {{ $isPimpinan ? 'Pimpinan' : 'Validator' }}
-                        </span>
+                        <div class="flex items-center gap-1.5 mt-1">
+                            <span
+                                class="w-1.5 h-1.5 rounded-full {{ $isPimpinan ? 'bg-emerald-500' : 'bg-primary-500' }}"></span>
+                            <span
+                                class="text-[10px] font-bold {{ $isPimpinan ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary-600 dark:text-primary-400' }} uppercase tracking-wider">
+                                {{ $isPimpinan ? 'Pimpinan Universitas' : 'Operator Panel' }}
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <button @click="mobileSidebarOpen = false"
@@ -271,7 +278,15 @@
                                     d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
-                        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">@yield('title', 'Dashboard')
+                        <h1 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            @if($isPimpinan)
+                                <span
+                                    class="px-2 py-0.5 text-[10px] bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded uppercase font-bold tracking-tight">Monitoring</span>
+                            @else
+                                <span
+                                    class="px-2 py-0.5 text-[10px] bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded uppercase font-bold tracking-tight">Operator</span>
+                            @endif
+                            @yield('title', 'Dashboard')
                         </h1>
                     </div>
 
@@ -291,50 +306,7 @@
                             </svg>
                         </button>
 
-                        <!-- Role Switcher -->
-                        @php
-                            $user = auth()->user();
-                            $activeRoles = $user ? $user->activeRoles()->get() : collect();
-                            $currentRoleId = session('active_role_id');
-                            $currentRole = $currentRoleId ? $activeRoles->firstWhere('id', $currentRoleId) : $activeRoles->first();
-                        @endphp
-                        @if($activeRoles->count() > 1)
-                            <div x-data="{ open: false }" class="relative">
-                                <button @click="open = !open" type="button"
-                                    class="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                    <span
-                                        class="hidden sm:inline">{{ $currentRole ? $currentRole->getRoleDisplayName() : 'Role' }}</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
 
-                                <div x-show="open" @click.away="open = false" x-cloak
-                                    x-transition:enter="transition ease-out duration-100"
-                                    x-transition:enter-start="opacity-0 scale-95"
-                                    x-transition:enter-end="opacity-100 scale-100"
-                                    x-transition:leave="transition ease-in duration-75"
-                                    x-transition:leave-start="opacity-100 scale-100"
-                                    x-transition:leave-end="opacity-0 scale-95"
-                                    class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                                    @foreach($activeRoles as $role)
-                                        <form method="POST" action="{{ route('role.switch') }}">
-                                            @csrf
-                                            <input type="hidden" name="role_id" value="{{ $role->id }}">
-                                            <button type="submit"
-                                                class="w-full text-left px-4 py-2 text-sm {{ $currentRole && $currentRole->id === $role->id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50' }} transition-colors">
-                                                {{ $role->getRoleDisplayName() }}
-                                            </button>
-                                        </form>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
 
 
                         <!-- User Menu -->

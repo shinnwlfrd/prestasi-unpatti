@@ -22,6 +22,15 @@ class CheckOperatorLevel
 
         $user = auth()->user();
 
+        // Check if using virtual role from session (for super admin)
+        $activeRoleId = session('active_role_id');
+        $operatorLevel = session('operator_level');
+
+        if ($activeRoleId === 'virtual_validator_university' && $operatorLevel) {
+            // Already set by RoleSwitchController, just continue
+            return $next($request);
+        }
+
         // Super admin can access operator pages
         if ($user->isSuperAdmin()) {
             session(['operator_level' => 'university', 'operator_scope' => '*']);
@@ -33,9 +42,12 @@ class CheckOperatorLevel
             abort(403, 'Halaman ini hanya untuk Operator Fakultas.');
         }
 
-        // Get operator role details
-        $operatorRole = $user->getRolesByType('operator')->first();
-        
+        // Get current active role if matches type, otherwise fallback to first operator role
+        $currentRole = $user->getCurrentRole();
+        $operatorRole = ($currentRole && $currentRole->role === 'operator')
+            ? $currentRole
+            : $user->getRolesByType('operator')->first();
+
         if (!$operatorRole) {
             abort(403, 'Role operator tidak ditemukan.');
         }
@@ -43,11 +55,11 @@ class CheckOperatorLevel
         // Store operator level and scope in session for easy access
         session([
             'operator_level' => $operatorRole->level,
-            'operator_faculty_id' => $operatorRole->faculty_id,
+            'operator_faculty_id' => $operatorRole->faculty_id ?: null,
             'operator_faculty_name' => $operatorRole->faculty_name,
-            'operator_department_id' => $operatorRole->department_id,
+            'operator_department_id' => $operatorRole->department_id ?: null,
             'operator_department_name' => $operatorRole->department_name,
-            'operator_program_study_id' => $operatorRole->program_study_id,
+            'operator_program_study_id' => $operatorRole->program_study_id ?: null,
             'operator_program_study_name' => $operatorRole->program_study_name,
         ]);
 

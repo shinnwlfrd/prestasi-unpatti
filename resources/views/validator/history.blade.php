@@ -84,20 +84,23 @@
         <!-- Filters -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <form method="GET" action="{{ route('validator.history') }}" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Search -->
+                <!-- Row 1: Search -->
+                <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cari</label>
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Nama mahasiswa, NIM, atau prestasi..."
                             class="w-full py-3 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </div>
+                </div>
 
+                <!-- Row 2: Status, Category, Level, Faculty (if applicable) -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <!-- Status Filter -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
                         <select name="status"
-                            class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">Semua Status</option>
                             @php
                                 $statusLabels = [
@@ -128,7 +131,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
                         <select name="category"
-                            class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">Semua Kategori</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
@@ -142,7 +145,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tingkat</label>
                         <select name="level"
-                            class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">Semua Tingkat</option>
                             @foreach($levels as $level)
                                 <option value="{{ $level }}" {{ request('level') == $level ? 'selected' : '' }}>
@@ -152,11 +155,30 @@
                         </select>
                     </div>
 
+                    <!-- Faculty Filter (Only for Super Validator) -->
+                    @if(isset($faculties) && $faculties->isNotEmpty())
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fakultas</label>
+                        <select name="faculty"
+                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            <option value="">Semua Fakultas</option>
+                            @foreach($faculties as $faculty)
+                                <option value="{{ $faculty->id }}" {{ request('faculty') == $faculty->id ? 'selected' : '' }}>
+                                    {{ $faculty->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                </div>
+
+                <!-- Row 3: Date Range -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Date From -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dari Tanggal</label>
                         <input type="date" name="date_from" value="{{ request('date_from') }}"
-                            class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </div>
 
                     <!-- Date To -->
@@ -164,7 +186,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sampai
                             Tanggal</label>
                         <input type="date" name="date_to" value="{{ request('date_to') }}"
-                            class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                     </div>
                 </div>
 
@@ -178,7 +200,7 @@
                         </svg>
                         Filter
                     </button>
-                    @if(request()->hasAny(['search', 'status', 'category', 'level', 'date_from', 'date_to']))
+                    @if(request()->hasAny(['search', 'status', 'category', 'level', 'faculty', 'date_from', 'date_to']))
                         <a href="{{ route('validator.history') }}"
                             class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium">
                             Reset

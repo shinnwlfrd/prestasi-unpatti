@@ -30,9 +30,9 @@ class FacultyValidationController extends Controller
 
         // Get scope from session (set by middleware)
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         // Debug: Add a simple test to see if controller is called
         if ($request->has('debug')) {
@@ -55,10 +55,21 @@ class FacultyValidationController extends Controller
                     ->orWhere('validation_status', 'Menunggu'); // Old system: Menunggu
             });
 
-        // Apply scope filtering - SIMPLIFIED: Always use faculty fallback for now
-        $faculty = $validator->faculty;
-        if ($faculty) {
-            $query->whereHas('student', fn($q) => $q->where('faculty', $faculty));
+        // Apply scope filtering based on operator level
+        if ($level === 'university') {
+            // University level operator can see all faculties - no filtering
+        } elseif ($level === 'faculty' && $facultyId) {
+            $query->whereHas('student', fn($q) => $q->where('faculty_id', $facultyId));
+        } elseif ($level === 'department' && $departmentId) {
+            $query->whereHas('student', fn($q) => $q->where('department_id', $departmentId));
+        } elseif ($level === 'program_study' && $programStudyId) {
+            $query->whereHas('student', fn($q) => $q->where('program_study_id', $programStudyId));
+        } else {
+            // Fallback to old method - check faculty string
+            $faculty = $validator->faculty;
+            if ($faculty) {
+                $query->whereHas('student', fn($q) => $q->where('faculty', $faculty));
+            }
         }
 
         // Get filters
@@ -66,6 +77,7 @@ class FacultyValidationController extends Controller
             'search' => $request->input('search'),
             'level' => $request->input('level'),
             'category' => $request->input('category'),
+            'faculty' => $request->input('faculty'), // New: faculty filter for super validator
             'date_from' => $request->input('date_from'),
             'date_to' => $request->input('date_to'),
             'sort_date' => $request->input('sort_date', 'oldest'), // Default to oldest
@@ -86,6 +98,10 @@ class FacultyValidationController extends Controller
             ->when($filters['category'], function ($q) use ($filters) {
                 $q->whereHas('achievement', fn($sq) => $sq->where('category_id', $filters['category']));
             })
+            ->when($filters['faculty'], function ($q) use ($filters) {
+                // Filter by faculty (for super validator)
+                $q->whereHas('student', fn($sq) => $sq->where('faculty_id', $filters['faculty']));
+            })
             ->when($filters['date_from'], fn($q) => $q->whereDate('submitted_at', '>=', $filters['date_from']))
             ->when($filters['date_to'], fn($q) => $q->whereDate('submitted_at', '<=', $filters['date_to']))
             ->when($filters['sort_date'] === 'newest', function ($q) {
@@ -99,6 +115,23 @@ class FacultyValidationController extends Controller
 
         // Get categories for filter
         $categories = AchievementCategory::where('is_active', true)->orderBy('order')->get();
+        
+        // Get faculties for filter (only for super validator with university level)
+        $faculties = collect();
+        if ($level === 'university') {
+            $faculties = \App\Models\Student::select('faculty_id', \Illuminate\Support\Facades\DB::raw('MAX(faculty) as faculty'))
+                ->whereNotNull('faculty_id')
+                ->groupBy('faculty_id')
+                ->orderBy('faculty')
+                ->get()
+                ->map(function ($item) {
+                    $nameMap = app(\App\Services\SigapApiService::class)->getUnitNameMap();
+                    return (object)[
+                        'id' => $item->faculty_id,
+                        'name' => $nameMap[$item->faculty_id] ?? $item->faculty
+                    ];
+                });
+        }
 
         // Get statistics with scope filtering
         $statistics = $this->getStatistics($level, $facultyId, $departmentId, $programStudyId);
@@ -108,7 +141,7 @@ class FacultyValidationController extends Controller
             ->where('validation_status', 'Menunggu')
             ->count();
 
-        return view('validator.pending.index', compact('achievements', 'categories', 'filters', 'statistics'))
+        return view('validator.pending.index', compact('achievements', 'categories', 'faculties', 'filters', 'statistics'))
             ->with('debugCount', $debugCount);
     }
 
@@ -121,9 +154,9 @@ class FacultyValidationController extends Controller
 
         // Get scope from session
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         // Check access based on level
         if ($level === 'university') {
@@ -163,9 +196,9 @@ class FacultyValidationController extends Controller
 
         // Get scope from session
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         // Check access based on level
         if ($level === 'university') {
@@ -229,16 +262,29 @@ class FacultyValidationController extends Controller
     }
 
     /**
-     * Get statistics with scope filtering - SIMPLIFIED
+     * Get statistics with scope filtering
      */
     protected function getStatistics(?string $level, mixed $facultyId, mixed $departmentId, mixed $programStudyId): array
     {
         $validator = auth()->user();
-        $faculty = $validator->faculty;
 
         $query = StudentAchievement::query();
-        if ($faculty) {
-            $query->whereHas('student', fn($q) => $q->where('faculty', $faculty));
+        
+        // Apply scope filtering based on operator level
+        if ($level === 'university') {
+            // University level operator can see all faculties - no filtering
+        } elseif ($level === 'faculty' && $facultyId) {
+            $query->whereHas('student', fn($q) => $q->where('faculty_id', $facultyId));
+        } elseif ($level === 'department' && $departmentId) {
+            $query->whereHas('student', fn($q) => $q->where('department_id', $departmentId));
+        } elseif ($level === 'program_study' && $programStudyId) {
+            $query->whereHas('student', fn($q) => $q->where('program_study_id', $programStudyId));
+        } else {
+            // Fallback to old method - check faculty string
+            $faculty = $validator->faculty;
+            if ($faculty) {
+                $query->whereHas('student', fn($q) => $q->where('faculty', $faculty));
+            }
         }
 
         // Support both old and new status systems
@@ -278,9 +324,9 @@ class FacultyValidationController extends Controller
 
         // Get scope from session
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         // Check access based on level
         if ($level === 'university') {

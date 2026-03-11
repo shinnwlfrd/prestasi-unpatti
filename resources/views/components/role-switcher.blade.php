@@ -1,8 +1,8 @@
 @php
     $user = auth()->user();
-    $activeRoles = $user ? $user->activeRoles()->get() : collect();
+    $activeRoles = $user ? $user->getSwitchableRoles() : collect();
     $currentRoleId = session('active_role_id');
-    $currentRole = $currentRoleId ? $activeRoles->firstWhere('id', $currentRoleId) : $activeRoles->first();
+    $currentRole = $user ? $user->getCurrentRole() : null;
 @endphp
 
 @if($activeRoles->count() > 1)

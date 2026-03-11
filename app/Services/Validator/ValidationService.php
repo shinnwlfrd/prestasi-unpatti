@@ -67,7 +67,7 @@ class ValidationService
         return $query->paginate($perPage)->withQueryString();
     }
 
-    public function getValidationHistory(array $filters, ?string $faculty = null, int $perPage = 15)
+    public function getValidationHistory(array $filters, ?string $faculty = null, int $perPage = 15, ?string $level = null, mixed $facultyId = null)
     {
         $query = \App\Models\ValidationLog::with([
             'studentAchievement.student',
@@ -76,8 +76,20 @@ class ValidationService
             'validator',
         ])->orderByDesc('validated_at');
 
-        // Filter by faculty if validator has faculty assigned
-        if ($faculty) {
+        // Apply scope filtering based on operator level
+        if ($level === 'university') {
+            // University level operator can see all faculties - no filtering unless faculty filter is applied
+            if (!empty($filters['faculty'])) {
+                $query->whereHas('studentAchievement.student', function ($q) use ($filters) {
+                    $q->where('faculty_id', $filters['faculty']);
+                });
+            }
+        } elseif ($level === 'faculty' && $facultyId) {
+            $query->whereHas('studentAchievement.student', function ($q) use ($facultyId) {
+                $q->where('faculty_id', $facultyId);
+            });
+        } elseif ($faculty) {
+            // Fallback to old method - filter by faculty string
             $query->whereHas('studentAchievement.student', function ($q) use ($faculty) {
                 $q->where('faculty', $faculty);
             });
@@ -127,11 +139,19 @@ class ValidationService
         return $query->paginate($perPage)->withQueryString();
     }
 
-    public function getHistoryStatistics(?string $faculty = null): array
+    public function getHistoryStatistics(?string $faculty = null, ?string $level = null, mixed $facultyId = null): array
     {
         $query = \App\Models\ValidationLog::query();
 
-        if ($faculty) {
+        // Apply scope filtering based on operator level
+        if ($level === 'university') {
+            // University level operator can see all faculties - no filtering
+        } elseif ($level === 'faculty' && $facultyId) {
+            $query->whereHas('studentAchievement.student', function ($q) use ($facultyId) {
+                $q->where('faculty_id', $facultyId);
+            });
+        } elseif ($faculty) {
+            // Fallback to old method
             $query->whereHas('studentAchievement.student', function ($q) use ($faculty) {
                 $q->where('faculty', $faculty);
             });

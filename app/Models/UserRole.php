@@ -145,7 +145,7 @@ class UserRole extends Model
         return match ($this->role) {
             'super_admin' => 'Super Admin',
             'admin' => 'Admin Universitas',
-            'operator' => 'Operator Fakultas',
+            'operator' => $this->level === 'university' ? 'Super Validator (Universitas)' : 'Operator Fakultas',
             'mahasiswa' => 'Mahasiswa',
             default => ucfirst($this->role),
         };

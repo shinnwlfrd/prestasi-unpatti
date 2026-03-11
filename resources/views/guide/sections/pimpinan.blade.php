@@ -122,6 +122,12 @@
                     <li>• Bottleneck validasi (> 7 hari)</li>
                 </ul>
             </div>
+            <div class="mt-2 p-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-lg border border-indigo-100 dark:border-indigo-800/50">
+                <p class="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                    <span class="material-icons-round text-indigo-500 text-sm">settings_suggest</span>
+                    <span><strong>Catatan:</strong> Ambang batas di atas dapat diubah sewaktu-waktu oleh <strong>Administrator Universitas</strong> melalui menu Pengaturan Panel Eksekutif.</span>
+                </p>
+            </div>
         </div>
     </div>
 </section>

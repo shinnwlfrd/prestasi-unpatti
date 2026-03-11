@@ -237,67 +237,7 @@
                             </svg>
                         </button>
 
-                        <!-- Role Switcher -->
-                        @php
-                            $activeRoles = $user ? $user->activeRoles()->get() : collect();
-                            $currentRoleId = session('active_role_id');
-                        @endphp
-                        @if($activeRoles->count() > 1)
-                            <div x-data="{ open: false }" class="relative">
-                                <button @click="open = !open" type="button"
-                                    class="flex items-center gap-2 px-3 py-2.5 text-xs font-bold rounded-xl hover:opacity-80 transition-all border {{ $roleSwitcherBg }}">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                    <span
-                                        class="hidden sm:inline uppercase tracking-wider">{{ $currentRole ? $currentRole->getRoleDisplayName() : 'Role' }}</span>
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div x-show="open" @click.away="open = false"
-                                    x-transition:enter="transition ease-out duration-100"
-                                    x-transition:enter-start="transform opacity-0 scale-95"
-                                    x-transition:enter-end="transform opacity-100 scale-100"
-                                    class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1.5 z-[60] overflow-hidden">
-                                    <div class="px-4 py-3 border-b border-gray-50 dark:border-gray-700">
-                                        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Ganti Peran</p>
-                                    </div>
-                                    @foreach($activeRoles as $role)
-                                        @if($role->id !== $currentRoleId)
-                                            <form method="POST" action="{{ route('role.switch') }}" class="block">
-                                                @csrf
-                                                <input type="hidden" name="role_id" value="{{ $role->id }}">
-                                                <button type="submit"
-                                                    class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
-                                                    <div class="flex items-center space-x-3">
-                                                        <div
-                                                            class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110">
-                                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
-                                                                viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                            </svg>
-                                                        </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                                                {{ $role->getRoleDisplayName() }}</p>
-                                                            @if($role->level !== 'university')
-                                                                <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                                                                    {{ $role->getScopeDescription() }}</p>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
+
 
                         <div
                             class="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600">

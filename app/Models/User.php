@@ -58,12 +58,12 @@ class User extends Authenticatable
     // Auth type checks
     public function isLocalOnly(): bool
     {
-        return $this->password && ! $this->provider;
+        return $this->password && !$this->provider;
     }
 
     public function isSSOOnly(): bool
     {
-        return ! $this->password && $this->provider;
+        return !$this->password && $this->provider;
     }
 
     public function isLinked(): bool
@@ -149,6 +149,49 @@ class User extends Authenticatable
         return $this->activeRoles()->where('role', $role)->get();
     }
 
+    /**
+     * Get all roles available for switching, including virtual roles for super_admin
+     */
+    public function getSwitchableRoles()
+    {
+        $roles = $this->activeRoles()->get();
+
+        // For super_admin, add virtual roles for validator and pimpinan
+        if ($this->role === 'Admin' || $this->isSuperAdmin()) {
+            $hasSuperAdmin = $roles->where('role', 'super_admin')->isNotEmpty();
+
+            if ($hasSuperAdmin) {
+                // Add virtual validator role if not exists
+                if ($roles->where('role', 'operator')->where('level', 'university')->isEmpty()) {
+                    $validatorRole = new UserRole([
+                        'id' => 'virtual_validator_university',
+                        'user_id' => $this->id,
+                        'role' => 'operator',
+                        'level' => 'university',
+                        'is_active' => true,
+                    ]);
+                    $validatorRole->exists = true;
+                    $roles->push($validatorRole);
+                }
+
+                // Add virtual pimpinan role if not exists
+                if ($roles->where('role', 'pimpinan')->where('level', 'university')->isEmpty()) {
+                    $pimpinanRole = new UserRole([
+                        'id' => 'virtual_pimpinan_university',
+                        'user_id' => $this->id,
+                        'role' => 'pimpinan',
+                        'level' => 'university',
+                        'is_active' => true,
+                    ]);
+                    $pimpinanRole->exists = true;
+                    $roles->push($pimpinanRole);
+                }
+            }
+        }
+
+        return $roles;
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->hasRole('super_admin');
@@ -161,11 +204,17 @@ class User extends Authenticatable
 
     public function isOperator(): bool
     {
+        if (session('active_role_type') === 'operator') {
+            return true;
+        }
         return $this->hasRole('operator');
     }
 
     public function isPimpinan(): bool
     {
+        if (session('active_role_type') === 'pimpinan') {
+            return true;
+        }
         return $this->hasRole('pimpinan');
     }
 
@@ -181,7 +230,7 @@ class User extends Authenticatable
     {
         // Priority: super_admin > admin > operator > pimpinan > mahasiswa
         $priority = ['super_admin', 'admin', 'operator', 'pimpinan', 'mahasiswa'];
-        
+
         foreach ($priority as $role) {
             $userRole = $this->activeRoles()->where('role', $role)->first();
             if ($userRole) {
@@ -206,11 +255,35 @@ class User extends Authenticatable
     public function getCurrentRole(): ?UserRole
     {
         $activeRoleId = session('active_role_id');
-        
+
         if ($activeRoleId) {
+            // Check if it's a virtual role (from Superadmin switching)
+            if (str_starts_with($activeRoleId, 'virtual_')) {
+                $roleType = session('active_role_type');
+                if ($roleType) {
+                    $prefix = $roleType === 'operator' ? 'operator' : 'pimpinan';
+                    $virtualRole = new UserRole([
+                        'id' => $activeRoleId,
+                        'user_id' => $this->id,
+                        'role' => $roleType,
+                        'level' => session("{$prefix}_level", 'university'),
+                        'faculty_id' => session("{$prefix}_faculty_id"),
+                        'faculty_name' => session("{$prefix}_faculty_name"),
+                        'department_id' => session("{$prefix}_department_id"),
+                        'department_name' => session("{$prefix}_department_name"),
+                        'program_study_id' => session("{$prefix}_program_study_id"),
+                        'program_study_name' => session("{$prefix}_program_study_name"),
+                        'position' => session("{$prefix}_position"),
+                        'is_active' => true,
+                    ]);
+                    $virtualRole->exists = true;
+                    return $virtualRole;
+                }
+            }
+
             return $this->activeRoles()->find($activeRoleId);
         }
-        
+
         return $this->getPrimaryRole();
     }
 
@@ -225,7 +298,7 @@ class User extends Authenticatable
 
         return $this->activeRoles()->where(function ($query) use ($facultyId) {
             $query->where('level', 'university')
-                  ->orWhere('faculty_id', $facultyId);
+                ->orWhere('faculty_id', $facultyId);
         })->exists();
     }
 
@@ -247,6 +320,6 @@ class User extends Authenticatable
 
     public function getPhotoUrlAttribute()
     {
-        return $this->photo ? asset('storage/'.$this->photo) : 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=10b981&color=fff';
+        return $this->photo ? asset('storage/' . $this->photo) : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=10b981&color=fff';
     }
 }

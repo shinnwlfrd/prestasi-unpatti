@@ -32,9 +32,9 @@ class SKDocumentController extends Controller
 
         // Use session-based scope filtering (more robust for multi-role)
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         // Get pending achievements for AJAX request
         $query = StudentAchievement::with(['student', 'achievement.category', 'academicPeriod'])
@@ -80,9 +80,9 @@ class SKDocumentController extends Controller
 
         // Use session-based scope for security check
         $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
+        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
+        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
 
         foreach ($validated['achievement_ids'] as $saId) {
             $achievement = StudentAchievement::with('student')->find($saId);

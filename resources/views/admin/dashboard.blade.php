@@ -651,24 +651,24 @@
                                                         class="absolute bottom-full left-0 mb-4 w-72 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-[50] overflow-hidden" 
                                                         x-cloak>
                                                         <div class="p-3 space-y-2">
-                                                            <a href="{{ route('admin.export.achievements', ['period' => $selectedPeriod->id, 'format' => 'excel']) }}" 
+                                                            <a href="{{ route('admin.export.achievements', ['period' => $selectedPeriod->id, 'format' => 'excel', 'type' => 'dashboard']) }}" 
                                                                 class="flex items-center gap-4 px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl transition-all group/item">
                                                                 <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform">
                                                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                                                 </div>
                                                                 <div class="flex flex-col">
                                                                     <span class="font-black">Microsoft Excel</span>
-                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Format .xlsx</span>
+                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Laporan Lengkap .xlsx</span>
                                                                 </div>
                                                             </a>
-                                                            <a href="{{ route('admin.export.achievements', ['period' => $selectedPeriod->id, 'format' => 'csv']) }}" 
+                                                            <a href="{{ route('admin.export.achievements', ['period' => $selectedPeriod->id, 'format' => 'csv', 'type' => 'dashboard']) }}" 
                                                                 class="flex items-center gap-4 px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl transition-all group/item">
                                                                 <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform">
                                                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                                                 </div>
                                                                 <div class="flex flex-col">
-                                                                    <span class="font-black">CSV Data Stream</span>
-                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Format .csv</span>
+                                                                    <span class="font-black">CSV Data</span>
+                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Laporan Lengkap .csv</span>
                                                                 </div>
                                                             </a>
                                                         </div>
@@ -1092,24 +1092,24 @@
                                                         class="absolute bottom-full left-0 mb-4 w-72 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-[50] overflow-hidden" 
                                                         x-cloak>
                                                         <div class="p-3 space-y-2">
-                                                            <a href="{{ route('admin.export.achievements', ['format' => 'excel', 'period' => $selectedPeriod->id]) }}" 
+                                                            <a href="{{ route('admin.export.achievements', ['format' => 'excel', 'period' => $selectedPeriod->id, 'type' => 'dashboard']) }}" 
                                                                 class="flex items-center gap-4 px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl transition-all group/item">
                                                                 <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform">
                                                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                                                 </div>
                                                                 <div class="flex flex-col">
                                                                     <span class="font-black">Microsoft Excel</span>
-                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Format .xlsx</span>
+                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Laporan Lengkap .xlsx</span>
                                                                 </div>
                                                             </a>
-                                                            <a href="{{ route('admin.export.achievements', ['format' => 'csv', 'period' => $selectedPeriod->id]) }}" 
+                                                            <a href="{{ route('admin.export.achievements', ['format' => 'csv', 'period' => $selectedPeriod->id, 'type' => 'dashboard']) }}" 
                                                                 class="flex items-center gap-4 px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl transition-all group/item">
                                                                 <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform">
                                                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                                                 </div>
                                                                 <div class="flex flex-col">
-                                                                    <span class="font-black">CSV Data Stream</span>
-                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Format .csv</span>
+                                                                    <span class="font-black">CSV Data</span>
+                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Laporan Lengkap .csv</span>
                                                                 </div>
                                                             </a>
                                                         </div>
@@ -2148,24 +2148,24 @@
                                                         class="absolute bottom-full left-0 mb-4 w-72 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-[50] overflow-hidden" 
                                                         x-cloak>
                                                         <div class="p-3 space-y-2">
-                                                            <a href="{{ route('admin.export.achievements', ['format' => 'excel', 'period' => 'all']) }}" 
+                                                            <a href="{{ route('admin.export.achievements', ['format' => 'excel', 'period' => 'all', 'type' => 'dashboard']) }}" 
                                                                 class="flex items-center gap-4 px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl transition-all group/item">
                                                                 <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform">
                                                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                                                 </div>
                                                                 <div class="flex flex-col">
                                                                     <span class="font-black">Microsoft Excel</span>
-                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Format .xlsx</span>
+                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Laporan Lengkap .xlsx</span>
                                                                 </div>
                                                             </a>
-                                                            <a href="{{ route('admin.export.achievements', ['format' => 'csv', 'period' => 'all']) }}" 
+                                                            <a href="{{ route('admin.export.achievements', ['format' => 'csv', 'period' => 'all', 'type' => 'dashboard']) }}" 
                                                                 class="flex items-center gap-4 px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl transition-all group/item">
                                                                 <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform">
                                                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                                                 </div>
                                                                 <div class="flex flex-col">
-                                                                    <span class="font-black">CSV Data Stream</span>
-                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Format .csv</span>
+                                                                    <span class="font-black">CSV Data</span>
+                                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Laporan Lengkap .csv</span>
                                                                 </div>
                                                             </a>
                                                         </div>
