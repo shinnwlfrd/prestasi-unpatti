@@ -92,16 +92,12 @@ class UserManagementService
                     'role' => $data['role']
                 ]);
 
-                $data['name'] = $student->name;
-                $data['password'] = Hash::make('password'); // Default password
-            } else {
-                // New user (not from student)
-                if (!isset($data['password'])) {
-                    $data['password'] = Hash::make('password'); // Default password
-                } else {
-                    $data['password'] = Hash::make($data['password']);
-                }
-            }
+            $data['name'] = $student->name;
+            $data['password'] = Hash::make(\Illuminate\Support\Str::random(32)); // Random for SSO
+        } else {
+            // New user (not from student)
+            $data['password'] = Hash::make(\Illuminate\Support\Str::random(32)); // Random for SSO
+        }
 
             // Determine role type and level
             if ($data['role'] === 'Super Admin') {
@@ -176,10 +172,8 @@ class UserManagementService
             unset($data['name']);
         }
 
-        // Hash password if provided
-        if (!empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        } else {
+        // Remove password if provided (not allowed in SSO mode)
+        if (isset($data['password'])) {
             unset($data['password']);
         }
 
