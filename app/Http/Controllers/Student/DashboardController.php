@@ -41,18 +41,22 @@ class DashboardController extends Controller
             ]);
 
             // Create a virtual student object from session data
+            // Use null for missing SIAKAD fields - the view will display "Tidak Ada Data"
+            $rawIpk = $studentData['ipk'] ?? $studentData['gpa'] ?? null;
+            $gpaValue = is_numeric($rawIpk) ? (float) $rawIpk : null;
+
             $student = new \App\Models\Student([
                 'student_id' => $studentData['nim'] ?? $studentData['student_id'] ?? '-',
                 'name' => $studentData['nama'] ?? $studentData['name'] ?? '-',
                 'email' => $studentData['email'] ?? '-',
-                'faculty' => $studentData['fakultas'] ?? $studentData['faculty'] ?? 'Data Belum Tersedia',
+                'faculty' => $studentData['fakultas'] ?? $studentData['faculty'] ?? null,
                 'faculty_id' => $studentData['fakultas_id'] ?? $studentData['faculty_id'] ?? null,
-                'department' => $studentData['jurusan'] ?? $studentData['department'] ?? 'Data Belum Tersedia',
+                'department' => $studentData['jurusan'] ?? $studentData['department'] ?? null,
                 'department_id' => $studentData['jurusan_id'] ?? $studentData['department_id'] ?? null,
-                'program_study' => $studentData['program_studi'] ?? $studentData['program_study'] ?? 'Data Belum Tersedia',
+                'program_study' => $studentData['program_studi'] ?? $studentData['program_study'] ?? null,
                 'program_study_id' => $studentData['program_studi_id'] ?? $studentData['program_study_id'] ?? null,
                 'angkatan' => $studentData['angkatan'] ?? substr($studentData['nim'] ?? $studentId, 0, 4),
-                'gpa' => $studentData['ipk'] ?? $studentData['gpa'] ?? 0,
+                'gpa' => $gpaValue,
                 'photo_url' => $studentData['foto_url'] ?? $studentData['photo_url'] ?? null,
             ]);
 

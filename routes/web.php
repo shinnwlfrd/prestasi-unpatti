@@ -23,11 +23,10 @@ Route::get('/', function () {
 });
 
 // Panduan Penggunaan (Public - no auth required)
-Route::get('/panduan', [\App\Http\Controllers\GuideController::class, 'index'])->name('guide');
 
 // Route login
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+// Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Role Switch Routes (for multi-role users)
@@ -376,8 +375,4 @@ Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->na
 
     // Export Achievements
     Route::get('/export/achievements', [\App\Http\Controllers\Admin\ExportController::class, 'exportAchievements'])->name('export.achievements');
-
-    // Executive Panel Settings
-    Route::get('/settings/executive', [\App\Http\Controllers\Admin\ExecutiveSettingController::class, 'index'])->name('settings.executive');
-    Route::post('/settings/executive', [\App\Http\Controllers\Admin\ExecutiveSettingController::class, 'update'])->name('settings.executive.update');
 });

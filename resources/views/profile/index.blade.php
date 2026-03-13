@@ -4,49 +4,8 @@
 @section('subtitle', 'Pengaturan Akun')
 
 @php
-    // Get user based on auth type
-    // Debug: Check what auth type is active
-    $authRole = session('auth_role');
-    $isStudent = $authRole === 'student';
-
-    if ($isStudent) {
-        $studentId = session('student_id');
-        $student = \App\Models\Student::where('student_id', $studentId)->first();
-
-        if (!$student) {
-            // Student not found, might be logged in as admin
-            $user = auth()->user();
-            if (!$user) {
-                abort(403, 'Unauthorized access');
-            }
-            $currentRole = $user->getCurrentRole();
-            $user->role_display = $currentRole ? $currentRole->getRoleDisplayName() : 'User';
-        } else {
-            $user = (object) [
-                'name' => $student->name ?? 'Student',
-                'email' => $student->email ?? '',
-                'role' => 'Mahasiswa',
-                'role_display' => 'Mahasiswa',
-                'is_active' => true,
-                'photo_url' => null,
-                'last_login_method' => null,
-                'password' => null,
-                'provider' => null,
-                'linked_at' => null,
-                'last_login_at' => null,
-            ];
-        }
-    } else {
-        $user = auth()->user();
-        if (!$user) {
-            abort(403, 'Unauthorized access');
-        }
-
-        // Get current role display name
-        $currentRole = $user->getCurrentRole();
-        $user->role_display = $currentRole ? $currentRole->getRoleDisplayName() : $user->role;
-    }
     $userName = $user->name ?? 'User';
+    $isStudent = session('auth_role') === 'student';
 @endphp
 
 @section('content')

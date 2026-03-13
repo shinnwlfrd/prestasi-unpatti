@@ -45,15 +45,27 @@
                     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
                         <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
                             <span class="text-xs text-gray-500 dark:text-gray-400">Fakultas</span>
-                            <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->faculty ?? '-' }}</p>
+                            @if(!empty($student->faculty))
+                                <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->faculty }}</p>
+                            @else
+                                <p class="text-xs text-amber-500 dark:text-amber-400 mt-0.5 italic">Tidak Ada Data</p>
+                            @endif
                         </div>
                         <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
                             <span class="text-xs text-gray-500 dark:text-gray-400">Jurusan</span>
-                            <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->department ?? '-' }}</p>
+                            @if(!empty($student->department))
+                                <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->department }}</p>
+                            @else
+                                <p class="text-xs text-amber-500 dark:text-amber-400 mt-0.5 italic">Tidak Ada Data</p>
+                            @endif
                         </div>
                         <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
                             <span class="text-xs text-gray-500 dark:text-gray-400">Program Studi</span>
-                            <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->program_study ?? '-' }}</p>
+                            @if(!empty($student->program_study))
+                                <p class="font-semibold text-gray-800 dark:text-white text-sm mt-0.5 truncate">{{ $student->program_study }}</p>
+                            @else
+                                <p class="text-xs text-amber-500 dark:text-amber-400 mt-0.5 italic">Tidak Ada Data</p>
+                            @endif
                         </div>
                         <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
                             <span class="text-xs text-gray-500 dark:text-gray-400">Email</span>
@@ -61,7 +73,11 @@
                         </div>
                         <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl p-3 border border-indigo-100 dark:border-indigo-800">
                             <span class="text-xs text-indigo-500 dark:text-indigo-400">IPK</span>
-                            <p class="font-bold text-indigo-600 dark:text-indigo-400 text-lg mt-0.5">{{ number_format($student->gpa ?? 0, 2) }}</p>
+                            @if(!is_null($student->gpa) && is_numeric($student->gpa))
+                                <p class="font-bold text-indigo-600 dark:text-indigo-400 text-lg mt-0.5">{{ number_format($student->gpa, 2) }}</p>
+                            @else
+                                <p class="text-xs text-amber-500 dark:text-amber-400 mt-0.5 italic">Tidak Ada Data</p>
+                            @endif
                         </div>
                     </div>
                 </div>

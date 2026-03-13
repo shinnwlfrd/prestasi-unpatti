@@ -515,37 +515,8 @@
                                 </div>
                             </div>
 
-                            <!-- BARIS 4 – EVALUASI & KUALITAS DATA (2 CARD) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                                <!-- Card 11 – Temuan & Catatan Evaluasi -->
-                                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow">
-                                    <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                                        <svg class="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                                        Temuan & Catatan Evaluasi
-                                    </h3>
-                                    <ul class="space-y-3">
-                                        @php
-                                            $inactiveFaculties = $archivedStats['total_faculties'] - $archivedStats['active_faculties'];
-                                        @endphp
-                                        <li class="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-lg">
-                                            <span class="p-1 bg-red-100 dark:bg-red-800 text-red-600 dark:text-red-300 rounded text-[10px] uppercase font-bold">Insight</span>
-                                            <span class="text-xs text-red-800 dark:text-red-300">Terdapat {{ $inactiveFaculties }} fakultas yang tidak mencatatkan prestasi pada periode ini.</span>
-                                        </li>
-                                        <li class="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
-                                            <span class="p-1 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 rounded text-[10px] uppercase font-bold">Insight</span>
-                                            <span class="text-xs text-blue-800 dark:text-blue-300">Kategori {{ $categoryDistribution->sortByDesc('total')->first()->category ?? 'Utama' }} mendominasi {{ round(($categoryDistribution->max('total') / ($stats['achievements'] ?: 1)) * 100) }}% capaian data.</span>
-                                        </li>
-                                        <li class="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg">
-                                            <span class="p-1 bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-300 rounded text-[10px] uppercase font-bold">Audit</span>
-                                            <span class="text-xs text-amber-800 dark:text-amber-300">Rasio penolakan data sebesar {{ round(($stats['total_rejected'] / ($stats['achievements'] ?: 1)) * 100) }}%, perlu review pedoman pengajuan.</span>
-                                        </li>
-                                    </ul>
-                                    <div class="mt-6 p-4 lg:p-5 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-xl">
-                                        <p class="text-[10px] text-gray-400 font-bold uppercase mb-2">Bahan Rapat Evaluasi</p>
-                                        <p class="text-xs text-gray-500 italic">"Prioritaskan peningkatan partisipasi pada fakultas non-aktif dan standarisasi dokumen pendukung untuk menekan angka penolakan."</p>
-                                    </div>
-                                </div>
-
+                            <!-- BARIS 4 – EVALUASI & KUALITAS DATA (1 CARD) -->
+                            <div class="grid grid-cols-1 gap-6 mt-6">
                                 <!-- Card 12 – Ringkasan Data Ditolak -->
                                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-shadow flex flex-col">
                                     <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Ringkasan Data Ditolak</h3>

@@ -31,7 +31,14 @@ class UserManagementService
                 ]);
 
                 // Determine role type and level based on role field
-                if ($data['role'] === 'Pimpinan') {
+                if ($data['role'] === 'Super Admin') {
+                    $roleType = 'super_admin';
+                    $level = 'university';
+                    $position = null;
+                    $facultyName = null;
+                    $departmentName = null;
+                    $programStudyName = null;
+                } elseif ($data['role'] === 'Pimpinan') {
                     $roleType = 'pimpinan';
                     $level = 'university'; // Access level like rector
                     $position = 'rektor';  // Position like rector
@@ -97,7 +104,14 @@ class UserManagementService
             }
 
             // Determine role type and level
-            if ($data['role'] === 'Pimpinan') {
+            if ($data['role'] === 'Super Admin') {
+                $roleType = 'super_admin';
+                $level = 'university';
+                $position = null;
+                $facultyName = null;
+                $departmentName = null;
+                $programStudyName = null;
+            } elseif ($data['role'] === 'Pimpinan') {
                 $roleType = 'pimpinan';
                 $level = 'university'; // Access level like rector
                 $position = 'rektor';  // Default position like rector

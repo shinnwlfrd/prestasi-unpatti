@@ -296,10 +296,19 @@
 
             <!-- Charts Section - 12 Column Grid -->
             @if($isPimpinan)
+                <!-- Row 1: Trend & Comparison (2 columns) -->
                 <div class="grid grid-cols-12 gap-6 mb-8">
-                    @if(!empty($hierarchicalComparison) && isset($hierarchicalComparison['items']) && $hierarchicalComparison['items']->count() > 0)
-                        <!-- Hierarchical Comparison Chart (col-span-6) -->
-                        <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <!-- Achievement Trend Chart (col-span-12 lg:col-span-6) -->
+                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Analisis Tren Pertumbuhan</h3>
+                        <div class="relative h-72">
+                            <canvas id="achievementTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Hierarchical Comparison Chart (col-span-12 lg:col-span-6) -->
+                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        @if(!empty($hierarchicalComparison) && isset($hierarchicalComparison['items']) && $hierarchicalComparison['items']->count() > 0)
                             <div class="mb-4">
                                 <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
                                     <button id="backBtn"
@@ -314,7 +323,7 @@
                                     {{ $hierarchicalComparison['label'] }}
                                 </h3>
                             </div>
-                            <div class="relative h-64">
+                            <div class="relative h-72">
                                 <canvas id="hierarchicalChart"></canvas>
                                 <div id="chartLoading"
                                     class="hidden absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800 bg-opacity-75">
@@ -330,21 +339,10 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Achievement Trend (col-span-6) -->
-                        <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Analisis Tren Pertumbuhan</h3>
-                            <div class="relative h-64">
-                                <canvas id="achievementTrendChart"></canvas>
-                            </div>
-                        </div>
-                    @else
-                        <!-- No Data Message -->
-                        <div class="col-span-12 lg:col-span-12 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Perbandingan Hierarkis</h3>
-                            <div class="flex items-center justify-center h-64">
-                                <div class="text-center">
+                        @else
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Perbandingan Prestasi</h3>
+                            <div class="flex items-center justify-center h-72 text-center">
+                                <div>
                                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -352,33 +350,14 @@
                                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Tidak ada data untuk perbandingan</p>
                                 </div>
                             </div>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Row 3 - Specialized Distributions -->
-                <div class="grid grid-cols-12 gap-6 mb-6">
-                    <!-- Category Distribution Chart (col-span-6) -->
-                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Bidang Prestasi</h3>
-                        <div class="relative h-64">
-                            <canvas id="categoryDistributionChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Level Distribution Chart (col-span-6) -->
-                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Tingkat Capaian</h3>
-                        <div class="relative h-64">
-                            <canvas id="levelDistributionChart"></canvas>
-                        </div>
+                        @endif
                     </div>
                 </div>
 
-                <!-- Row 4 - Specialized Distributions & Executive Panel -->
-                <div class="grid grid-cols-12 gap-6 mb-6">
-                    <!-- Efficiency Ratio Ranking (col-span-6) -->
-                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <!-- Row 2: Efficiency & Distributions (3 columns) -->
+                <div class="grid grid-cols-12 gap-6 mb-8">
+                    <!-- Efficiency Ratio Ranking (col-span-12 lg:col-span-4) -->
+                    <div class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Efisiensi Capaian Prestasi</h3>
                             <div class="group relative">
@@ -392,9 +371,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+                        <div class="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-1">
                             @forelse($efficiencyRanking as $rank)
-                                <div class="flex items-center justify-between">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
                                     <div class="min-w-0 flex-1">
                                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"
                                             title="{{ $rank['name'] }}">
@@ -412,7 +391,7 @@
                                     </div>
                                 </div>
                             @empty
-                                <div class="flex flex-col items-center justify-center py-8 text-center text-gray-500 dark:text-gray-400">
+                                <div class="col-span-full flex flex-col items-center justify-center py-8 text-center text-gray-500 dark:text-gray-400">
                                     <svg class="w-8 h-8 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -423,100 +402,24 @@
                         </div>
                     </div>
 
-                    <!-- Executive Control Panel (col-span-6) -->
-                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Panel Kendali Eksekutif</h3>
-                               
+                    <!-- Category Distribution Chart (col-span-12 lg:col-span-4) -->
+                    <div class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Bidang Prestasi</h3>
+                        <div class="relative h-64">
+                            <canvas id="categoryDistributionChart"></canvas>
+                        </div>
+                    </div>
 
-                        <div class="space-y-3">
-                            @forelse($riskIndicators as $index => $risk)
-                                <div
-                                    class="group relative flex items-start gap-3 p-4 rounded-lg border transition-all hover:shadow-md {{ $risk['type'] === 'danger' ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/50' : 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50' }}">
-                                    <!-- Priority Indicator -->
-                                    <div class="flex-shrink-0 mt-0.5">
-                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center {{ $risk['type'] === 'danger' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30' }}">
-                                            @if($risk['icon'] === 'clock')
-                                                <svg class="w-4 h-4 {{ $risk['type'] === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                            @elseif($risk['icon'] === 'trending-down')
-                                                <svg class="w-4 h-4 {{ $risk['type'] === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                        d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                                                </svg>
-                                            @elseif($risk['icon'] === 'users')
-                                                <svg class="w-4 h-4 {{ $risk['type'] === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                                </svg>
-                                            @else
-                                                <svg class="w-4 h-4 {{ $risk['type'] === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                </svg>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <!-- Message Content -->
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-semibold leading-snug {{ $risk['type'] === 'danger' ? 'text-red-900 dark:text-red-300' : 'text-amber-900 dark:text-amber-300' }}">
-                                            {{ $risk['message'] }}
-                                        </p>
-                                        
-                                        <!-- Action Hint -->
-                                        <p class="text-xs mt-1.5 {{ $risk['type'] === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400' }}">
-                                            @if($risk['icon'] === 'clock')
-                                                → Tindakan: Evaluasi proses validasi dan alokasi sumber daya
-                                            @elseif($risk['icon'] === 'trending-down')
-                                                → Tindakan: Analisis penyebab dan rancang program stimulus
-                                            @elseif($risk['icon'] === 'users')
-                                                → Tindakan: Tingkatkan sosialisasi dan dukungan unit
-                                            @else
-                                                → Tindakan: Koordinasi dengan unit terkait untuk peningkatan capaian
-                                            @endif
-                                        </p>
-
-                                        <!-- Detail Button for SLA Breach -->
-                                        @if($risk['icon'] === 'clock')
-                                            <button @click="openSlaBreachModal()" 
-                                                class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                                Lihat Detail
-                                            </button>
-                                        @endif
-                                    </div>
-
-                                    <!-- Priority Badge -->
-                                    @if($risk['type'] === 'danger')
-                                        <div class="absolute top-2 right-2">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white">
-                                                PRIORITAS
-                                            </span>
-                                        </div>
-                                    @endif
-                                </div>
-                            @empty
-                                <div class="flex flex-col items-center justify-center py-10 px-4 text-center bg-emerald-50 dark:bg-emerald-900/10 rounded-lg border border-emerald-200 dark:border-emerald-800/50">
-                                    <div class="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-3">
-                                        <svg class="w-7 h-7 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <p class="text-sm font-bold text-emerald-900 dark:text-emerald-300 mb-1">Kinerja Optimal</p>
-                                    <p class="text-xs text-emerald-700 dark:text-emerald-400">
-                                        Semua indikator strategis berada dalam target yang ditetapkan
-                                    </p>
-                                </div>
-                            @endforelse
+                    <!-- Level Distribution Chart (col-span-12 lg:col-span-4) -->
+                    <div class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Tingkat Capaian</h3>
+                        <div class="relative h-64">
+                            <canvas id="levelDistributionChart"></canvas>
                         </div>
                     </div>
                 </div>
+
+
             @endif
 
 

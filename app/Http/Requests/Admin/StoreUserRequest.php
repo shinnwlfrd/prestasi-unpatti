@@ -8,6 +8,11 @@ class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // Only super_admin can assign the 'Admin' or 'Super Admin' role
+        if (in_array($this->input('role'), ['Admin', 'Super Admin'])) {
+            return auth()->check() && auth()->user()->isSuperAdmin();
+        }
+
         return true;
     }
 
@@ -19,7 +24,7 @@ class StoreUserRequest extends FormRequest
                 'email',
                 // Remove unique constraint - allow existing emails for multi-role
             ],
-            'role' => 'required|in:Admin,Validator,Pimpinan',
+            'role' => 'required|in:Super Admin,Admin,Validator,Pimpinan',
             'faculty' => 'required_if:role,Validator|nullable|string|max:255',
             'pimpinan_level' => 'required_if:role,Pimpinan|nullable|in:university,faculty,department,program_study,graduate_program',
             'pimpinan_position' => 'required_if:role,Pimpinan|nullable|in:rektor,dekan,ketua_jurusan,kaprodi,direktur_pps',

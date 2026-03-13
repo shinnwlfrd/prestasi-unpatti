@@ -125,7 +125,7 @@ class UserController extends Controller
         $rules = [
             'email' => 'required|email|unique:users,email',
             'name' => 'required|string|max:255',
-            'role' => 'required|in:Admin,Validator,Pimpinan',
+            'role' => 'required|in:Super Admin,Admin,Validator,Pimpinan',
             'faculty_id' => 'nullable|string',
             'department_id' => 'nullable|string',
             'program_study_id' => 'nullable|string',
@@ -151,6 +151,11 @@ class UserController extends Controller
             if ($request->pimpinan_level === 'program_study') {
                 $rules['pimpinan_program_study'] = 'required|string';
             }
+        }
+
+        // Check if assigning Admin role, must be super_admin
+        if ($request->role === 'Admin' && (!auth()->check() || !auth()->user()->isSuperAdmin())) {
+            return redirect()->route('admin.users')->with('error', 'Hanya Super Admin yang dapat membuat akun Admin baru.');
         }
 
         $request->validate($rules);
@@ -192,7 +197,14 @@ class UserController extends Controller
             ]);
 
             // Create user role based on role type
-            if ($request->role === 'Admin') {
+            if ($request->role === 'Super Admin') {
+                \App\Models\UserRole::create([
+                    'user_id' => $user->id,
+                    'role' => 'super_admin',
+                    'level' => 'university',
+                    'is_active' => true,
+                ]);
+            } elseif ($request->role === 'Admin') {
                 \App\Models\UserRole::create([
                     'user_id' => $user->id,
                     'role' => 'admin',

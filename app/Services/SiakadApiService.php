@@ -93,6 +93,26 @@ class SiakadApiService
     }
 
     /**
+     * Get mahasiswa by Email
+     */
+    public function getMahasiswaByEmail(string $email): ?array
+    {
+        $result = $this->searchMahasiswa($email, null, null, 1, 1);
+
+        if ($result['success'] && !empty($result['data'])) {
+            // Get first result and fetch full detail
+            $firstResult = $result['data'][0];
+            $idMahasiswa = $firstResult['id_mahasiswa'] ?? null;
+            
+            if ($idMahasiswa) {
+                return $this->getMahasiswaById($idMahasiswa);
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get mahasiswa by ID (Detail lengkap)
      */
     public function getMahasiswaById(string $idMahasiswa): ?array

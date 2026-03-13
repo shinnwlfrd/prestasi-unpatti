@@ -135,7 +135,10 @@
         @php
             $user = auth()->user();
             $currentRole = $user ? $user->getCurrentRole() : null;
-            $isPimpinan = $currentRole && $currentRole->role === 'pimpinan';
+            
+            // For Super Admin, we should prioritize the route prefix if they haven't switched roles
+            // or if the session was just set by the middleware
+            $isPimpinan = request()->routeIs('pimpinan.*') || ($currentRole && $currentRole->role === 'pimpinan');
             $routePrefix = $isPimpinan ? 'pimpinan' : 'validator';
         @endphp
 

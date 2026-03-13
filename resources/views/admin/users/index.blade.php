@@ -464,7 +464,10 @@
                         <select name="role" x-model="form.role" required
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                             <option value="">-- Pilih Role --</option>
-                            <option value="Admin">Admin</option>
+                            @if(auth()->user()->isSuperAdmin())
+                                <option value="Super Admin">Super Admin</option>
+                            @endif
+                            <option value="Admin">Admin Universitas</option>
                             <option value="Validator">Operator/Validator</option>
                             <option value="Pimpinan">Pimpinan</option>
                         </select>
@@ -667,7 +670,10 @@
                             @change="createUserForm.faculty = ''; createUserForm.pimpinan_level = ''"
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                             <option value="">-- Pilih Role --</option>
-                            <option value="Admin">Admin</option>
+                            @if(auth()->user()->isSuperAdmin())
+                                <option value="Super Admin">Super Admin</option>
+                            @endif
+                            <option value="Admin">Admin Universitas</option>
                             <option value="Validator">Operator/Validator</option>
                             <option value="Pimpinan">Pimpinan</option>
                         </select>

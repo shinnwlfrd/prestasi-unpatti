@@ -8,6 +8,11 @@ class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // Only super_admin can assign the 'Admin' role
+        if ($this->input('role') === 'Admin') {
+            return auth()->check() && auth()->user()->isSuperAdmin();
+        }
+
         return true;
     }
 

@@ -33,6 +33,14 @@ class CheckPimpinanLevel
 
         // Super admin can access pimpinan pages
         if ($user->isSuperAdmin()) {
+            // Set session to match pimpinan context for layout consistency
+            if (session('active_role_type') !== 'pimpinan') {
+                session([
+                    'active_role_id' => 'virtual_pimpinan_university',
+                    'active_role_type' => 'pimpinan'
+                ]);
+            }
+            
             session(['pimpinan_level' => 'university', 'pimpinan_scope' => '*', 'pimpinan_position' => 'super_admin']);
             return $next($request);
         }

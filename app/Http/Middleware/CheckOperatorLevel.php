@@ -33,6 +33,14 @@ class CheckOperatorLevel
 
         // Super admin can access operator pages
         if ($user->isSuperAdmin()) {
+            // Set session to match operator context for layout consistency
+            if (session('active_role_type') !== 'operator') {
+                session([
+                    'active_role_id' => 'virtual_validator_university',
+                    'active_role_type' => 'operator'
+                ]);
+            }
+            
             session(['operator_level' => 'university', 'operator_scope' => '*']);
             return $next($request);
         }
