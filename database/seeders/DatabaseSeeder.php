@@ -37,10 +37,6 @@ class DatabaseSeeder extends Seeder
         $this->command->info('🚀 Starting Complete System Seeder...');
         $this->command->info('');
 
-        // Disable foreign key checks for PostgreSQL
-        if (config('database.default') === 'pgsql') {
-            \DB::statement("SET session_replication_role = 'replica';");
-        }
 
         // 1. Load SIGAP hierarchy
         $this->loadSigapHierarchy();
@@ -51,10 +47,6 @@ class DatabaseSeeder extends Seeder
         $this->seedAchievementLevels();
         $this->seedAchievements();
 
-        // Re-enable foreign key checks for PostgreSQL
-        if (config('database.default') === 'pgsql') {
-            \DB::statement("SET session_replication_role = 'origin';");
-        }
 
         // 3. Seed users (admin, operators, pimpinan)
         $this->seedUsers();
