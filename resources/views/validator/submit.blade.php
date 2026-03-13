@@ -27,7 +27,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-white leading-tight">Ajukan Prestasi Mahasiswa</h1>
-                    <p class="text-gray-500 dark:text-gray-400 mt-1 max-w-xl">Operator/Validator dapat membantu mengajukan prestasi atas nama satu atau beberapa mahasiswa sekaligus.</p>
+                    <p class="text-gray-500 dark:text-gray-400 mt-1 max-w-xl">Operator dapat membantu mengajukan prestasi atas nama satu atau beberapa mahasiswa sekaligus.</p>
                 </div>
             </div>
         </div>

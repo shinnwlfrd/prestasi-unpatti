@@ -118,7 +118,7 @@ class AuthController extends Controller
                     return $this->handleStudentLogin($userInfo, $accessToken, $request);
                 }
 
-                // Jika bukan student (admin/validator/pimpinan), arahkan ke penanganan staff.
+                // Jika bukan student (admin/operator/pimpinan), arahkan ke penanganan staff.
                 return $this->handleStaffLogin($userInfo, $accessToken, $request);
             }
 
@@ -343,7 +343,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle staff/admin/validator login from SSO
+     * Handle staff/admin/operator login from SSO
      */
     private function handleStaffLogin($userInfo, $accessToken, Request $request)
     {
@@ -356,6 +356,22 @@ class AuthController extends Controller
         
         // Determine role from SSO roles if user doesn't exist
         $role = $existingUser ? $existingUser->role : $this->determineRoleFromSSO($roles);
+
+        // SECURITY FIX: If user doesn't exist in DB and is trying to login as Staff/Lecturer
+        // we should not automatically grant them access unless they have specific admin roles
+        // or we choose to block all unregistered staff.
+        if (!$existingUser) {
+            // Check if the determined role is valid for automatic registration
+            // For now, we block all staff that are not pre-registered in the 'users' table
+            Log::warning('Unauthorized staff login attempt via SSO', [
+                'email' => $email,
+                'sso_roles' => $roles,
+                'determined_role' => $role
+            ]);
+
+            return redirect()->route('login')
+                ->with('error', 'Akun Anda (' . $email . ') belum terdaftar di sistem SIMAPRES. Silakan hubungi Administrator untuk pendaftaran akun.');
+        }
 
         // Handle soft-deleted users to prevent unique constraint violations
         if ($existingUser) {
@@ -399,7 +415,7 @@ class AuthController extends Controller
         // Sync to user_roles table
         $roleMapping = [
             'Admin' => 'admin',
-            'Validator' => 'operator',
+            'Operator' => 'operator',
             'Pimpinan' => 'pimpinan',
             'Student' => 'mahasiswa'
         ];
@@ -446,7 +462,7 @@ class AuthController extends Controller
         if ($safeRole === 'admin') {
             return redirect()->route('admin.dashboard')
                 ->with('success', 'Selamat datang, ' . $name . '!');
-        } elseif ($safeRole === 'validator') {
+        } elseif ($safeRole === 'operator') {
             return redirect()->route('validator.dashboard')
                 ->with('success', 'Selamat datang, ' . $name . '!');
         } else {
@@ -463,6 +479,7 @@ class AuthController extends Controller
 
     /**
      * Determine role from SSO roles array
+     * Returns null if no valid role found (security: no default role)
      */
     private function determineRoleFromSSO($roles)
     {
@@ -476,11 +493,12 @@ class AuthController extends Controller
             in_array('dosen', $roles) || in_array('lecturer', $roles) ||
             in_array('staff', $roles) || in_array('staff_kemahasiswaan', $roles)
         ) {
-            return 'Validator';
+            return 'Operator';
         }
 
-        // Default to Validator for staff
-        return 'Validator';
+        // SECURITY: No default role - return null if no match
+        // This prevents unauthorized access
+        return null;
     }
 
     public function logout(Request $request)

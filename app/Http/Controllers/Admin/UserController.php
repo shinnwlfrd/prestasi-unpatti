@@ -125,7 +125,7 @@ class UserController extends Controller
         $rules = [
             'email' => 'required|email|unique:users,email',
             'name' => 'required|string|max:255',
-            'role' => 'required|in:Super Admin,Admin,Validator,Pimpinan',
+            'role' => 'required|in:Admin,Validator,Pimpinan',
             'faculty_id' => 'nullable|string',
             'department_id' => 'nullable|string',
             'program_study_id' => 'nullable|string',
@@ -173,13 +173,14 @@ class UserController extends Controller
             if ($request->role === 'Validator') {
                 $faculty = $request->validator_faculty;
             } elseif ($request->role === 'Pimpinan') {
-                if (in_array($request->pimpinan_level, ['faculty', 'department', 'program_study'])) {
+                $pimpinanLevel = $request->pimpinan_level;
+                if (in_array($pimpinanLevel, ['faculty', 'department', 'program_study'])) {
                     $faculty = $request->pimpinan_faculty;
                 }
-                if (in_array($request->pimpinan_level, ['department', 'program_study'])) {
+                if (in_array($pimpinanLevel, ['department', 'program_study'])) {
                     $department = $request->pimpinan_department;
                 }
-                if ($request->pimpinan_level === 'program_study') {
+                if ($pimpinanLevel === 'program_study') {
                     $programStudy = $request->pimpinan_program_study;
                 }
             }
@@ -197,14 +198,7 @@ class UserController extends Controller
             ]);
 
             // Create user role based on role type
-            if ($request->role === 'Super Admin') {
-                \App\Models\UserRole::create([
-                    'user_id' => $user->id,
-                    'role' => 'super_admin',
-                    'level' => 'university',
-                    'is_active' => true,
-                ]);
-            } elseif ($request->role === 'Admin') {
+            if ($request->role === 'Admin') {
                 \App\Models\UserRole::create([
                     'user_id' => $user->id,
                     'role' => 'admin',
@@ -215,11 +209,12 @@ class UserController extends Controller
                 \App\Models\UserRole::create([
                     'user_id' => $user->id,
                     'role' => 'operator',
-                    'level' => 'university', // Super Validator access
+                    'level' => ($faculty && $faculty !== 'Semua Fakultas') ? 'faculty' : 'university', 
                     'faculty_name' => $faculty,
                     'is_active' => true,
                 ]);
             } elseif ($request->role === 'Pimpinan') {
+                $pimpinanLevel = $request->pimpinan_level;
                 // Map level to position
                 $positionMap = [
                     'university' => 'rektor',
@@ -228,19 +223,19 @@ class UserController extends Controller
                     'program_study' => 'kaprodi',
                     'graduate_program' => 'direktur_pps',
                 ];
-                $position = $positionMap[$request->pimpinan_level] ?? null;
+                $position = $positionMap[$pimpinanLevel] ?? 'rektor';
 
                 \App\Models\UserRole::create([
                     'user_id' => $user->id,
                     'role' => 'pimpinan',
-                    'level' => 'university', // Like Rector access
+                    'level' => $pimpinanLevel,
                     'faculty_name' => $faculty,
                     'faculty_id' => $facultyId,
                     'department_name' => $department,
                     'department_id' => $departmentId,
                     'program_study_name' => $programStudy,
                     'program_study_id' => $programStudyId,
-                    'position' => 'rektor', // Position like rektor
+                    'position' => $position,
                     'is_active' => true,
                 ]);
             }

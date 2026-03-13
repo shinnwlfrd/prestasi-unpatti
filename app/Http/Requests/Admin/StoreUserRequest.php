@@ -24,7 +24,7 @@ class StoreUserRequest extends FormRequest
                 'email',
                 // Remove unique constraint - allow existing emails for multi-role
             ],
-            'role' => 'required|in:Super Admin,Admin,Validator,Pimpinan',
+            'role' => 'required|in:Admin,Validator,Pimpinan',
             'faculty' => 'required_if:role,Validator|nullable|string|max:255',
             'pimpinan_level' => 'required_if:role,Pimpinan|nullable|in:university,faculty,department,program_study,graduate_program',
             'pimpinan_position' => 'required_if:role,Pimpinan|nullable|in:rektor,dekan,ketua_jurusan,kaprodi,direktur_pps',
@@ -74,16 +74,25 @@ class StoreUserRequest extends FormRequest
                 return;
             }
 
-            // Check if email exists in students table (required for new user)
+            // Check if email exists in students table (required for new user, unless staff)
             $student = \App\Models\Student::where('email', $email)->first();
+            $isStaff = \Illuminate\Support\Str::endsWith(strtolower($email), '@staff.unpatti.ac.id');
 
-            if (!$student) {
-                // Email not found in students or users table
+            if (!$student && !$isStaff) {
+                // Email not found in students or users table and not a staff email
                 $validator->errors()->add(
                     'email',
                     'Email tidak ditemukan. Pastikan user/mahasiswa sudah terdaftar di sistem.'
                 );
                 return;
+            }
+
+            // Log staff user being added
+            if ($isStaff && !$student) {
+                \Illuminate\Support\Facades\Log::info('Adding new staff user', [
+                    'email' => $email,
+                    'new_role' => $this->input('role')
+                ]);
             }
 
             // Log new user creation from student
@@ -107,13 +116,20 @@ class StoreUserRequest extends FormRequest
         $existingUser = \App\Models\User::where('email', $data['email'])->first();
 
         if (!$existingUser) {
-            // New user - get student data to fill name and password
+            // New user - get data
             $student = \App\Models\Student::where('email', $data['email'])->first();
 
             if ($student) {
                 $data['name'] = $student->name;
                 // Auto-generate password from student_id
                 $data['password'] = $student->student_id;
+            } elseif (\Illuminate\Support\Str::endsWith(strtolower($data['email']), '@staff.unpatti.ac.id')) {
+                // New staff user - name from local part of email if not provided
+                if (!isset($data['name'])) {
+                    $localPart = explode('@', $data['email'])[0];
+                    // Clean up dots if any, capitalize
+                    $data['name'] = ucwords(str_replace('.', ' ', $localPart));
+                }
             }
         }
 

@@ -28,7 +28,7 @@ class UpdateUserRequest extends FormRequest
                 'unique:users,email,'.$userId, // Ignore current user's email
             ],
             'password' => 'nullable|min:6',
-            'role' => 'required|in:Admin,Validator',
+            'role' => 'required|in:Admin,Validator,Pimpinan',
             'faculty' => 'required_if:role,Validator|nullable|string|max:255',
             'is_active' => 'nullable|boolean',
         ];

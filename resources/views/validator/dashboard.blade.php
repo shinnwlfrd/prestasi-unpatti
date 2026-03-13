@@ -22,7 +22,7 @@
         'avg_review_time_hours' => 0,
     ];
 
-    $userName = auth()->user()->name ?? ($isPimpinan ? 'Pimpinan' : 'Validator');
+    $userName = auth()->user()->name ?? ($isPimpinan ? 'Pimpinan' : 'Operator');
     $pendingCount = $pendingAchievements->count();
 @endphp
 
@@ -542,7 +542,7 @@
                 </div>
             @endif
         @else
-        <!-- Validator Pending Achievements Table -->
+        <!-- Operator Pending Achievements Table -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between mb-4">
@@ -736,11 +736,11 @@
             @endif
         </div>
     @endif
-    <!-- End of Pimpinan/Validator conditional -->
+    <!-- End of Pimpinan/Operator conditional -->
 
 
     @unless($isPimpinan)
-        <!-- Modal Validasi (Only for Validator) -->
+        <!-- Modal Validasi (Only for Operator) -->
         <div x-show="showModal" x-cloak @click.self="closeModal()"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
             <div @click.away="closeModal()"

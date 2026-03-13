@@ -155,7 +155,7 @@
                         </select>
                     </div>
 
-                    <!-- Faculty Filter (Only for Super Validator) -->
+                    <!-- Faculty Filter (Only for Operator Universitas) -->
                     @if(isset($faculties) && $faculties->isNotEmpty())
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fakultas</label>

@@ -447,7 +447,7 @@
                         </div>
 
                         <!-- Email not found -->
-                        <p x-show="!studentData && !existingUser && !checkingEmail && form.email.length > 5 && !editMode"
+                        <div x-show="!studentData && !existingUser && !checkingEmail && form.email.length > 5 && !editMode && !isStaff"
                             x-cloak class="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -455,7 +455,24 @@
                                     clip-rule="evenodd" />
                             </svg>
                             Email tidak ditemukan. Pastikan user/mahasiswa sudah terdaftar di sistem.
-                        </p>
+                        </div>
+
+                        <!-- Staff domain detected but not yet a user -->
+                        <div x-show="isStaff && !existingUser && !studentData && !checkingEmail" x-cloak
+                            class="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                            <p class="text-sm font-medium text-purple-800 dark:text-purple-300 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.394 2.822a.75.75 0 00-1.288 0l-8.322 13.17a.75.75 0 00.644 1.158h16.644a.75.75 0 00.644-1.158l-8.322-13.17zM11 15a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V8a1 1 0 00-1-1z" />
+                                </svg>
+                                Domain Staff Unpatti Terdeteksi
+                            </p>
+                            <div class="mt-2 space-y-1 text-sm text-purple-700 dark:text-purple-400">
+                                <p>Email ini belum terdaftar di sistem SIMAPRES, tetapi merupakan domain staff valid.</p>
+                                <p class="text-xs mt-2 text-purple-600 dark:text-purple-500">
+                                    ℹ️ Anda dapat menambahkan role ke staff ini secara langsung. Profil lengkap akan diperbarui secara otomatis saat login via SSO.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
@@ -464,9 +481,6 @@
                         <select name="role" x-model="form.role" required
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                             <option value="">-- Pilih Role --</option>
-                            @if(auth()->user()->isSuperAdmin())
-                                <option value="Super Admin">Super Admin</option>
-                            @endif
                             <option value="Admin">Admin Universitas</option>
                             <option value="Validator">Operator/Validator</option>
                             <option value="Pimpinan">Pimpinan</option>
@@ -592,7 +606,7 @@
                             class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
                             Batal
                         </button>
-                        <button type="submit" :disabled="submitting || (!studentData && !existingUser)"
+                        <button type="submit" :disabled="submitting || (!studentData && !existingUser && !isStaff)"
                             class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                             <svg x-show="submitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -670,9 +684,6 @@
                             @change="createUserForm.faculty = ''; createUserForm.pimpinan_level = ''"
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                             <option value="">-- Pilih Role --</option>
-                            @if(auth()->user()->isSuperAdmin())
-                                <option value="Super Admin">Super Admin</option>
-                            @endif
                             <option value="Admin">Admin Universitas</option>
                             <option value="Validator">Operator/Validator</option>
                             <option value="Pimpinan">Pimpinan</option>
@@ -854,6 +865,7 @@
                 submittingNewUser: false,
                 studentData: null,
                 existingUser: null,
+                isStaff: false,
                 loadingFaculties: false,
                 sigapFaculties: [],
                 sigapDepartments: [],
@@ -1066,6 +1078,7 @@
                     this.submitting = false;
                     this.studentData = null;
                     this.existingUser = null;
+                    this.isStaff = false;
                     this.filteredDepartments = [];
                     this.filteredPrograms = [];
                     this.form = {
@@ -1086,19 +1099,21 @@
 
                 async checkEmailAndLoadData(email) {
                     if (!email || email.length < 5) {
-                        this.multiRoleDetected = false;
-                        this.checkingEmail = false;
                         this.studentData = null;
                         this.existingUser = null;
+                        this.isStaff = false;
                         return;
                     }
 
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    // Lowercase email for detection
+                    email = email.toLowerCase();
+                    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                     if (!emailRegex.test(email)) {
                         this.multiRoleDetected = false;
                         this.checkingEmail = false;
                         this.studentData = null;
                         this.existingUser = null;
+                        this.isStaff = false;
                         return;
                     }
 
@@ -1117,14 +1132,17 @@
                             this.multiRoleDetected = true;
                             this.existingUser = data.user_data;
                             this.studentData = null;
+                            this.isStaff = data.is_staff;
                         } else if (data.exists_in_students) {
                             this.multiRoleDetected = true;
                             this.studentData = data.student_data;
                             this.existingUser = null;
+                            this.isStaff = data.is_staff;
                         } else {
                             this.multiRoleDetected = false;
                             this.studentData = null;
                             this.existingUser = null;
+                            this.isStaff = data.is_staff;
                         }
 
                         this.checkingEmail = false;
@@ -1133,6 +1151,7 @@
                         this.multiRoleDetected = false;
                         this.studentData = null;
                         this.existingUser = null;
+                        this.isStaff = false;
                         this.checkingEmail = false;
                     }
                 },

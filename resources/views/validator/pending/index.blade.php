@@ -189,7 +189,7 @@
                     </select>
                 </div>
 
-                <!-- Faculty (Only for Super Validator) -->
+                <!-- Faculty (Only for Operator Universitas) -->
                 @if(isset($faculties) && $faculties->isNotEmpty())
                 <div class="lg:col-span-2">
                     <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Fakultas</label>

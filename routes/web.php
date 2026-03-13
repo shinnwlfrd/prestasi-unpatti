@@ -203,9 +203,13 @@ Route::get('/api/check-user-data', function (Illuminate\Http\Request $request) {
         // Check in students table
         $student = \App\Models\Student::where('email', $email)->first();
 
+        // Check if it's a staff email domain
+        $isStaffDomain = str_ends_with(strtolower($email), '@staff.unpatti.ac.id');
+
         return response()->json([
             'exists_in_users' => $user !== null,
             'exists_in_students' => $student !== null,
+            'is_staff' => $isStaffDomain,
             'user_data' => $user ? [
                 'name' => $user->name,
                 'email' => $user->email,

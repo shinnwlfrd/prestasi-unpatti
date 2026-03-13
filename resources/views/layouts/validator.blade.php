@@ -217,7 +217,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
-                    <span>{{ $isPimpinan ? 'Lihat Prestasi' : 'Verifikasi Fakultas' }}</span>
+                    <span>{{ $isPimpinan ? 'Lihat Prestasi' : 'Verifikasi Operator' }}</span>
                 </a>
                 <a href="{{ route($routePrefix . '.history') }}"
                     class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs($routePrefix . '.history') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">

@@ -54,9 +54,10 @@ class UserManagementService
                     $programStudyName = null;
                 } else {
                     $roleType = 'operator';
-                    $level = 'university'; // Default to super validator level as requested
-                    $position = null;
+                    // FIX: Set level based on faculty selection
                     $facultyName = $data['faculty'] ?? null;
+                    $level = ($facultyName && $facultyName !== 'Semua Fakultas') ? 'faculty' : 'university';
+                    $position = null;
                     $departmentName = null;
                     $programStudyName = null;
                 }
@@ -92,12 +93,16 @@ class UserManagementService
                     'role' => $data['role']
                 ]);
 
-            $data['name'] = $student->name;
-            $data['password'] = Hash::make(\Illuminate\Support\Str::random(32)); // Random for SSO
-        } else {
-            // New user (not from student)
-            $data['password'] = Hash::make(\Illuminate\Support\Str::random(32)); // Random for SSO
-        }
+                $data['name'] = $student->name;
+                $data['password'] = Hash::make('password'); // Default password
+            } else {
+                // New user (not from student)
+                if (!isset($data['password'])) {
+                    $data['password'] = Hash::make('password'); // Default password
+                } else {
+                    $data['password'] = Hash::make($data['password']);
+                }
+            }
 
             // Determine role type and level
             if ($data['role'] === 'Super Admin') {
@@ -123,9 +128,10 @@ class UserManagementService
                 $programStudyName = null;
             } else {
                 $roleType = 'operator';
-                $level = 'university'; // Default to super validator level as requested
-                $position = null;
+                // FIX: Set level based on faculty selection
                 $facultyName = $data['faculty'] ?? null;
+                $level = ($facultyName && $facultyName !== 'Semua Fakultas') ? 'faculty' : 'university';
+                $position = null;
                 $departmentName = null;
                 $programStudyName = null;
             }
@@ -172,8 +178,10 @@ class UserManagementService
             unset($data['name']);
         }
 
-        // Remove password if provided (not allowed in SSO mode)
-        if (isset($data['password'])) {
+        // Hash password if provided
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
             unset($data['password']);
         }
 
