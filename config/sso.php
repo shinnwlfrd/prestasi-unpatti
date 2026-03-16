@@ -19,22 +19,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | SSO SIAKAD Configuration
+    | SSO Configuration
     |--------------------------------------------------------------------------
     */
-    'siakad' => [
-        'base_url' => env('SIAKAD_SSO_URL', 'https://sso.siakad.unpatti.ac.id'),
-        'client_id' => env('SIAKAD_SSO_CLIENT_ID'),
-        'client_secret' => env('SIAKAD_SSO_CLIENT_SECRET'),
-        'redirect_uri' => env('SIAKAD_SSO_REDIRECT_URI'),
-        'scopes' => env('SIAKAD_SSO_SCOPES', 'openid,profile,email,role'),
-        
-        // Endpoints
-        'authorize_endpoint' => '/oauth/authorize',
-        'token_endpoint' => '/oauth/token',
-        'userinfo_endpoint' => '/api/userinfo',
-        'logout_endpoint' => '/logout',
-    ],
+    'base_url' => env('SSO_BASE_URL', 'https://sso.unpatti.ac.id'),
+    'client_id' => env('SSO_CLIENT_ID'),
+    'client_secret' => env('SSO_CLIENT_SECRET'),
+    'redirect_uri' => env('SSO_REDIRECT_URI', env('APP_URL') . '/sso/callback'),
 
     /*
     |--------------------------------------------------------------------------

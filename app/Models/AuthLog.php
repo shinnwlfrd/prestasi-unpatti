@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AuthLog extends Model
 {
-    public $timestamps = false;
+    use SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -23,12 +24,19 @@ class AuthLog extends Model
         'created_at' => 'datetime',
     ];
 
+    const UPDATED_AT = null; // Only use created_at, not updated_at
+
     // Actions
     const ACTION_LOGIN = 'login';
+
     const ACTION_LOGOUT = 'logout';
+
     const ACTION_FAILED_LOGIN = 'failed_login';
+
     const ACTION_SSO_LINK = 'sso_link';
+
     const ACTION_REGISTER = 'register';
+
     const ACTION_PASSWORD_RESET = 'password_reset';
 
     public function user(): BelongsTo

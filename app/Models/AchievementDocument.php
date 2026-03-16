@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class AchievementDocument extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'sa_id',
@@ -30,9 +31,13 @@ class AchievementDocument extends Model
 
     // Document Types
     const TYPE_SK_RESMI = 'sk_resmi';
+
     const TYPE_SERTIFIKAT = 'sertifikat';
+
     const TYPE_FOTO_DOKUMENTASI = 'foto_dokumentasi';
+
     const TYPE_SURAT_KETERANGAN = 'surat_keterangan';
+
     const TYPE_LINK_PUBLIKASI = 'link_publikasi';
 
     const DOCUMENT_TYPES = [
@@ -53,9 +58,13 @@ class AchievementDocument extends Model
 
     // Document Statuses
     const STATUS_DRAFT = 'draft';
+
     const STATUS_PENDING = 'pending';
+
     const STATUS_REVISION = 'revision';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_REJECTED = 'rejected';
 
     const STATUS_LABELS = [
@@ -111,6 +120,7 @@ class AchievementDocument extends Model
         if ($this->document_type === self::TYPE_LINK_PUBLIKASI) {
             return $this->external_link;
         }
+
         return $this->file_path ? Storage::url($this->file_path) : null;
     }
 
@@ -118,11 +128,12 @@ class AchievementDocument extends Model
     {
         $bytes = $this->file_size;
         if ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . ' MB';
+            return number_format($bytes / 1048576, 2).' MB';
         } elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . ' KB';
+            return number_format($bytes / 1024, 2).' KB';
         }
-        return $bytes . ' bytes';
+
+        return $bytes.' bytes';
     }
 
     // Helper Methods
@@ -157,18 +168,18 @@ class AchievementDocument extends Model
         if ($this->status !== self::STATUS_DRAFT) {
             return false;
         }
-        
+
         $this->status = self::STATUS_PENDING;
         $this->save();
-        
+
         $this->logRevision(DocumentRevision::ACTION_SUBMITTED, 'Dokumen disubmit untuk verifikasi');
-        
+
         return true;
     }
 
     public function approve(User $verifier, ?string $notes = null): bool
     {
-        if (!in_array($this->status, [self::STATUS_PENDING, self::STATUS_REVISION])) {
+        if (! in_array($this->status, [self::STATUS_PENDING, self::STATUS_REVISION])) {
             return false;
         }
 
@@ -185,7 +196,7 @@ class AchievementDocument extends Model
 
     public function reject(User $verifier, string $reason): bool
     {
-        if (!in_array($this->status, [self::STATUS_PENDING, self::STATUS_REVISION])) {
+        if (! in_array($this->status, [self::STATUS_PENDING, self::STATUS_REVISION])) {
             return false;
         }
 
@@ -211,6 +222,35 @@ class AchievementDocument extends Model
         $this->save();
 
         $this->logRevision(DocumentRevision::ACTION_REVISION_REQUESTED, $reason, $verifier->id);
+
+        return true;
+    }
+
+    public function revertToPending(User $admin, ?string $reason = null): bool
+    {
+        if (! in_array($this->status, [self::STATUS_APPROVED, self::STATUS_REJECTED])) {
+            return false;
+        }
+
+        $oldStatus = $this->status;
+        $this->status = self::STATUS_PENDING;
+        $this->verified_by = null;
+        $this->verified_at = null;
+        $this->revision_notes = $reason;
+        $this->save();
+
+        $this->logRevision(
+            'reverted_to_pending',
+            "Status dikembalikan dari {$oldStatus} ke pending. ".($reason ?? ''),
+            $admin->id
+        );
+
+        return true;
+    }
+
+    public function addNote(User $admin, string $note): bool
+    {
+        $this->logRevision('note_added', $note, $admin->id);
 
         return true;
     }

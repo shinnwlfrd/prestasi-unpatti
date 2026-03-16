@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DocumentRevision extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'document_id',
@@ -22,11 +23,20 @@ class DocumentRevision extends Model
     ];
 
     const ACTION_UPLOADED = 'uploaded';
+
     const ACTION_REPLACED = 'replaced';
+
     const ACTION_REVISION_REQUESTED = 'revision_requested';
+
     const ACTION_APPROVED = 'approved';
+
     const ACTION_REJECTED = 'rejected';
+
     const ACTION_SUBMITTED = 'submitted';
+
+    const ACTION_REVERTED_TO_PENDING = 'reverted_to_pending';
+
+    const ACTION_NOTE_ADDED = 'note_added';
 
     const ACTION_LABELS = [
         self::ACTION_UPLOADED => 'Dokumen Diupload',
@@ -35,6 +45,8 @@ class DocumentRevision extends Model
         self::ACTION_APPROVED => 'Dokumen Disetujui',
         self::ACTION_REJECTED => 'Dokumen Ditolak',
         self::ACTION_SUBMITTED => 'Dokumen Disubmit',
+        self::ACTION_REVERTED_TO_PENDING => 'Dikembalikan ke Pending',
+        self::ACTION_NOTE_ADDED => 'Catatan Ditambahkan',
     ];
 
     public function document()
@@ -54,12 +66,14 @@ class DocumentRevision extends Model
 
     public function getActionBadgeAttribute(): string
     {
-        return match($this->action) {
+        return match ($this->action) {
             self::ACTION_UPLOADED, self::ACTION_REPLACED => 'info',
             self::ACTION_SUBMITTED => 'warning',
             self::ACTION_REVISION_REQUESTED => 'warning',
             self::ACTION_APPROVED => 'success',
             self::ACTION_REJECTED => 'danger',
+            self::ACTION_REVERTED_TO_PENDING => 'warning',
+            self::ACTION_NOTE_ADDED => 'info',
             default => 'secondary',
         };
     }

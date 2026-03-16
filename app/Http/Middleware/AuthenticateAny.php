@@ -14,15 +14,15 @@ class AuthenticateAny
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is authenticated as regular user (admin/validator)
-        // This check must come first to prevent session switching
+        // Check if user is authenticated as regular user (admin/validator/pimpinan)
         if (auth()->check()) {
-            // User is authenticated via Laravel auth (admin/validator)
-            // Don't check student session to prevent conflicts
+            // User is authenticated via Laravel auth
+            // They might be in student mode (session auth_role = student)
+            // or in user mode (session active_role_id set)
             return $next($request);
         }
 
-        // Only check student session if not authenticated as regular user
+        // Check if authenticated as student only (no user auth)
         if (session('auth_role') === 'student' && session('student_id')) {
             return $next($request);
         }

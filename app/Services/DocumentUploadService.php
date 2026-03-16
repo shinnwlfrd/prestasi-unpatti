@@ -12,7 +12,9 @@ use Illuminate\Support\Str;
 class DocumentUploadService
 {
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
     const ALLOWED_MIMES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+
     const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'];
 
     public function uploadDocument(
@@ -75,8 +77,8 @@ class DocumentUploadService
             'file_name' => $file->getClientOriginalName(),
             'file_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),
-            'status' => $document->status === AchievementDocument::STATUS_REVISION 
-                ? AchievementDocument::STATUS_PENDING 
+            'status' => $document->status === AchievementDocument::STATUS_REVISION
+                ? AchievementDocument::STATUS_PENDING
                 : $document->status,
             'revision_notes' => null,
         ]);
@@ -165,6 +167,33 @@ class DocumentUploadService
         return $document->submit();
     }
 
+    public function replaceCertificate(
+        StudentAchievement $achievement,
+        UploadedFile $file
+    ): StudentAchievement {
+        $this->validateFile($file);
+
+        // Delete old file if exists
+        if ($achievement->certificate && Storage::disk('public')->exists($achievement->certificate)) {
+            Storage::disk('public')->delete($achievement->certificate);
+        }
+
+        // Upload new file
+        $fileName = $this->generateFileName($file);
+        $path = $file->storeAs(
+            'achievements/' . $achievement->sa_id,
+            $fileName,
+            'public'
+        );
+
+        // Update achievement
+        $achievement->update([
+            'certificate' => $path,
+        ]);
+
+        return $achievement->fresh();
+    }
+
     protected function validateFile(UploadedFile $file): void
     {
         if ($file->getSize() > self::MAX_FILE_SIZE) {
@@ -190,6 +219,7 @@ class DocumentUploadService
     protected function generateFileName(UploadedFile $file): string
     {
         $extension = $file->getClientOriginalExtension();
+
         return Str::uuid() . '.' . $extension;
     }
 }

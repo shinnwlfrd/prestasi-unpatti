@@ -9,9 +9,13 @@ use Illuminate\Support\Str;
 class SSOService
 {
     protected string $baseUrl;
+
     protected string $clientId;
+
     protected string $clientSecret;
+
     protected string $redirectUri;
+
     protected array $scopes;
 
     public function __construct()
@@ -29,7 +33,7 @@ class SSOService
     public function getAuthorizationUrl(): array
     {
         $state = Str::random(40);
-        
+
         $params = http_build_query([
             'client_id' => $this->clientId,
             'redirect_uri' => $this->redirectUri,
@@ -38,7 +42,7 @@ class SSOService
             'state' => $state,
         ]);
 
-        $url = $this->baseUrl . config('sso.siakad.authorize_endpoint') . '?' . $params;
+        $url = $this->baseUrl.config('sso.siakad.authorize_endpoint').'?'.$params;
 
         return [
             'url' => $url,
@@ -53,7 +57,7 @@ class SSOService
     {
         try {
             $response = Http::asForm()->post(
-                $this->baseUrl . config('sso.siakad.token_endpoint'),
+                $this->baseUrl.config('sso.siakad.token_endpoint'),
                 [
                     'grant_type' => 'authorization_code',
                     'client_id' => $this->clientId,
@@ -68,12 +72,14 @@ class SSOService
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
                 return null;
             }
 
             return $response->json();
         } catch (\Exception $e) {
             Log::error('SSO token exchange exception', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -85,19 +91,21 @@ class SSOService
     {
         try {
             $response = Http::withToken($accessToken)
-                ->get($this->baseUrl . config('sso.siakad.userinfo_endpoint'));
+                ->get($this->baseUrl.config('sso.siakad.userinfo_endpoint'));
 
             if ($response->failed()) {
                 Log::error('SSO userinfo failed', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
                 return null;
             }
 
             return $response->json();
         } catch (\Exception $e) {
             Log::error('SSO userinfo exception', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -109,7 +117,7 @@ class SSOService
     {
         try {
             $response = Http::asForm()->post(
-                $this->baseUrl . config('sso.siakad.token_endpoint'),
+                $this->baseUrl.config('sso.siakad.token_endpoint'),
                 [
                     'grant_type' => 'refresh_token',
                     'client_id' => $this->clientId,
@@ -125,6 +133,7 @@ class SSOService
             return $response->json();
         } catch (\Exception $e) {
             Log::error('SSO refresh token exception', ['error' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -134,8 +143,9 @@ class SSOService
      */
     public function getLogoutUrl(?string $redirectUrl = null): string
     {
-        $params = $redirectUrl ? '?redirect_uri=' . urlencode($redirectUrl) : '';
-        return $this->baseUrl . config('sso.siakad.logout_endpoint') . $params;
+        $params = $redirectUrl ? '?redirect_uri='.urlencode($redirectUrl) : '';
+
+        return $this->baseUrl.config('sso.siakad.logout_endpoint').$params;
     }
 
     /**

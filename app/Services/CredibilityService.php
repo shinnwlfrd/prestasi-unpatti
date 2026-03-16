@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\StudentAchievement;
 use App\Models\AchievementDocument;
+use App\Models\StudentAchievement;
 
 class CredibilityService
 {
@@ -24,7 +24,7 @@ class CredibilityService
         }
 
         // Level bonus
-        $score += match($achievement->level) {
+        $score += match ($achievement->level) {
             StudentAchievement::LEVEL_INTERNASIONAL => 10,
             StudentAchievement::LEVEL_NASIONAL => 5,
             default => 0,
@@ -40,24 +40,35 @@ class CredibilityService
 
     public function getScoreCategory(float $score): string
     {
-        if ($score >= 80) return 'high';
-        if ($score >= 70) return 'medium';
+        if ($score >= 80) {
+            return 'high';
+        }
+        if ($score >= 70) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
     public function getScoreColor(float $score): string
     {
-        if ($score >= 80) return 'success';
-        if ($score >= 70) return 'warning';
+        if ($score >= 80) {
+            return 'success';
+        }
+        if ($score >= 70) {
+            return 'warning';
+        }
+
         return 'danger';
     }
 
     public function validateDocumentRequirements(StudentAchievement $achievement): array
     {
         $errors = [];
-        $category = $achievement->achievement?->category;
+        $categoryId = $achievement->achievement?->category_id;
 
-        if ($category === 'Non-Akademik') {
+        // Non-academic (category_id != 1) requires at least 2 different document types
+        if ($categoryId && $categoryId !== 1) {
             $documentTypes = $achievement->documents->pluck('document_type')->unique()->count();
             if ($documentTypes < 2) {
                 $errors[] = 'Prestasi non-akademik memerlukan minimal 2 jenis dokumen berbeda.';

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\SikadCredential;
-use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,85 +29,80 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         // Check rate limiting
-        $key = 'login_attempts:' . $request->ip();
-        
+        $key = 'login_attempts:'.$request->ip();
+
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
+
             return back()
-                ->withErrors(['username' => "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik."])
+                ->withErrors(['email' => "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik."])
                 ->withInput();
         }
 
         $request->validate([
-            'username' => 'required|string',
+            'email' => 'required|string',
             'password' => 'required|string',
-            'login_as' => 'required|in:student,validator,admin',
         ]);
 
         // Check if local login is enabled
-        if (!config('sso.gates.local.enabled') && $request->login_as !== 'student') {
+        if (! config('sso.gates.local.enabled', true)) {
             return back()
-                ->withErrors(['username' => 'Login lokal tidak tersedia. Silakan gunakan SSO.'])
+                ->withErrors(['email' => 'Login lokal tidak tersedia. Silakan gunakan SSO.'])
                 ->withInput();
         }
 
-        // Login sebagai Mahasiswa
-        if ($request->login_as === 'student') {
-            $student = $this->authService->authenticateStudent($request->username, $request->password);
-            
-            if ($student) {
-                RateLimiter::clear($key);
-                session(['auth_role' => 'student', 'student_id' => $student->student_id]);
-                return redirect()->intended(route('student.dashboard'));
-            }
-            
-            RateLimiter::hit($key, 900);
-            return back()->withErrors(['username' => 'NIM atau password salah.'])->withInput();
+        // Try to authenticate as Student first (using NIM)
+        $student = $this->authService->authenticateStudent($request->email, $request->password);
+
+        if ($student) {
+            RateLimiter::clear($key);
+            session(['auth_role' => 'student', 'student_id' => $student->student_id]);
+
+            return redirect()->intended(route('student.dashboard'));
         }
 
-        // Login sebagai Admin
-        if ($request->login_as === 'admin') {
-            $user = $this->authService->authenticateLocal($request->username, $request->password);
-            
-            if ($user && $user->role === 'Admin') {
-                RateLimiter::clear($key);
-                Auth::login($user);
-                return redirect('/admin');
-            }
-            
-            RateLimiter::hit($key, 900);
-            
-            // Check if account is SSO only
-            $conflict = $this->authService->checkAccountConflict($request->username);
-            if ($conflict && $conflict['type'] === 'sso_only') {
-                return back()->withErrors(['username' => $conflict['message']])->withInput();
-            }
-            
-            return back()->withErrors(['username' => 'Email atau password salah, atau Anda bukan Admin.'])->withInput();
-        }
+        // Try to authenticate as User (Admin/Validator using email)
+        $user = $this->authService->authenticateLocal($request->email, $request->password);
 
-        // Login sebagai Validator
-        if ($request->login_as === 'validator') {
-            $user = $this->authService->authenticateLocal($request->username, $request->password);
+        if ($user) {
+            RateLimiter::clear($key);
+            Auth::login($user);
+
+            // Check if user has multiple active roles
+            $activeRoles = $user->activeRoles()->get();
             
-            if ($user && $user->role === 'Validator') {
-                RateLimiter::clear($key);
-                Auth::login($user);
+            if ($activeRoles->count() > 1) {
+                // Multi-role user - redirect to role switcher
+                return redirect()->route('role.switch.page');
+            }
+
+            // Single role user - redirect based on role
+            if ($activeRoles->count() === 1) {
+                $role = $activeRoles->first();
+                return $this->redirectToRoleDashboard($role);
+            }
+
+            // Legacy role system (backward compatibility)
+            if ($user->role === 'Admin') {
+                return redirect()->intended('/admin');
+            } elseif ($user->role === 'Validator') {
                 return redirect()->intended(route('validator.dashboard'));
             }
-            
-            RateLimiter::hit($key, 900);
-            
-            // Check if account is SSO only
-            $conflict = $this->authService->checkAccountConflict($request->username);
-            if ($conflict && $conflict['type'] === 'sso_only') {
-                return back()->withErrors(['username' => $conflict['message']])->withInput();
-            }
-            
-            return back()->withErrors(['username' => 'Email atau password salah, atau Anda bukan Validator.'])->withInput();
+
+            // Unknown role
+            Auth::logout();
+            return back()->withErrors(['email' => 'Role tidak dikenali atau tidak aktif.'])->withInput();
         }
 
-        return back()->withErrors(['username' => 'Login gagal.'])->withInput();
+        RateLimiter::hit($key, 900);
+
+        // Check if account is SSO only
+        $conflict = $this->authService->checkAccountConflict($request->email);
+        if ($conflict && $conflict['type'] === 'sso_only') {
+            return back()->withErrors(['email' => $conflict['message']])->withInput();
+        }
+
+        return back()->withErrors(['email' => 'Email/NIM atau password salah.'])->withInput();
     }
 
     public function logout(Request $request)
@@ -125,10 +118,30 @@ class LoginController extends Controller
             }
             Auth::logout();
         }
-        
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect('/');
+    }
+
+    /**
+     * Redirect to appropriate dashboard based on role
+     */
+    private function redirectToRoleDashboard($role)
+    {
+        // Store active role in session
+        session([
+            'active_role_id' => $role->id,
+            'active_role_type' => $role->role,
+        ]);
+
+        return match ($role->role) {
+            'super_admin', 'admin' => redirect()->intended(route('admin.dashboard')),
+            'operator' => redirect()->intended(route('validator.pending.index')),
+            'pimpinan' => redirect()->intended(route('pimpinan.dashboard')),
+            'mahasiswa' => redirect()->intended(route('student.dashboard')),
+            default => redirect()->intended('/'),
+        };
     }
 }

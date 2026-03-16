@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 class GenerateSeederPdf extends Command
 {
     protected $signature = 'pdf:generate-seeder {--split : Generate separate PDF files for each document type}';
+
     protected $description = 'Generate sample PDF documents for seeder data (certificates, SK, supporting docs)';
 
     public function handle()
@@ -26,7 +27,7 @@ class GenerateSeederPdf extends Command
 
         foreach ($directories as $dir) {
             $path = storage_path($dir);
-            if (!File::exists($path)) {
+            if (! File::exists($path)) {
                 File::makeDirectory($path, 0755, true);
             }
         }
@@ -51,10 +52,10 @@ class GenerateSeederPdf extends Command
     {
         $pdf = Pdf::loadView('pdf.seeder-documents');
         $pdf->setPaper('a4', 'portrait');
-        
+
         $path = storage_path('app/public/sample-documents/prestasi_mahasiswa_dokumen_seeder.pdf');
         File::put($path, $pdf->output());
-        
+
         $this->info('📄 Combined PDF: prestasi_mahasiswa_dokumen_seeder.pdf');
     }
 
@@ -102,17 +103,18 @@ class GenerateSeederPdf extends Command
     protected function generateSinglePdf(string $view, string $filename, string $label)
     {
         // Check if view exists, if not use combined view
-        if (!view()->exists($view)) {
+        if (! view()->exists($view)) {
             $this->warn("⚠️  View {$view} not found, skipping {$label}");
+
             return;
         }
 
         $pdf = Pdf::loadView($view);
         $pdf->setPaper('a4', 'portrait');
-        
-        $path = storage_path('app/public/' . $filename);
+
+        $path = storage_path('app/public/'.$filename);
         File::put($path, $pdf->output());
-        
+
         $this->info("📄 {$label}: {$filename}");
     }
 }

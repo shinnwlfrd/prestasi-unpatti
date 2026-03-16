@@ -22,3 +22,20 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Documentation (keep only essential)
+*.md
+!README.md
+!DEVELOPMENT.md
+!IMPLEMENTATION_SUMMARY.md
+!FINAL_IMPLEMENTATION.md
+
+# Office files
+*.docx
+*.xlsx
+*.pptx
+
+# Backup files
+*.bak
+*.tmp
+*~

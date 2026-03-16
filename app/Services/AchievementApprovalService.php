@@ -3,24 +3,17 @@
 namespace App\Services;
 
 use App\Models\StudentAchievement;
-use App\Models\ValidationLog;
-use App\Models\ValidationChecklist;
 use App\Models\User;
+use App\Models\ValidationChecklist;
+use App\Models\ValidationLog;
 use App\Notifications\AchievementStatusChanged;
 use Illuminate\Support\Facades\DB;
 
 class AchievementApprovalService
 {
-    protected CredibilityService $credibilityService;
-
-    public function __construct(CredibilityService $credibilityService)
+    public function approve(StudentAchievement $achievement, User $validator, ?string $notes = null, ?int $skId = null): bool
     {
-        $this->credibilityService = $credibilityService;
-    }
-
-    public function approve(StudentAchievement $achievement, User $validator, ?string $notes = null): bool
-    {
-        return DB::transaction(function () use ($achievement, $validator, $notes) {
+        return DB::transaction(function () use ($achievement, $validator, $notes, $skId) {
             $oldStatus = $achievement->validation_status;
 
             $achievement->update([
@@ -28,7 +21,7 @@ class AchievementApprovalService
                 'validator_id' => $validator->id,
             ]);
 
-            $this->createValidationLog($achievement, $validator, $oldStatus, StudentAchievement::STATUS_APPROVED, $notes);
+            $this->createValidationLog($achievement, $validator, $oldStatus, StudentAchievement::STATUS_APPROVED, $notes, null, $skId);
             $this->notifyStudent($achievement, 'approved');
 
             return true;
@@ -72,18 +65,8 @@ class AchievementApprovalService
 
     public function submitForReview(StudentAchievement $achievement): bool
     {
-        // Calculate credibility score
-        $score = $this->credibilityService->calculateScore($achievement);
-        $requiresExtraReview = $this->credibilityService->requiresExtraReview($score);
-
-        // Determine approval level based on competition level
-        $approvalLevel = $achievement->determineApprovalLevel();
-
         $achievement->update([
             'validation_status' => StudentAchievement::STATUS_PENDING,
-            'credibility_score' => $score,
-            'requires_extra_review' => $requiresExtraReview,
-            'approval_level' => $approvalLevel,
             'submitted_at' => now(),
         ]);
 
@@ -104,7 +87,8 @@ class AchievementApprovalService
         string $oldStatus,
         string $newStatus,
         ?string $notes = null,
-        ?array $metadata = null
+        ?array $metadata = null,
+        ?int $skId = null
     ): ValidationLog {
         return ValidationLog::create([
             'sa_id' => $achievement->sa_id,
@@ -112,6 +96,7 @@ class AchievementApprovalService
             'old_status' => $oldStatus,
             'new_status' => $newStatus,
             'notes' => $notes,
+            'sk_document' => $skId ? (string)$skId : null, // Store SK ID as string for backward compatibility
             'metadata' => $metadata,
             'validated_at' => now(),
         ]);
@@ -125,25 +110,51 @@ class AchievementApprovalService
                 $student->user->notify(new AchievementStatusChanged($achievement, $action));
             } catch (\Exception $e) {
                 // Log notification failure but don't break the flow
-                \Log::warning('Failed to send notification: ' . $e->getMessage());
+                \Log::warning('Failed to send notification: '.$e->getMessage());
             }
         }
     }
 
-    public function getApprovalStatistics(): array
+    public function getApprovalStatistics(?int $periodId = null): array
     {
-        $total = StudentAchievement::count();
-        $pending = StudentAchievement::pending()->count();
-        $approved = StudentAchievement::approved()->count();
-        $rejected = StudentAchievement::rejected()->count();
-        $needRevision = StudentAchievement::needRevision()->count();
+        $query = StudentAchievement::query();
+        if ($periodId) {
+            $query->where('academic_period_id', $periodId);
+        }
+
+        $total = (clone $query)->count();
+        $pending = (clone $query)->pending()->count();
+        $approved = (clone $query)->approved()->count();
+        $rejected = (clone $query)->rejected()->count();
+        $needRevision = (clone $query)->needRevision()->count();
 
         // Average time to approve (in days)
-        $avgTimeToApprove = ValidationLog::where('new_status', StudentAchievement::STATUS_APPROVED)
-            ->whereNotNull('validated_at')
-            ->join('student_achievements', 'validation_logs.sa_id', '=', 'student_achievements.sa_id')
-            ->selectRaw('AVG(JULIANDAY(validation_logs.validated_at) - JULIANDAY(student_achievements.submitted_at)) as avg_days')
-            ->value('avg_days') ?? 0;
+        $dbDriver = config('database.default');
+
+        $avgQuery = ValidationLog::where('validation_logs.new_status', StudentAchievement::STATUS_APPROVED)
+            ->whereNotNull('validation_logs.validated_at')
+            ->join('student_achievements', 'validation_logs.sa_id', '=', 'student_achievements.sa_id');
+
+        if ($periodId) {
+            $avgQuery->where('student_achievements.academic_period_id', $periodId);
+        }
+
+        if ($dbDriver === 'sqlite') {
+            // SQLite uses JULIANDAY for date calculations
+            $avgTimeToApprove = $avgQuery
+                ->selectRaw('AVG(JULIANDAY(validation_logs.validated_at) - JULIANDAY(student_achievements.submitted_at)) as avg_days')
+                ->value('avg_days') ?? 0;
+        } elseif ($dbDriver === 'pgsql') {
+            // PostgreSQL uses EXTRACT(EPOCH FROM ...) for date difference
+            $avgTimeToApprove = $avgQuery
+                ->selectRaw('AVG(EXTRACT(EPOCH FROM (validation_logs.validated_at - student_achievements.submitted_at))/86400) as avg_days')
+                ->value('avg_days') ?? 0;
+        } else {
+            // MySQL uses DATEDIFF
+            $avgTimeToApprove = $avgQuery
+                ->selectRaw('AVG(DATEDIFF(validation_logs.validated_at, student_achievements.submitted_at)) as avg_days')
+                ->value('avg_days') ?? 0;
+        }
 
         return [
             'total' => $total,
@@ -156,38 +167,109 @@ class AchievementApprovalService
         ];
     }
 
-    public function getMonthlyTrend(int $months = 6): array
+    public function getMonthlyTrend(int $months = 6, ?int $periodId = null): array
     {
         $data = [];
-        for ($i = $months - 1; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
-            $month = $date->format('Y-m');
-            $monthLabel = $date->format('M Y');
 
-            $submitted = StudentAchievement::whereYear('submitted_at', $date->year)
-                ->whereMonth('submitted_at', $date->month)
-                ->count();
+        if ($periodId) {
+            // Get period details
+            $period = \App\Models\AcademicPeriod::find($periodId);
 
-            $approved = StudentAchievement::whereYear('submitted_at', $date->year)
-                ->whereMonth('submitted_at', $date->month)
-                ->where('validation_status', StudentAchievement::STATUS_APPROVED)
-                ->count();
+            if ($period) {
+                // Generate months within the period
+                $startDate = $period->start_date;
+                $endDate = $period->end_date;
+                $currentDate = $startDate->copy();
 
-            $data[] = [
-                'month' => $monthLabel,
-                'submitted' => $submitted,
-                'approved' => $approved,
-            ];
+                while ($currentDate->lte($endDate)) {
+                    $monthLabel = $currentDate->format('M Y');
+
+                    $submittedQuery = StudentAchievement::whereYear('submitted_at', $currentDate->year)
+                        ->whereMonth('submitted_at', $currentDate->month)
+                        ->where('academic_period_id', $periodId);
+
+                    $submitted = $submittedQuery->count();
+
+                    $approvedQuery = StudentAchievement::whereYear('submitted_at', $currentDate->year)
+                        ->whereMonth('submitted_at', $currentDate->month)
+                        ->where('validation_status', StudentAchievement::STATUS_APPROVED)
+                        ->where('academic_period_id', $periodId);
+
+                    $approved = $approvedQuery->count();
+
+                    $data[] = [
+                        'month' => $monthLabel,
+                        'submitted' => $submitted,
+                        'approved' => $approved,
+                    ];
+
+                    $currentDate->addMonth();
+                }
+            }
+        } else {
+            // Default: last 6 months
+            for ($i = $months - 1; $i >= 0; $i--) {
+                $date = now()->subMonths($i);
+                $monthLabel = $date->format('M Y');
+
+                $submitted = StudentAchievement::whereYear('submitted_at', $date->year)
+                    ->whereMonth('submitted_at', $date->month)
+                    ->count();
+
+                $approved = StudentAchievement::whereYear('submitted_at', $date->year)
+                    ->whereMonth('submitted_at', $date->month)
+                    ->where('validation_status', StudentAchievement::STATUS_APPROVED)
+                    ->count();
+
+                $data[] = [
+                    'month' => $monthLabel,
+                    'submitted' => $submitted,
+                    'approved' => $approved,
+                ];
+            }
         }
 
         return $data;
     }
 
-    public function getLevelDistribution(): array
+    public function getLevelDistribution(?int $periodId = null): array
     {
-        return StudentAchievement::selectRaw('level, COUNT(*) as count')
-            ->groupBy('level')
-            ->pluck('count', 'level')
-            ->toArray();
+        $query = StudentAchievement::selectRaw('level, COUNT(*) as count')
+            ->groupBy('level');
+
+        if ($periodId) {
+            $query->where('academic_period_id', $periodId);
+        }
+
+        return $query->pluck('count', 'level')->toArray();
+    }
+
+    public function getPeriodComparison(): array
+    {
+        $periods = \App\Models\AcademicPeriod::ordered()->get();
+        $data = [];
+
+        foreach ($periods as $period) {
+            $total = StudentAchievement::where('academic_period_id', $period->id)->count();
+            $approved = StudentAchievement::where('academic_period_id', $period->id)
+                ->where('validation_status', StudentAchievement::STATUS_APPROVED)
+                ->count();
+            $pending = StudentAchievement::where('academic_period_id', $period->id)
+                ->where('validation_status', StudentAchievement::STATUS_PENDING)
+                ->count();
+            $rejected = StudentAchievement::where('academic_period_id', $period->id)
+                ->where('validation_status', StudentAchievement::STATUS_REJECTED)
+                ->count();
+
+            $data[] = [
+                'period' => $period->name,
+                'total' => $total,
+                'approved' => $approved,
+                'pending' => $pending,
+                'rejected' => $rejected,
+            ];
+        }
+
+        return $data;
     }
 }

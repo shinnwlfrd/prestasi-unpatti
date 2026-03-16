@@ -4,7 +4,48 @@
 @section('subtitle', 'Pengaturan Akun')
 
 @php
-    $user = auth()->user();
+    // Get user based on auth type
+    // Debug: Check what auth type is active
+    $authRole = session('auth_role');
+    $isStudent = $authRole === 'student';
+    
+    if ($isStudent) {
+        $studentId = session('student_id');
+        $student = \App\Models\Student::where('student_id', $studentId)->first();
+        
+        if (!$student) {
+            // Student not found, might be logged in as admin
+            $user = auth()->user();
+            if (!$user) {
+                abort(403, 'Unauthorized access');
+            }
+            $currentRole = $user->getCurrentRole();
+            $user->role_display = $currentRole ? $currentRole->getRoleDisplayName() : 'User';
+        } else {
+            $user = (object) [
+                'name' => $student->name ?? 'Student',
+                'email' => $student->email ?? '',
+                'role' => 'Mahasiswa',
+                'role_display' => 'Mahasiswa',
+                'is_active' => true,
+                'photo_url' => null,
+                'last_login_method' => null,
+                'password' => null,
+                'provider' => null,
+                'linked_at' => null,
+                'last_login_at' => null,
+            ];
+        }
+    } else {
+        $user = auth()->user();
+        if (!$user) {
+            abort(403, 'Unauthorized access');
+        }
+        
+        // Get current role display name
+        $currentRole = $user->getCurrentRole();
+        $user->role_display = $currentRole ? $currentRole->getRoleDisplayName() : $user->role;
+    }
     $userName = $user->name ?? 'User';
 @endphp
 
@@ -13,11 +54,20 @@
     <!-- Back Button -->
     <div>
         @php
-            $backRoute = match(auth()->user()->role ?? 'Validator') {
-                'Admin' => route('admin.dashboard'),
-                'Validator' => route('validator.dashboard'),
-                default => url()->previous() != url()->current() ? url()->previous() : '/'
-            };
+            if (session('auth_role') === 'student') {
+                $backRoute = route('student.dashboard');
+            } else {
+                $authUser = auth()->user();
+                $currentRole = $authUser?->getCurrentRole();
+                
+                $backRoute = match($currentRole?->role ?? 'mahasiswa') {
+                    'super_admin', 'admin' => route('admin.dashboard'),
+                    'operator' => route('validator.pending.index'),
+                    'pimpinan' => route('pimpinan.dashboard'),
+                    'mahasiswa' => route('student.dashboard'),
+                    default => url()->previous() != url()->current() ? url()->previous() : '/'
+                };
+            }
         @endphp
         <a href="{{ $backRoute }}" 
             class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors">
@@ -27,6 +77,88 @@
             <span>Kembali</span>
         </a>
     </div>
+    
+    <!-- Multi-Role Switcher (if user has multiple roles) -->
+    @if($hasMultipleRoles ?? false)
+    <x-card>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Multi-Role Account</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Anda memiliki {{ count($availableRoles) }} role yang terhubung</p>
+                </div>
+            </div>
+            <a href="{{ route('role.switch.page') }}" 
+               class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                Ganti Role
+            </a>
+        </div>
+        
+        <!-- Available Roles List -->
+        <div class="mt-4 space-y-2">
+            @foreach($availableRoles as $role)
+            <div class="flex items-center justify-between p-3 rounded-lg {{ $role['current'] ? 'bg-indigo-50 dark:bg-indigo-900/20 border-2 border-indigo-200 dark:border-indigo-800' : 'bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600' }}">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br 
+                        @if($role['role'] === 'mahasiswa') from-blue-500 to-cyan-600
+                        @elseif($role['role'] === 'admin') from-blue-500 to-indigo-600
+                        @elseif($role['role'] === 'operator') from-emerald-500 to-teal-600
+                        @elseif($role['role'] === 'pimpinan') from-amber-500 to-orange-600
+                        @else from-gray-500 to-gray-600
+                        @endif
+                        flex items-center justify-center">
+                        @if($role['role'] === 'mahasiswa')
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        @elseif($role['role'] === 'admin')
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        @elseif($role['role'] === 'operator')
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        @elseif($role['role'] === 'pimpinan')
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        @else
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        @endif
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="font-medium text-gray-900 dark:text-white">{{ $role['name'] }}</p>
+                            @if($role['current'])
+                                <span class="px-2 py-0.5 text-xs bg-indigo-600 text-white rounded-full">Aktif</span>
+                            @endif
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            {{ $role['level'] ?? '' }}
+                            @if(!empty($role['scope']))
+                                • {{ $role['scope'] }}
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </x-card>
+    @endif
+    
     <!-- Profile Card -->
     <x-card>
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -47,7 +179,7 @@
                 <p class="text-indigo-600 dark:text-indigo-400 font-medium">{{ $user->email }}</p>
                 <div class="flex flex-wrap items-center gap-2 mt-2">
                     <span class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
-                        {{ $user->role }}
+                        {{ $user->role_display ?? $user->role }}
                     </span>
                     @if($user->is_active)
                         <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">

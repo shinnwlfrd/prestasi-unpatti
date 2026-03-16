@@ -4,27 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AchievementAppeal extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'sa_id',
         'student_id',
         'appeal_reason',
+        'additional_notes',
+        'publication_link',
         'status',
         'reviewed_by',
         'review_notes',
+        'admin_notes',
         'reviewed_at',
+        'submitted_at',
     ];
 
     protected $casts = [
         'reviewed_at' => 'datetime',
+        'submitted_at' => 'datetime',
     ];
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_REJECTED = 'rejected';
 
     public function studentAchievement()
@@ -44,7 +52,7 @@ class AchievementAppeal extends Model
 
     public function getStatusBadgeAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PENDING => 'warning',
             self::STATUS_APPROVED => 'success',
             self::STATUS_REJECTED => 'danger',
@@ -54,7 +62,7 @@ class AchievementAppeal extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PENDING => 'Menunggu Review',
             self::STATUS_APPROVED => 'Disetujui',
             self::STATUS_REJECTED => 'Ditolak',

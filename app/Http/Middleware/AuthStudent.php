@@ -9,7 +9,7 @@ class AuthStudent
 {
     public function handle(Request $request, Closure $next)
     {
-        if (session('auth_role') !== 'student' || !session('student_id')) {
+        if (session('auth_role') !== 'student' || ! session('student_id')) {
             return redirect()->route('login')->withErrors(['login' => 'Anda harus login sebagai mahasiswa.']);
         }
 
