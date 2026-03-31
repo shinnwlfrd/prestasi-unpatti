@@ -21,7 +21,12 @@ class DashboardController extends Controller
         }
 
         // Try to get student from database (if has achievements)
-        $student = \App\Models\Student::find($studentId);
+        $student = \App\Models\Student::withTrashed()->find($studentId);
+
+        // Block if soft-deleted
+        if ($student && $student->trashed()) {
+            return redirect()->route('login')->with('error', 'Akun mahasiswa Anda telah dinonaktifkan.');
+        }
 
         // If student not found in database, use session data (first-time SSO login)
         if (!$student) {

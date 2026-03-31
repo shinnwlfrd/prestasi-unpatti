@@ -25,10 +25,23 @@ class AchievementCategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:achievement_categories',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
+
+        $existing = AchievementCategory::withTrashed()->where('name', $request->name)->first();
+
+        if ($existing) {
+            if ($existing->trashed()) {
+                $existing->restore();
+                $existing->update($request->all());
+                return redirect()->route('admin.categories.index')
+                    ->with('success', 'Kategori yang sebelumnya dihapus telah dipulihkan dan diperbarui.');
+            }
+
+            return back()->withErrors(['name' => 'Nama kategori sudah digunakan.'])->withInput();
+        }
 
         AchievementCategory::create($request->all());
 
@@ -44,7 +57,7 @@ class AchievementCategoryController extends Controller
     public function update(Request $request, AchievementCategory $category)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:achievement_categories,name,' . $category->id,
+            'name' => 'required|string|max:255|unique:achievement_categories,name,' . $category->id . ',id,deleted_at,NULL',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);

@@ -131,7 +131,7 @@ class AdminAchievementController extends Controller
                 }
 
                 // Check if student exists in local database
-                $student = Student::find($nim);
+                $student = Student::withTrashed()->find($nim);
 
                 // If not exists, create from SIAKAD data
                 if (!$student) {
@@ -143,6 +143,12 @@ class AdminAchievementController extends Controller
                         'name' => $student->name
                     ]);
                 } else {
+                    // Restore if soft-deleted
+                    if ($student->trashed()) {
+                        $student->restore();
+                        \Log::info('Restored soft-deleted student during achievement creation', ['nim' => $nim]);
+                    }
+
                     // Optional: Update existing student data
                     $studentData = $siakadService->transformToStudentData($siakadData);
                     $student->update($studentData);

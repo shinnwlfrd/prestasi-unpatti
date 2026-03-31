@@ -146,12 +146,12 @@ class RoleSwitchController extends Controller
                 'operator_level' => 'university',
             ]);
 
-            $user->update(['role' => 'Validator']);
+            $user->update(['role' => 'Operator']);
 
             return response()->json([
                 'success' => true,
                 'redirect_url' => route('validator.pending.index'),
-                'role' => 'Super Validator',
+                'role' => 'Super Operator',
             ]);
         }
 
@@ -197,7 +197,7 @@ class RoleSwitchController extends Controller
             // Mapping UserRole 'role' to User 'role'
             $userRoleToUserTable = match ($selectedRole->role) {
                 'super_admin', 'admin' => 'Admin',
-                'operator' => 'Validator',
+                'operator' => 'Operator',
                 'pimpinan' => 'Pimpinan',
                 'mahasiswa' => 'Mahasiswa',
                 default => ucfirst($selectedRole->role),

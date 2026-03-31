@@ -6,7 +6,7 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Kelola Users</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manajemen hak akses user admin, validator, dan
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manajemen hak akses user admin, operator, dan
                     pimpinan unit.</p>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-3">
@@ -120,7 +120,7 @@
                                                 {{ $userRole->getRoleDisplayName() }}
                                             </span>
 
-                                            @if($u->id !== auth()->id() && $userRoles->count() > 1)
+                                            @if($u->id !== auth()->id() && $userRoles->count() > 1 && (auth()->user()->isSuperAdmin() || (!in_array($userRole->role, ['super_admin', 'admin']))))
                                                 <form action="{{ route('admin.users.delete-role', ['user' => $u, 'roleId' => $userRole->id]) }}"
                                                     method="POST"
                                                     onsubmit="return confirm('Hapus role ini?')">
@@ -163,7 +163,9 @@
 
                         <!-- Action -->
                         <div>
-                            @if($u->id !== auth()->id())
+                            @if($u->id === auth()->id())
+                                <span class="text-xs text-gray-400 font-medium">Akun Saya</span>
+                            @elseif(auth()->user()->isSuperAdmin() || (!$u->isAdmin() && !$u->isSuperAdmin()))
                                 <form action="{{ route('admin.users.delete', $u) }}"
                                     method="POST"
                                     onsubmit="return confirm('Hapus user ini?')">
@@ -174,7 +176,7 @@
                                     </button>
                                 </form>
                             @else
-                                <span class="text-xs text-gray-400">Anda</span>
+                                <span class="text-xs text-gray-500 italic">Otoritas Terbatas</span>
                             @endif
                         </div>
                     </div>
@@ -281,7 +283,7 @@
                                                             {{ $userRole->getScopeDescription() }}
                                                         </div>
                                                     </div>
-                                                    @if($u->id !== auth()->id() && $userRoles->count() > 1)
+                                                    @if($u->id !== auth()->id() && $userRoles->count() > 1 && (auth()->user()->isSuperAdmin() || (!in_array($userRole->role, ['super_admin', 'admin']))))
                                                         <form
                                                             action="{{ route('admin.users.delete-role', ['user' => $u, 'roleId' => $userRole->id]) }}"
                                                             method="POST"
@@ -323,7 +325,9 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
-                                        @if($u->id !== auth()->id())
+                                        @if($u->id === auth()->id())
+                                            <span class="text-gray-400 text-sm font-medium">Akun Saya</span>
+                                        @elseif(auth()->user()->isSuperAdmin() || (!$u->isAdmin() && !$u->isSuperAdmin()))
                                             <form action="{{ route('admin.users.delete', $u) }}" method="POST"
                                                 onsubmit="return confirm('Hapus user {{ $u->name }}?\n\nPeringatan: Semua role user ini akan dihapus!')"
                                                 class="inline">
@@ -334,7 +338,7 @@
                                                 </button>
                                             </form>
                                         @else
-                                            <span class="text-gray-400 text-sm">Anda</span>
+                                            <span class="text-gray-500 text-sm italic">Otoritas Terbatas</span>
                                         @endif
                                     </div>
                                 </td>
@@ -441,7 +445,7 @@
                                 <p><strong>Program Studi:</strong> <span x-text="studentData?.program_study || '-'"></span>
                                 </p>
                                 <p class="text-xs mt-2 text-blue-600 dark:text-blue-500">
-                                    ℹ️ Mahasiswa ini belum memiliki role admin/validator. Anda dapat menambahkan role.
+                                    ℹ️ Mahasiswa ini belum memiliki role admin/operator. Anda dapat menambahkan role.
                                 </p>
                             </div>
                         </div>
@@ -482,24 +486,24 @@
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                             <option value="">-- Pilih Role --</option>
                             <option value="Admin">Admin Universitas</option>
-                            <option value="Validator">Operator/Validator</option>
+                            <option value="Operator">Operator</option>
                             <option value="Pimpinan">Pimpinan</option>
                         </select>
                     </div>
 
-                    <!-- Operator/Validator Fields -->
-                    <div x-show="form.role === 'Validator'" x-cloak>
+                    <!-- Operator Fields -->
+                    <div x-show="form.role === 'Operator'" x-cloak>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Fakultas <span class="text-red-500">*</span>
                         </label>
-                        <select name="faculty" x-model="form.faculty" :required="form.role === 'Validator'"
+                        <select name="faculty" x-model="form.faculty" :required="form.role === 'Operator'"
                             :disabled="loadingFaculties"
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white disabled:opacity-50">
                             <option value="">-- Pilih Fakultas --</option>
                             <template x-for="faculty in sigapFaculties" :key="faculty.id || faculty.nama">
                                 <option :value="faculty.nama" x-text="faculty.nama"></option>
                             </template>
-                            <option value="Semua Fakultas">Semua Fakultas (Super Validator)</option>
+                            <option value="Semua Fakultas">Semua Fakultas (Super Operator)</option>
                         </select>
                         <p x-show="loadingFaculties" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             Memuat data fakultas dari SIGAP...
@@ -685,18 +689,18 @@
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                             <option value="">-- Pilih Role --</option>
                             <option value="Admin">Admin Universitas</option>
-                            <option value="Validator">Operator/Validator</option>
+                            <option value="Operator">Operator</option>
                             <option value="Pimpinan">Pimpinan</option>
                         </select>
                     </div>
 
-                    <!-- Fakultas (for Validator) -->
-                    <div x-show="createUserForm.role === 'Validator'" x-cloak>
+                    <!-- Fakultas (for Operator) -->
+                    <div x-show="createUserForm.role === 'Operator'" x-cloak>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Fakultas <span class="text-red-500">*</span>
                         </label>
                         <select name="validator_faculty" x-model="createUserForm.faculty"
-                            :required="createUserForm.role === 'Validator'" :disabled="loadingFaculties"
+                            :required="createUserForm.role === 'Operator'" :disabled="loadingFaculties"
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white disabled:opacity-50">
                             <option value="">-- Pilih Fakultas --</option>
                             <template x-for="faculty in sigapFaculties" :key="faculty.id || faculty.nama">

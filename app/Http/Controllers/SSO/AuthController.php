@@ -108,6 +108,18 @@ class AuthController extends Controller
             $existingUser = \App\Models\User::withTrashed()->where('email', $email)->first();
 
             if ($existingUser) {
+                // SECURITY: Block soft-deleted users from logging in
+                if ($existingUser->trashed()) {
+                    Log::warning('SSO login blocked for soft-deleted user', [
+                        'email' => $email,
+                        'role' => $existingUser->role,
+                        'deleted_at' => $existingUser->deleted_at,
+                    ]);
+
+                    return redirect()->route('login')
+                        ->with('error', 'Akun Anda (' . $email . ') telah dinonaktifkan. Silakan hubungi Administrator untuk mengaktifkan kembali akun Anda.');
+                }
+
                 Log::info('SSO Detected Existing User in Database', [
                     'email' => $email,
                     'role' => $existingUser->role
@@ -162,17 +174,27 @@ class AuthController extends Controller
         ]);
 
         // ========================================================================
+        // SECURITY CHECK: BLOCK SOFT-DELETED STUDENTS
+        // ========================================================================
+        $existingStudent = \App\Models\Student::withTrashed()->where('student_id', $nimFromSSO)->first();
+        
+        if ($existingStudent && $existingStudent->trashed()) {
+            Log::warning('SSO login blocked for soft-deleted student', [
+                'nim' => $nimFromSSO,
+                'email' => $ssoEmail,
+                'deleted_at' => $existingStudent->deleted_at,
+            ]);
+
+            return redirect()->route('login')
+                ->with('error', 'Akun mahasiswa Anda (' . $nimFromSSO . ') telah dinonaktifkan. Silakan hubungi Administrator.');
+        }
+
+        // ========================================================================
         // STEP 2: HANDLE IDENTITY (RELIANT ON SESSION FOR STUDENTS)
         // ========================================================================
-        $user = \App\Models\User::withTrashed()->where('email', $ssoEmail)->first();
+        $user = \App\Models\User::where('email', $ssoEmail)->first();
 
         if ($user) {
-            // Restore if soft-deleted
-            if ($user->trashed()) {
-                $user->restore();
-                Log::info('Restored soft-deleted student user', ['email' => $ssoEmail]);
-            }
-
             // Update existing user (to maintain consistency for multi-role users)
             $user->update([
                 'name' => $ssoName,
@@ -186,13 +208,34 @@ class AuthController extends Controller
             ]);
 
             // Sync to user_roles table for compatibility with new role system
-            \App\Models\UserRole::updateOrCreate(
-                ['user_id' => $user->id, 'role' => 'mahasiswa'],
-                [
+            // IMPORTANT: Only update existing active role, do NOT recreate soft-deleted roles
+            $existingRole = \App\Models\UserRole::where('user_id', $user->id)
+                ->where('role', 'mahasiswa')
+                ->first();
+
+            if ($existingRole) {
+                $existingRole->update([
                     'is_active' => true,
                     'activated_at' => $user->linked_at ?? now(),
-                ]
-            );
+                ]);
+            } else {
+                // Only create if no soft-deleted version exists
+                $trashedRole = \App\Models\UserRole::onlyTrashed()
+                    ->where('user_id', $user->id)
+                    ->where('role', 'mahasiswa')
+                    ->first();
+
+                if (!$trashedRole) {
+                    // Truly new - create it
+                    \App\Models\UserRole::create([
+                        'user_id' => $user->id,
+                        'role' => 'mahasiswa',
+                        'is_active' => true,
+                        'activated_at' => $user->linked_at ?? now(),
+                    ]);
+                }
+                // If trashedRole exists, it was intentionally deleted by admin - don't recreate
+            }
 
             // Login user via Laravel Auth IF they exist in DB
             \Illuminate\Support\Facades\Auth::login($user);
@@ -351,8 +394,8 @@ class AuthController extends Controller
         $name = $userInfo['name'] ?? $userInfo['full_name'] ?? 'User';
         $roles = $userInfo['roles'] ?? [];
 
-        // Check if user already exists (including soft-deleted) to determine role
-        $existingUser = \App\Models\User::withTrashed()->where('email', $email)->first();
+        // Check if user already exists (NOT including soft-deleted) to determine role
+        $existingUser = \App\Models\User::where('email', $email)->first();
         
         // Determine role from SSO roles if user doesn't exist
         $role = $existingUser ? $existingUser->role : $this->determineRoleFromSSO($roles);
@@ -373,71 +416,26 @@ class AuthController extends Controller
                 ->with('error', 'Akun Anda (' . $email . ') belum terdaftar di sistem SIMAPRES. Silakan hubungi Administrator untuk pendaftaran akun.');
         }
 
-        // Handle soft-deleted users to prevent unique constraint violations
-        if ($existingUser) {
-            // Restore if soft-deleted
-            if ($existingUser->trashed()) {
-                $existingUser->restore();
-                Log::info('Restored soft-deleted staff user', ['email' => $email]);
-            }
+        // User exists and is NOT soft-deleted — update their info
+        // IMPORTANT: Do NOT overwrite 'role' or 'faculty'
+        // Role and faculty are managed by admin, not by SSO auto-detection
+        $existingUser->update([
+            'name' => $name,
+            // 'role' is NOT updated — keep admin-assigned role
+            // 'faculty' is NOT updated — keep admin-assigned faculty
+            'provider' => 'unpatti_sso',
+            'provider_id' => $userInfo['id'] ?? $userInfo['user_id'] ?? null,
+            'is_active' => true,
+            'email_verified_at' => now(),
+            'last_login_at' => now(),
+            'last_login_method' => 'sso',
+        ]);
+        $user = $existingUser;
 
-            // Update existing user
-            $existingUser->update([
-                'name' => $name,
-                'role' => $role,
-                'faculty' => $userInfo['faculty'] ?? ($existingUser->faculty ?? null),
-                'provider' => 'unpatti_sso',
-                'provider_id' => $userInfo['id'] ?? $userInfo['user_id'] ?? null,
-                'is_active' => true,
-                'email_verified_at' => now(),
-                'last_login_at' => now(),
-                'last_login_method' => 'sso',
-            ]);
-            $user = $existingUser;
-        } else {
-            // Create new user
-            $user = \App\Models\User::create([
-                'email' => $email,
-                'name' => $name,
-                'role' => $role,
-                'faculty' => $userInfo['faculty'] ?? null,
-                'provider' => 'unpatti_sso',
-                'provider_id' => $userInfo['id'] ?? $userInfo['user_id'] ?? null,
-                'is_active' => true,
-                'email_verified_at' => now(),
-                'last_login_at' => now(),
-                'last_login_method' => 'sso',
-            ]);
-        }
+        // DO NOT auto-sync roles from User.role column to user_roles table
+        // Roles in user_roles are managed exclusively by admin
+        // Only ensure existing active roles are preserved, never recreate deleted ones
 
-        $wasCreated = $user->wasRecentlyCreated;
-
-        // Sync to user_roles table
-        $roleMapping = [
-            'Admin' => 'admin',
-            'Operator' => 'operator',
-            'Pimpinan' => 'pimpinan',
-            'Student' => 'mahasiswa'
-        ];
-
-        $targetRole = $roleMapping[$role] ?? strtolower($role);
-
-        // Check if user already has a higher role (super_admin) to prevent redundancy
-        $hasSuperAdmin = $user->activeRoles()->where('role', 'super_admin')->exists();
-
-        // Only sync/add the role if it's not a redundant 'admin' role for a 'super_admin'
-        if (!($hasSuperAdmin && $targetRole === 'admin')) {
-            \App\Models\UserRole::updateOrCreate(
-                ['user_id' => $user->id, 'role' => $targetRole],
-                [
-                    'is_active' => true,
-                    'activated_at' => now(),
-                    // Add faculty context if available
-                    'faculty_id' => $user->faculty_id ?? $userInfo['faculty_id'] ?? null,
-                    'faculty_name' => $user->faculty ?? $userInfo['faculty'] ?? null,
-                ]
-            );
-        }
         // Login user with Laravel Auth
         \Illuminate\Support\Facades\Auth::login($user);
 
@@ -448,33 +446,50 @@ class AuthController extends Controller
             'sso_authenticated' => true,
         ]);
 
+        // Get active roles for redirect decision
+        $activeRoles = $user->activeRoles()->get();
+
         Log::info('Staff logged in via SSO', [
             'email' => $email,
             'name' => $name,
-            'role' => $role,
-            'roles' => $roles,
-            'created' => $wasCreated
+            'active_roles' => $activeRoles->pluck('role')->toArray(),
+            'sso_roles' => $roles,
         ]);
 
-        // Redirect based on role (Menggunakan strtolower agar tidak sensitif huruf besar/kecil)
-        $safeRole = strtolower($role);
-
-        if ($safeRole === 'admin') {
-            return redirect()->route('admin.dashboard')
+        // Redirect based on active roles from user_roles table (NOT legacy User.role column)
+        if ($activeRoles->count() > 1) {
+            // Multi-role user — redirect to role switcher
+            return redirect()->route('role.switch.page')
                 ->with('success', 'Selamat datang, ' . $name . '!');
-        } elseif ($safeRole === 'operator') {
-            return redirect()->route('validator.dashboard')
-                ->with('success', 'Selamat datang, ' . $name . '!');
-        } else {
-            // Penanganan darurat jika entah bagaimana mahasiswa lolos ke fungsi ini
-            if ($safeRole === 'student') {
-                return redirect()->route('student.dashboard')
-                    ->with('success', 'Selamat datang, ' . $name . '!');
-            }
-
-            return redirect()->route('login')
-                ->with('error', 'Role tidak dikenali (' . $role . '). Hubungi administrator.');
         }
+
+        if ($activeRoles->count() === 1) {
+            $activeRole = $activeRoles->first();
+
+            // Store active role in session
+            session([
+                'active_role_id' => $activeRole->id,
+                'active_role_type' => $activeRole->role,
+            ]);
+
+            return match ($activeRole->role) {
+                'super_admin', 'admin' => redirect()->route('admin.dashboard')
+                    ->with('success', 'Selamat datang, ' . $name . '!'),
+                'operator' => redirect()->route('validator.pending.index')
+                    ->with('success', 'Selamat datang, ' . $name . '!'),
+                'pimpinan' => redirect()->route('pimpinan.dashboard')
+                    ->with('success', 'Selamat datang, ' . $name . '!'),
+                'mahasiswa' => redirect()->route('student.dashboard')
+                    ->with('success', 'Selamat datang, ' . $name . '!'),
+                default => redirect()->route('login')
+                    ->with('error', 'Role tidak dikenali. Hubungi administrator.'),
+            };
+        }
+
+        // No active roles found - block login
+        \Illuminate\Support\Facades\Auth::logout();
+        return redirect()->route('login')
+            ->with('error', 'Akun Anda (' . $email . ') tidak memiliki role aktif. Hubungi Administrator.');
     }
 
     /**

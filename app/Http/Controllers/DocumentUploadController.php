@@ -48,7 +48,7 @@ class DocumentUploadController extends Controller
                 if ($user->role === 'Admin') {
                     return redirect()->route('admin.student-achievements')
                         ->with('warning', $message);
-                } elseif ($user->role === 'Validator') {
+                } elseif ($user->role === 'Operator') {
                     return redirect()->route('validator.pending.index')
                         ->with('warning', $message);
                 }
@@ -61,7 +61,7 @@ class DocumentUploadController extends Controller
         $achievement->load(['documents.revisions', 'documents.verifier', 'student', 'achievement.category']);
 
         // Check if user is validator/admin - they can upload all document types including SK Resmi
-        $isValidatorOrAdmin = auth()->check() && in_array(auth()->user()->role, ['Admin', 'Validator']);
+        $isValidatorOrAdmin = auth()->check() && in_array(auth()->user()->role, ['Admin', 'Operator']);
 
         // Filter document types
         if ($isValidatorOrAdmin) {
@@ -154,7 +154,7 @@ class DocumentUploadController extends Controller
             $user = auth()->user();
             if ($user->role === 'Admin') {
                 return redirect()->route('admin.achievements.validation.index')->with('success', $message);
-            } elseif ($user->role === 'Validator') {
+            } elseif ($user->role === 'Operator') {
                 return redirect()->route('validator.pending.index')->with('success', $message);
             }
         }
@@ -478,7 +478,7 @@ class DocumentUploadController extends Controller
     public function addNote(Request $request, AchievementDocument $document)
     {
         // Only admin/validator can add notes
-        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'Validator'])) {
+        if (!auth()->check() || !in_array(auth()->user()->role, ['Admin', 'Operator'])) {
             abort(403, 'Unauthorized.');
         }
 
@@ -517,7 +517,7 @@ class DocumentUploadController extends Controller
             }
 
             // Validator can access documents from their faculty
-            if ($user->role === 'Validator') {
+            if ($user->role === 'Operator') {
                 // If validator has faculty assigned, check if achievement is from same faculty
                 if ($user->faculty) {
                     $achievementFaculty = $achievement->student->faculty ?? null;

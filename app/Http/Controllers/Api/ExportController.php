@@ -422,7 +422,7 @@ class ExportController extends Controller
     {
         return match ($submittedBy) {
             'student' => 'Mahasiswa',
-            'validator' => 'Validator/Operator',
+            'validator' => 'Operator',
             'admin' => 'Administrator',
             default => $submittedBy ?? '-',
         };

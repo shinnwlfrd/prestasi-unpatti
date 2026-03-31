@@ -12,7 +12,7 @@ Route::get('/', function () {
         $role = auth()->user()->role;
         if ($role === 'Admin') {
             return redirect('/admin');
-        } elseif ($role === 'Validator') {
+        } elseif ($role === 'Operator') {
             return redirect()->route('validator.dashboard');
         } elseif ($role === 'Pimpinan') {
             return redirect()->route('pimpinan.dashboard');

@@ -24,14 +24,26 @@ class AcademicPeriodController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:academic_periods,code',
+            'code' => 'required|string|max:50',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
-        $period = AcademicPeriod::create($validated);
+        $existing = AcademicPeriod::withTrashed()->where('code', $request->code)->first();
+
+        if ($existing) {
+            if ($existing->trashed()) {
+                $existing->restore();
+                $existing->update($validated);
+                $period = $existing;
+            } else {
+                return back()->withErrors(['code' => 'Kode periode sudah digunakan.'])->withInput();
+            }
+        } else {
+            $period = AcademicPeriod::create($validated);
+        }
 
         // If set as active, deactivate others
         if ($request->is_active) {
@@ -40,7 +52,7 @@ class AcademicPeriodController extends Controller
 
         return redirect()
             ->route('admin.periods.index')
-            ->with('success', 'Periode akademik berhasil ditambahkan.');
+            ->with('success', 'Periode akademik berhasil disimpan.');
     }
 
     public function edit(AcademicPeriod $period)
@@ -52,7 +64,7 @@ class AcademicPeriodController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:academic_periods,code,' . $period->id,
+            'code' => 'required|string|max:50|unique:academic_periods,code,' . $period->id . ',id,deleted_at,NULL',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'description' => 'nullable|string',

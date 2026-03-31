@@ -1,6 +1,6 @@
 @php
     $isAdmin = auth()->check() && auth()->user()->role === 'Admin';
-    $isValidator = auth()->check() && auth()->user()->role === 'Validator';
+    $isValidator = auth()->check() && auth()->user()->role === 'Operator';
 
     // Determine layout based on role
     if ($isAdmin) {
@@ -25,7 +25,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                     @php
                         $isAdmin = auth()->check() && auth()->user()->role === 'Admin';
-                        $isValidator = auth()->check() && auth()->user()->role === 'Validator';
+                        $isValidator = auth()->check() && auth()->user()->role === 'Operator';
                         $isStudent = session('auth_role') === 'student';
 
                         if ($isAdmin) {

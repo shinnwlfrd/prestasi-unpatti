@@ -102,7 +102,7 @@
 
         $roleColors = [
             'student' => ['from-indigo-600', 'to-indigo-600', 'bg-indigo-600', 'text-indigo-600', 'border-indigo-200'],
-            'Validator' => ['from-indigo-600', 'to-indigo-600', 'bg-indigo-600', 'text-indigo-600', 'border-indigo-200'],
+            'Operator' => ['from-indigo-600', 'to-indigo-600', 'bg-indigo-600', 'text-indigo-600', 'border-indigo-200'],
             'Admin' => ['from-indigo-600', 'to-indigo-600', 'bg-indigo-600', 'text-indigo-600', 'border-indigo-200'],
             'guest' => ['from-gray-500', 'to-gray-600', 'bg-gray-500', 'text-gray-600', 'border-gray-200'],
         ];

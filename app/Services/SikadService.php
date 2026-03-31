@@ -99,17 +99,37 @@ class SikadService
         }
 
         try {
-            $student = Student::updateOrCreate(
-                ['student_id' => $nim],
-                [
+            // Check for soft-deleted student first
+            $student = Student::withTrashed()->where('student_id', $nim)->first();
+
+            if ($student) {
+                // Do not auto-restore soft-deleted students
+                if ($student->trashed()) {
+                    Log::warning("SIKAD: Skipped sync for soft-deleted student {$nim}");
+                    return null;
+                }
+
+                // Update existing student
+                $student->update([
+                    'name' => $sikadData['name'] ?? $student->name,
+                    'faculty' => $sikadData['faculty'] ?? $student->faculty,
+                    'program_study' => $sikadData['program_study'] ?? $student->program_study,
+                    'gpa' => $sikadData['gpa'] ?? $student->gpa,
+                    'email' => $sikadData['email'] ?? $student->email,
+                    'photo' => $sikadData['photo'] ?? $student->photo,
+                ]);
+            } else {
+                // Create new student
+                $student = Student::create([
+                    'student_id' => $nim,
                     'name' => $sikadData['name'] ?? null,
                     'faculty' => $sikadData['faculty'] ?? null,
                     'program_study' => $sikadData['program_study'] ?? null,
                     'gpa' => $sikadData['gpa'] ?? null,
                     'email' => $sikadData['email'] ?? null,
                     'photo' => $sikadData['photo'] ?? null,
-                ]
-            );
+                ]);
+            }
 
             Log::info("SIKAD: Synced student {$nim} successfully");
 

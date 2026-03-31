@@ -8,7 +8,7 @@ class ValidateAchievementRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && in_array(auth()->user()->role, ['Admin', 'Validator']);
+        return auth()->check() && in_array(auth()->user()->role, ['Admin', 'Operator']);
     }
 
     public function rules(): array

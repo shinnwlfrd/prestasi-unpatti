@@ -83,7 +83,7 @@ class DashboardController extends Controller
             'total_pending' => $getInclusiveCount($pendingStatuses, null),
             'total_rejected' => $getInclusiveCount($rejectedStatuses, $periodId),
             'approved' => $getInclusiveCount($approvedStatuses, $periodId),
-            'validators' => User::where('role', 'Validator')->where('is_active', true)->count(),
+            'validators' => User::where('role', 'Operator')->where('is_active', true)->count(),
             'total_achievements' => StudentAchievement::count(),
             'total_avg_time' => (function () use ($approvedStatuses) {
                 $records = StudentAchievement::query()
@@ -755,7 +755,7 @@ class DashboardController extends Controller
         return [
             'faculties_count' => \DB::table('students')->distinct()->count('faculty'),
             'prodis_count' => \DB::table('students')->distinct()->count('program_study'),
-            'validators_count' => User::where('role', 'Validator')->where('is_active', true)->count(),
+            'validators_count' => User::where('role', 'Operator')->where('is_active', true)->count(),
             'operators_count' => User::where('role', 'Admin')->where('is_active', true)->count(),
             'sync_status' => [
                 'status' => 'Stable',

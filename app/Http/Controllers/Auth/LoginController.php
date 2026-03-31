@@ -85,7 +85,7 @@ class LoginController extends Controller
             // Legacy role system (backward compatibility)
             if ($user->role === 'Admin') {
                 return redirect()->intended('/admin');
-            } elseif ($user->role === 'Validator') {
+            } elseif ($user->role === 'Operator') {
                 return redirect()->intended(route('validator.dashboard'));
             }
 
@@ -95,6 +95,17 @@ class LoginController extends Controller
         }
 
         RateLimiter::hit($key, 900);
+
+        // Check if account was soft-deleted
+        $trashedUser = \App\Models\User::withTrashed()->where('email', $request->email)->first();
+        if ($trashedUser && $trashedUser->trashed()) {
+            return back()->withErrors(['email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi Administrator.'])->withInput();
+        }
+        
+        $trashedStudent = \App\Models\Student::withTrashed()->where('student_id', $request->email)->first();
+        if ($trashedStudent && $trashedStudent->trashed()) {
+            return back()->withErrors(['email' => 'Akun mahasiswa Anda telah dinonaktifkan. Silakan hubungi Administrator.'])->withInput();
+        }
 
         // Check if account is SSO only
         $conflict = $this->authService->checkAccountConflict($request->email);

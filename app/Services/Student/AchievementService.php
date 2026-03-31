@@ -90,9 +90,13 @@ class AchievementService
      */
     protected function ensureStudentExists(string $studentId): void
     {
-        $student = \App\Models\Student::find($studentId);
+        $student = \App\Models\Student::withTrashed()->find($studentId);
         
         if ($student) {
+            if ($student->trashed()) {
+                $student->restore();
+                \Log::info('Restored soft-deleted student during achievement submission', ['student_id' => $studentId]);
+            }
             return; // Student already exists
         }
 

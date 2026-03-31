@@ -19,10 +19,19 @@ class UserManagementService
         \Illuminate\Support\Facades\DB::beginTransaction();
 
         try {
-            // Check if user already exists
-            $existingUser = User::where('email', $data['email'])->first();
+            // Check if user already exists (including soft-deleted)
+            $existingUser = User::withTrashed()->where('email', $data['email'])->first();
 
             if ($existingUser) {
+                // Restore if soft-deleted
+                if ($existingUser->trashed()) {
+                    $existingUser->restore();
+                    $existingUser->update(['is_active' => true]);
+                    \Illuminate\Support\Facades\Log::info('Restored soft-deleted user for role addition', [
+                        'email' => $data['email'],
+                    ]);
+                }
+
                 // User exists - add new role to existing user
                 \Illuminate\Support\Facades\Log::info('Adding role to existing user', [
                     'email' => $data['email'],

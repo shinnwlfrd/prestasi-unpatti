@@ -86,7 +86,10 @@ class AuthService
     }
 
     /**
-     * Find or create user from SSO data
+     * Find user from SSO data (does NOT auto-create)
+     * Non-student users must be pre-registered by admin
+     * 
+     * @throws \Exception if user not found
      */
     public function findOrCreateFromSSO(array $ssoData, array $tokens, string $provider = 'siakad'): User
     {
@@ -109,8 +112,9 @@ class AuthService
             return $this->linkExistingUser($user, $provider, $providerId, $ssoData, $tokens);
         }
 
-        // 3. Create new user
-        return $this->createSSOUser($provider, $providerId, $ssoData, $tokens);
+        // 3. User not found — do NOT auto-create
+        // Non-student accounts must be created manually by admin
+        throw new \Exception('Akun dengan email ' . $email . ' belum terdaftar di sistem. Hubungi Administrator.');
     }
 
     /**
@@ -215,7 +219,7 @@ class AuthService
 
         $mapping = config('sso.role_mapping', []);
 
-        return $mapping[$siakadRole] ?? 'Validator';
+        return $mapping[$siakadRole] ?? 'Operator';
     }
 
     /**

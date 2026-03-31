@@ -47,7 +47,16 @@ class UserRepository implements UserRepositoryInterface
     {
         $user = $this->find($id);
 
-        return $user ? $user->delete() : false;
+        if (!$user) {
+            return false;
+        }
+
+        // Cascade soft-delete to related UserRoles
+        \App\Models\UserRole::where('user_id', $id)->each(function ($role) {
+            $role->delete(); // This will soft-delete since UserRole uses SoftDeletes
+        });
+
+        return $user->delete();
     }
 
     public function paginate(int $perPage = 15): LengthAwarePaginator
@@ -57,12 +66,12 @@ class UserRepository implements UserRepositoryInterface
 
     public function getValidators(): Collection
     {
-        return $this->model->where('role', 'Validator')->get();
+        return $this->model->where('role', 'Operator')->get();
     }
 
     public function getActiveValidators(): Collection
     {
-        return $this->model->where('role', 'Validator')
+        return $this->model->where('role', 'Operator')
             ->where('is_active', true)
             ->get();
     }
@@ -89,7 +98,7 @@ class UserRepository implements UserRepositoryInterface
 
     public function countActiveValidators(): int
     {
-        return $this->model->where('role', 'Validator')
+        return $this->model->where('role', 'Operator')
             ->where('is_active', true)
             ->count();
     }

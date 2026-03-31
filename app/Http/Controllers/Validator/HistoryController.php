@@ -22,7 +22,7 @@ class HistoryController extends Controller
         $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
         
         // For backward compatibility
-        $faculty = $user->role === 'Validator' ? $user->faculty : null;
+        $faculty = $user->role === 'Operator' ? $user->faculty : null;
 
         $perPage = $request->input('per_page', 15);
         $logs = $this->validationService->getValidationHistory(
