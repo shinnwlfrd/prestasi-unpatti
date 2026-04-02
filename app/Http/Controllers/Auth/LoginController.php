@@ -17,8 +17,15 @@ class LoginController extends Controller
         $this->authService = $authService;
     }
 
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
+        // Capture origin URL if provided via query param or referer (if external)
+        if ($request->has('return_to')) {
+            session(['origin_url' => $request->query('return_to')]);
+        } elseif ($request->header('referer') && !str_contains($request->header('referer'), $request->getHost())) {
+            session(['origin_url' => $request->header('referer')]);
+        }
+
         return view('auth.login', [
             'localEnabled' => config('sso.gates.local.enabled', true),
             'ssoEnabled' => config('sso.gates.sso.enabled', true),
@@ -130,10 +137,12 @@ class LoginController extends Controller
             Auth::logout();
         }
 
+        $redirectUrl = $request->input('logout_redirect') ?? $request->session()->get('origin_url') ?? '/';
+        
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect($redirectUrl);
     }
 
     /**

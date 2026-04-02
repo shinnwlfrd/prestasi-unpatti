@@ -11,6 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Run this on all web routes to capture external referrer
+        $middleware->web(append: [
+            \App\Http\Middleware\CaptureOriginUrl::class,
+        ]);
+
         $middleware->alias([
             'auth.student' => \App\Http\Middleware\AuthStudent::class,
             'auth.validator' => \App\Http\Middleware\EnsureUserIsValidator::class,

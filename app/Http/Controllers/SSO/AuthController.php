@@ -531,9 +531,11 @@ class AuthController extends Controller
             }
         }
 
+        $redirectUrl = $request->input('logout_redirect') ?? $request->session()->get('origin_url') ?? '/';
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect($redirectUrl);
     }
 }
