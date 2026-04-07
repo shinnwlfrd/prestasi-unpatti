@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\IndexStudentRequest;
+use App\Models\Student;
 use App\Services\Admin\StudentManagementService;
 
 class StudentController extends Controller
@@ -21,6 +22,13 @@ class StudentController extends Controller
 
         $faculties = $this->studentService->getFaculties();
         $stats = $this->studentService->getStatistics();
+        
+        // Get dynamic angkatan list from actual student data
+        $angkatanList = Student::select('angkatan')
+            ->distinct()
+            ->whereNotNull('angkatan')
+            ->orderBy('angkatan', 'desc')
+            ->pluck('angkatan');
         
         // Get SIGAP data for cascade filter
         $sigapService = app(\App\Services\SigapApiService::class);
@@ -44,6 +52,7 @@ class StudentController extends Controller
             'students' => $students,
             'faculties' => $faculties,
             'facultyCount' => $stats['faculty_count'],
+            'angkatanList' => $angkatanList,
             'sigapFaculties' => $sigapFaculties,
             'sigapDepartments' => $sigapDepartments,
             'sigapStudyPrograms' => $sigapStudyPrograms,

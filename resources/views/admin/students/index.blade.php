@@ -96,10 +96,10 @@
                     <select name="angkatan" onchange="this.form.submit()"
                         class="w-full lg:w-auto px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                         <option value="">Semua Angkatan</option>
-                        @for($year = 2025; $year >= 2020; $year--)
-                            <option value="{{ $year }}" {{ request('angkatan') == $year ? 'selected' : '' }}>Angkatan {{ $year }}
+                        @foreach($angkatanList as $angkatan)
+                            <option value="{{ $angkatan }}" {{ request('angkatan') == $angkatan ? 'selected' : '' }}>Angkatan {{ $angkatan }}
                             </option>
-                        @endfor
+                        @endforeach
                     </select>
 
                     <!-- Buttons -->

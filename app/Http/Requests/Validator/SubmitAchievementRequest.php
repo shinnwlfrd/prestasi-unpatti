@@ -21,7 +21,7 @@ class SubmitAchievementRequest extends FormRequest
 
             'category_id' => 'required|exists:achievement_categories,id',
             'event_name' => 'required|string|max:255',
-            'level' => 'required|in:Universitas,Nasional,Internasional',
+            'level' => 'required|in:' . \App\Models\AchievementLevel::active()->pluck('name')->implode(','),
             'organizer' => 'required|string|max:255',
             'event_date' => 'required|date',
             'ranking' => 'nullable|string|max:100',

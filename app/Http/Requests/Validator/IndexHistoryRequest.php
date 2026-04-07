@@ -17,7 +17,7 @@ class IndexHistoryRequest extends FormRequest
             'search' => 'nullable|string|max:255',
             'status' => 'nullable|in:Disetujui,Ditolak,Revisi',
             'category' => 'nullable|exists:achievement_categories,id',
-            'level' => 'nullable|in:Universitas,Nasional,Internasional',
+            'level' => 'nullable|in:' . \App\Models\AchievementLevel::active()->pluck('name')->implode(','),
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date|after_or_equal:date_from',
             'per_page' => 'nullable|integer|min:5|max:100',

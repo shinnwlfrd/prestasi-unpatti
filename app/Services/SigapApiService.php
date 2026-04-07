@@ -15,55 +15,66 @@ class SigapApiService
      */
     private function getAllUnits()
     {
-        return Cache::remember('sigap_all_units', 3600, function () {
-            try {
-                $allData = [];
-                $page = 1;
-                $perPage = 100; // Request more data per page
+        // Check cache first
+        $cached = Cache::get('sigap_all_units');
+        if ($cached !== null && !empty($cached)) {
+            return $cached;
+        }
 
-                do {
-                    $response = Http::get($this->baseUrl . '/service-referensi/unit', [
+        try {
+            $allData = [];
+            $page = 1;
+            $perPage = 100; // Request more data per page
+
+            do {
+                $response = Http::timeout(15)
+                    ->retry(2, 500)
+                    ->get($this->baseUrl . '/service-referensi/unit', [
                         'page' => $page,
                         'per_page' => $perPage
                     ]);
 
-                    if (!$response->successful()) {
-                        Log::error('SIGAP API Failed', [
-                            'status' => $response->status(),
-                            'response' => $response->body()
-                        ]);
-                        break;
-                    }
+                if (!$response->successful()) {
+                    Log::error('SIGAP API Failed', [
+                        'status' => $response->status(),
+                        'response' => $response->body()
+                    ]);
+                    break;
+                }
 
-                    $result = $response->json();
-                    $data = $result['data']['data'] ?? [];
+                $result = $response->json();
+                $data = $result['data']['data'] ?? [];
 
-                    if (empty($data)) {
-                        break;
-                    }
+                if (empty($data)) {
+                    break;
+                }
 
-                    $allData = array_merge($allData, $data);
+                $allData = array_merge($allData, $data);
 
-                    // Check if there's more data
-                    $currentPage = $result['data']['current_page'] ?? 1;
-                    $total = $result['data']['total'] ?? 0;
-                    $hasMore = count($allData) < $total;
+                // Check if there's more data
+                $currentPage = $result['data']['current_page'] ?? 1;
+                $total = $result['data']['total'] ?? 0;
+                $hasMore = count($allData) < $total;
 
-                    $page++;
+                $page++;
 
-                } while ($hasMore && $page <= 10); // Max 10 pages to prevent infinite loop
+            } while ($hasMore && $page <= 10); // Max 10 pages to prevent infinite loop
 
-                Log::info('SIGAP API - All Units Retrieved', ['count' => count($allData)]);
+            Log::info('SIGAP API - All Units Retrieved', ['count' => count($allData)]);
 
-                return $allData;
-
-            } catch (\Exception $e) {
-                Log::error('SIGAP API Error', [
-                    'error' => $e->getMessage()
-                ]);
-                return [];
+            // Only cache if we actually got data - prevent caching empty results
+            if (!empty($allData)) {
+                Cache::put('sigap_all_units', $allData, 3600);
             }
-        });
+
+            return $allData;
+
+        } catch (\Exception $e) {
+            Log::error('SIGAP API Error', [
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
     }
 
     /**
@@ -87,28 +98,37 @@ class SigapApiService
      */
     public function getFaculties()
     {
-        return Cache::remember('sigap_faculties', 3600, function () {
-            $allUnits = $this->getAllUnits();
-            $flatUnits = $this->flattenUnits($allUnits);
+        // Check cache first
+        $cached = Cache::get('sigap_faculties');
+        if ($cached !== null && !empty($cached)) {
+            return $cached;
+        }
 
-            // Filter hanya fakultas
-            $faculties = collect($flatUnits)->filter(function ($item) {
-                return strtolower($item['jenis_unit'] ?? '') === 'fakultas';
-            })->map(function ($item) {
-                return [
-                    'id' => $item['id'] ?? null,
-                    'kode' => $item['kode'] ?? null,
-                    'nama' => $item['nama'] ?? null,
-                    'nama_en' => $item['nama_en'] ?? null,
-                    'jenis_unit' => $item['jenis_unit'] ?? null,
-                    'parent_id' => $item['parent_id'] ?? null,
-                ];
-            })->values()->all();
+        $allUnits = $this->getAllUnits();
+        $flatUnits = $this->flattenUnits($allUnits);
 
-            Log::info('SIGAP API - Faculties Retrieved', ['count' => count($faculties)]);
+        // Filter hanya fakultas
+        $faculties = collect($flatUnits)->filter(function ($item) {
+            return strtolower($item['jenis_unit'] ?? '') === 'fakultas';
+        })->map(function ($item) {
+            return [
+                'id' => $item['id'] ?? null,
+                'kode' => $item['kode'] ?? null,
+                'nama' => $item['nama'] ?? null,
+                'nama_en' => $item['nama_en'] ?? null,
+                'jenis_unit' => $item['jenis_unit'] ?? null,
+                'parent_id' => $item['parent_id'] ?? null,
+            ];
+        })->values()->all();
 
-            return $faculties;
-        });
+        Log::info('SIGAP API - Faculties Retrieved', ['count' => count($faculties)]);
+
+        // Only cache if we got data
+        if (!empty($faculties)) {
+            Cache::put('sigap_faculties', $faculties, 3600);
+        }
+
+        return $faculties;
     }
 
     /**
@@ -118,37 +138,45 @@ class SigapApiService
     {
         $cacheKey = $facultyId ? "sigap_departments_{$facultyId}" : 'sigap_departments_all';
 
-        return Cache::remember($cacheKey, 3600, function () use ($facultyId) {
-            $allUnits = $this->getAllUnits();
-            $flatUnits = $this->flattenUnits($allUnits);
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null && !empty($cached)) {
+            return $cached;
+        }
 
-            // Filter hanya jurusan
-            $departments = collect($flatUnits)->filter(function ($item) use ($facultyId) {
-                $isJurusan = strtolower($item['jenis_unit'] ?? '') === 'jurusan';
+        $allUnits = $this->getAllUnits();
+        $flatUnits = $this->flattenUnits($allUnits);
 
-                if ($facultyId) {
-                    return $isJurusan && ($item['parent_id'] ?? null) == $facultyId;
-                }
+        // Filter hanya jurusan
+        $departments = collect($flatUnits)->filter(function ($item) use ($facultyId) {
+            $isJurusan = strtolower($item['jenis_unit'] ?? '') === 'jurusan';
 
-                return $isJurusan;
-            })->map(function ($item) {
-                return [
-                    'id' => $item['id'] ?? null,
-                    'kode' => $item['kode'] ?? null,
-                    'nama' => $item['nama'] ?? null,
-                    'nama_en' => $item['nama_en'] ?? null,
-                    'jenis_unit' => $item['jenis_unit'] ?? null,
-                    'parent_id' => $item['parent_id'] ?? null,
-                ];
-            })->values()->all();
+            if ($facultyId) {
+                return $isJurusan && ($item['parent_id'] ?? null) == $facultyId;
+            }
 
-            Log::info('SIGAP API - Departments Retrieved', [
-                'faculty_id' => $facultyId,
-                'count' => count($departments)
-            ]);
+            return $isJurusan;
+        })->map(function ($item) {
+            return [
+                'id' => $item['id'] ?? null,
+                'kode' => $item['kode'] ?? null,
+                'nama' => $item['nama'] ?? null,
+                'nama_en' => $item['nama_en'] ?? null,
+                'jenis_unit' => $item['jenis_unit'] ?? null,
+                'parent_id' => $item['parent_id'] ?? null,
+            ];
+        })->values()->all();
 
-            return $departments;
-        });
+        Log::info('SIGAP API - Departments Retrieved', [
+            'faculty_id' => $facultyId,
+            'count' => count($departments)
+        ]);
+
+        // Only cache if we got data
+        if (!empty($departments)) {
+            Cache::put($cacheKey, $departments, 3600);
+        }
+
+        return $departments;
     }
 
     /**
@@ -158,37 +186,45 @@ class SigapApiService
     {
         $cacheKey = $departmentId ? "sigap_study_programs_{$departmentId}" : 'sigap_study_programs_all';
 
-        return Cache::remember($cacheKey, 3600, function () use ($departmentId) {
-            $allUnits = $this->getAllUnits();
-            $flatUnits = $this->flattenUnits($allUnits);
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null && !empty($cached)) {
+            return $cached;
+        }
 
-            // Filter hanya program studi
-            $studyPrograms = collect($flatUnits)->filter(function ($item) use ($departmentId) {
-                $isProdi = strtolower($item['jenis_unit'] ?? '') === 'program studi';
+        $allUnits = $this->getAllUnits();
+        $flatUnits = $this->flattenUnits($allUnits);
 
-                if ($departmentId) {
-                    return $isProdi && ($item['parent_id'] ?? null) == $departmentId;
-                }
+        // Filter hanya program studi
+        $studyPrograms = collect($flatUnits)->filter(function ($item) use ($departmentId) {
+            $isProdi = strtolower($item['jenis_unit'] ?? '') === 'program studi';
 
-                return $isProdi;
-            })->map(function ($item) {
-                return [
-                    'id' => $item['id'] ?? null,
-                    'kode' => $item['kode'] ?? null,
-                    'nama' => $item['nama'] ?? null,
-                    'nama_en' => $item['nama_en'] ?? null,
-                    'jenis_unit' => $item['jenis_unit'] ?? null,
-                    'parent_id' => $item['parent_id'] ?? null,
-                ];
-            })->values()->all();
+            if ($departmentId) {
+                return $isProdi && ($item['parent_id'] ?? null) == $departmentId;
+            }
 
-            Log::info('SIGAP API - Study Programs Retrieved', [
-                'department_id' => $departmentId,
-                'count' => count($studyPrograms)
-            ]);
+            return $isProdi;
+        })->map(function ($item) {
+            return [
+                'id' => $item['id'] ?? null,
+                'kode' => $item['kode'] ?? null,
+                'nama' => $item['nama'] ?? null,
+                'nama_en' => $item['nama_en'] ?? null,
+                'jenis_unit' => $item['jenis_unit'] ?? null,
+                'parent_id' => $item['parent_id'] ?? null,
+            ];
+        })->values()->all();
 
-            return $studyPrograms;
-        });
+        Log::info('SIGAP API - Study Programs Retrieved', [
+            'department_id' => $departmentId,
+            'count' => count($studyPrograms)
+        ]);
+
+        // Only cache if we got data
+        if (!empty($studyPrograms)) {
+            Cache::put($cacheKey, $studyPrograms, 3600);
+        }
+
+        return $studyPrograms;
     }
 
     /**

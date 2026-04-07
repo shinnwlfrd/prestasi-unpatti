@@ -16,7 +16,7 @@ class IndexAchievementRequest extends FormRequest
         return [
             'search' => 'nullable|string|max:255',
             'status' => 'nullable|in:Menunggu,Disetujui,Ditolak,Revisi',
-            'level' => 'nullable|in:Universitas,Nasional,Internasional',
+            'level' => 'nullable|in:' . \App\Models\AchievementLevel::active()->pluck('name')->implode(','),
             'category' => 'nullable|exists:achievement_categories,id',
             'per_page' => 'nullable|integer|min:5|max:100',
             'faculty_id' => 'nullable|string',

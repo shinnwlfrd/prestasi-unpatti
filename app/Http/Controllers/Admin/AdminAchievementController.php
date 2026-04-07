@@ -72,7 +72,7 @@ class AdminAchievementController extends Controller
             'student_ids.*' => 'required|string', // Changed: now accepts id_mahasiswa (UUID)
             'category_id' => 'required|exists:achievement_categories,id',
             'event_name' => 'required|string|max:255',
-            'level' => 'required|in:Universitas,Nasional,Internasional',
+            'level' => 'required|in:' . AchievementLevel::active()->pluck('name')->implode(',') ?: 'Universitas,Nasional,Internasional',
             'organizer' => 'required|string|max:255',
             'event_date' => 'required|date',
             'ranking' => 'nullable|string|max:100',
