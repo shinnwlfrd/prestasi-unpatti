@@ -23,6 +23,14 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        $superadmin = User::create([
+            'name' => 'Super Admin Glori',
+            'email' => '202351041@student.unpatti.ac.id',
+            'password' => Hash::make('password'),
+            'role' => 'Admin', // Legacy role field
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
 
         // Assign super_admin role in user_roles table
         UserRole::create([
@@ -34,5 +42,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->command->info('Superadmin created: demo@demo.test / password');
+        $this->command->info('Superadmin created: 202351041@student.unpatti.ac.id / password');
     }
 }

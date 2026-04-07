@@ -137,7 +137,7 @@ class LoginController extends Controller
             Auth::logout();
         }
 
-        $redirectUrl = $request->input('logout_redirect') ?? $request->session()->get('origin_url') ?? '/';
+        $redirectUrl = $request->input('logout_redirect') ?? $request->session()->get('origin_url') ?? env('PORTAL_URL', 'http://127.0.0.1:8000/portal');
         
         $request->session()->invalidate();
         $request->session()->regenerateToken();

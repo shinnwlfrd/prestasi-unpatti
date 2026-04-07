@@ -40,13 +40,13 @@ class AuthController extends Controller
 
     public function callback(Request $request)
     {
-        $state = $request->session()->pull('state');
-
-        throw_unless(
-            strlen($state) > 0 && $state === $request->state,
-            InvalidArgumentException::class,
-            'Invalid state value.'
-        );
+        // Mode Stateless: Tidak perlu memvalidasi session state untuk mendukung IdP-initiated SSO.
+        // $state = $request->session()->pull('state');
+        // throw_unless(
+        //     strlen($state) > 0 && $state === $request->state,
+        //     InvalidArgumentException::class,
+        //     'Invalid state value.'
+        // );
 
         try {
             Log::info('SSO Callback Started', [
@@ -518,20 +518,10 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $accessToken = $request->session()->get('sso_token');
+        // Token SSO tidak dihancurkan agar saat kembali ke portal (origin_url)
+        // user masih dalam keadaan login (seamless transition).
 
-        if ($accessToken) {
-            try {
-                Http::withHeaders([
-                    "Accept" => "application/json",
-                    'Authorization' => 'Bearer ' . $accessToken
-                ])->get($this->ssoBaseUrl . '/api/logmeout');
-            } catch (\Exception $e) {
-                Log::error('SSO Logout Error', ['error' => $e->getMessage()]);
-            }
-        }
-
-        $redirectUrl = $request->input('logout_redirect') ?? $request->session()->get('origin_url') ?? '/';
+        $redirectUrl = $request->input('logout_redirect') ?? $request->session()->get('origin_url') ?? env('PORTAL_URL', 'http://127.0.0.1:8000/portal');
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
