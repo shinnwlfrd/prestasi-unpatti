@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\IndexStudentRequest;
 use App\Models\Student;
+use App\Models\StudentAchievement;
 use App\Services\Admin\StudentManagementService;
 
 class StudentController extends Controller
@@ -67,9 +68,9 @@ class StudentController extends Controller
      */
     public function show($studentId)
     {
-        $student = \App\Models\Student::where('student_id', $studentId)->firstOrFail();
+        $student = Student::where('student_id', $studentId)->firstOrFail();
         
-        $achievements = \App\Models\StudentAchievement::with([
+        $achievements = StudentAchievement::with([
             'achievement.category',
             'student'
         ])
