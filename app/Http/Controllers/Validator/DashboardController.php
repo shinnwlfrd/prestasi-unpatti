@@ -21,132 +21,111 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        return view('validator.dashboard', $this->getDashboardData($request));
+    }
+
+    /**
+     * Collect all dashboard statistics and configuration
+     */
+    private function getDashboardData(Request $request)
+    {
         $scope = $this->getDashboardScope();
         $isPimpinan = $scope['isPimpinan'];
-        $level = $scope['level'];
-        $facultyId = $scope['facultyId'];
-        $departmentId = $scope['departmentId'];
-        $programStudyId = $scope['programStudyId'];
-        $position = $scope['position'];
-        $positionLabel = $scope['positionLabel'];
-        $scopeName = $scope['scopeName'];
 
-        // Get selected periods (default to current active period)
         $selectedPeriods = $this->getSelectedPeriods($request);
         $allPeriods = AcademicPeriod::orderBy('start_date', 'desc')->get();
 
-        // Build base queries with scope filtering
         $studentsQuery = Student::query();
         $achievementsQuery = StudentAchievement::query();
 
-        $this->applyScopeFilters($studentsQuery, $level, $facultyId, $departmentId, $programStudyId);
-        $this->applyScopeFilters($achievementsQuery, $level, $facultyId, $departmentId, $programStudyId);
+        $this->applyScopeFilters($studentsQuery, $scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId']);
+        $this->applyScopeFilters($achievementsQuery, $scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId']);
 
-        // Filter by selected periods
         if (!empty($selectedPeriods)) {
             $achievementsQuery->whereIn('academic_period_id', $selectedPeriods);
         }
 
-        // Get basic statistics & KPIs
         $totalStudents = $studentsQuery->count();
         $totalAchievements = $achievementsQuery->clone()
             ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
             ->count();
 
-        $kpiData = $this->getKpiStats($totalStudents, $totalAchievements, $selectedPeriods, $isPimpinan, $level, $facultyId, $departmentId, $programStudyId);
-        $achievementRatio = $kpiData['ratio'];
-        $achievementGrowth = $kpiData['growth'];
-        $urgentPending = $kpiData['urgentPending'];
+        $kpiData = $this->getKpiStats($totalStudents, $totalAchievements, $selectedPeriods, $isPimpinan, $scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId']);
+        
+        $levelDist = $this->getLevelDistribution($achievementsQuery, $isPimpinan);
+        $regionalKpis = $this->getNationalKpis($totalAchievements, $levelDist);
+        $activeUnitsData = $this->getActiveUnitsKpi($scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $selectedPeriods);
 
-        // Status breakdown & Distribution
-        $statusStats = $this->getStatusStats($achievementsQuery);
-        $categoryDistribution = $this->getCategoryDistribution($achievementsQuery, $isPimpinan);
-        $levelDistribution = $this->getLevelDistribution($achievementsQuery, $isPimpinan);
+        $hierarchy = $this->getHierarchyStats($scope, $isPimpinan, $selectedPeriods);
+        $trends = $this->getTrendStats($scope, $achievementsQuery, $isPimpinan, $selectedPeriods);
 
-        // Regional KPIs
-        $nationalStats = $this->getNationalKpis($totalAchievements, $levelDistribution);
-        $nationalPercentage = $nationalStats['nationalPercentage'];
-        $internationalPercentage = $nationalStats['internationalPercentage'];
-
-        $activeUnitsData = $this->getActiveUnitsKpi($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods);
-        $activeUnitsCount = $activeUnitsData['activeCount'];
-        $totalUnitsCount = $activeUnitsData['totalCount'];
-        $unitLabel = $activeUnitsData['label'];
-
-        // Hierarchical comparisons (Pimpinan only)
-        $hierarchicalData = [];
-        $categoryByHierarchy = [];
-        $levelByHierarchy = [];
-        $efficiencyRanking = collect();
-        $hierarchicalComparison = [];
-
-        if ($isPimpinan) {
-            $hierarchicalComparison = $this->getHierarchicalComparison($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods);
-
-            if (!empty($hierarchicalComparison)) {
-                $categoryByHierarchy = $this->getCategoryByHierarchy($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods);
-                $levelByHierarchy = $this->getLevelByHierarchy($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods);
-                $efficiencyRanking = $this->calculateEfficiencyRanking($hierarchicalComparison);
-            }
-            $hierarchicalData = $hierarchicalComparison;
-        }
-
-        // Engagement & Trends
-        $recentActivities = $this->getRecentActivities($achievementsQuery, $isPimpinan);
-        $topStudents = $this->getTopStudents($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan);
-        $topGpaByAngkatan = $this->getTopGpaByAngkatan($level, $programStudyId);
-        $achievementsByAngkatan = $this->getAchievementsByAngkatan($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan);
-        $achievementsPerPeriod = $this->getAchievementsPerPeriod($level, $facultyId, $departmentId, $programStudyId, $selectedPeriods, $isPimpinan);
-        $achievementTrend = $this->getAchievementTrend($level, $facultyId, $departmentId, $programStudyId, $isPimpinan);
-
-        // Insights & Pending Tasks
-        $riskIndicators = $this->getRiskIndicators($isPimpinan, $hierarchicalComparison, $selectedPeriods, $achievementGrowth, $level, $facultyId, $departmentId, $programStudyId, $totalUnitsCount, $activeUnitsCount);
-
+        $riskIndicators = $this->getRiskIndicators($isPimpinan, $hierarchy['comparison'], $selectedPeriods, $kpiData['growth'], $scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $activeUnitsData['totalCount'], $activeUnitsData['activeCount']);
         $validatorData = $this->getValidatorData($request, $achievementsQuery, $isPimpinan);
-        $pendingAchievements = $validatorData['pendingAchievements'];
-        $categories = $validatorData['categories'];
-        $levels = $validatorData['levels'];
 
-        $routePrefix = $isPimpinan ? 'pimpinan' : 'validator';
+        return [
+            'totalStudents' => $totalStudents,
+            'totalAchievements' => $totalAchievements,
+            'urgentPending' => $kpiData['urgentPending'],
+            'statusStats' => $this->getStatusStats($achievementsQuery),
+            'recentActivities' => $trends['activities'],
+            'topStudents' => $trends['top_students'],
+            'topGpaByAngkatan' => $trends['top_gpa'],
+            'achievementsByAngkatan' => $trends['by_angkatan'],
+            'categoryDistribution' => $this->getCategoryDistribution($achievementsQuery, $isPimpinan),
+            'levelDistribution' => $levelDist,
+            'categoryByHierarchy' => $hierarchy['category'],
+            'levelByHierarchy' => $hierarchy['level'],
+            'hierarchicalComparison' => $hierarchy['comparison'],
+            'achievementsPerPeriod' => $trends['per_period'],
+            'hierarchicalData' => $hierarchy['comparison'],
+            'allPeriods' => $allPeriods,
+            'selectedPeriods' => $selectedPeriods,
+            'level' => $scope['level'],
+            'position' => $scope['position'],
+            'positionLabel' => $scope['positionLabel'],
+            'scopeName' => $scope['scopeName'],
+            'isPimpinan' => $isPimpinan,
+            'pendingAchievements' => $validatorData['pendingAchievements'],
+            'categories' => $validatorData['categories'],
+            'levels' => $validatorData['levels'],
+            'routePrefix' => $isPimpinan ? 'pimpinan' : 'validator',
+            'achievementRatio' => $kpiData['ratio'],
+            'achievementGrowth' => $kpiData['growth'],
+            'nationalPercentage' => $regionalKpis['nationalPercentage'],
+            'internationalPercentage' => $regionalKpis['internationalPercentage'],
+            'activeUnitsCount' => $activeUnitsData['activeCount'],
+            'totalUnitsCount' => $activeUnitsData['totalCount'],
+            'unitLabel' => $activeUnitsData['label'],
+            'efficiencyRanking' => $hierarchy['efficiency'],
+            'achievementTrend' => $trends['trend'],
+            'riskIndicators' => $riskIndicators
+        ];
+    }
 
-        return view('validator.dashboard', compact(
-            'totalStudents',
-            'totalAchievements',
-            'urgentPending',
-            'statusStats',
-            'recentActivities',
-            'topStudents',
-            'topGpaByAngkatan',
-            'achievementsByAngkatan',
-            'categoryDistribution',
-            'levelDistribution',
-            'categoryByHierarchy',
-            'levelByHierarchy',
-            'hierarchicalComparison',
-            'achievementsPerPeriod',
-            'hierarchicalData',
-            'allPeriods',
-            'selectedPeriods',
-            'level',
-            'position',
-            'positionLabel',
-            'scopeName',
-            'isPimpinan',
-            'pendingAchievements',
-            'categories',
-            'levels',
-            'routePrefix',
-            'achievementRatio',
-            'achievementGrowth',
-            'nationalPercentage',
-            'internationalPercentage',
-            'activeUnitsCount',
-            'totalUnitsCount',
-            'unitLabel',
-            'efficiencyRanking',
-            'achievementTrend',
-            'riskIndicators'
-        ));
+    private function getHierarchyStats($scope, $isPimpinan, $selectedPeriods)
+    {
+        $data = ['comparison' => [], 'category' => [], 'level' => [], 'efficiency' => collect()];
+        if ($isPimpinan) {
+            $data['comparison'] = $this->getHierarchicalComparison($scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $selectedPeriods);
+            if (!empty($data['comparison'])) {
+                $data['category'] = $this->getCategoryByHierarchy($scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $selectedPeriods);
+                $data['level'] = $this->getLevelByHierarchy($scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $selectedPeriods);
+                $data['efficiency'] = $this->calculateEfficiencyRanking($data['comparison']);
+            }
+        }
+        return $data;
+    }
+
+    private function getTrendStats($scope, $achievementsQuery, $isPimpinan, $selectedPeriods)
+    {
+        return [
+            'activities' => $this->getRecentActivities($achievementsQuery, $isPimpinan),
+            'top_students' => $this->getTopStudents($scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $selectedPeriods, $isPimpinan),
+            'top_gpa' => $this->getTopGpaByAngkatan($scope['level'], $scope['programStudyId']),
+            'by_angkatan' => $this->getAchievementsByAngkatan($scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $selectedPeriods, $isPimpinan),
+            'per_period' => $this->getAchievementsPerPeriod($scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $selectedPeriods, $isPimpinan),
+            'trend' => $this->getAchievementTrend($scope['level'], $scope['facultyId'], $scope['departmentId'], $scope['programStudyId'], $isPimpinan),
+        ];
     }
 
     /**
@@ -1107,11 +1086,11 @@ class DashboardController extends Controller
 
         $prefix = $isPimpinanRoute ? 'pimpinan' : 'operator';
 
-        $level = session("{$prefix}_level") ?? session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session("{$prefix}_faculty_id") ?? session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session("{$prefix}_department_id") ?? session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session("{$prefix}_program_study_id") ?? session('operator_program_study_id') ?? session('pimpinan_program_study_id');
-        $position = session('pimpinan_position');
+        $level = $currentRole ? $currentRole->level : (session("{$prefix}_level") ?? session('operator_level') ?? session('pimpinan_level'));
+        $facultyId = $currentRole ? $currentRole->faculty_id : (session("{$prefix}_faculty_id") ?? session('operator_faculty_id') ?? session('pimpinan_faculty_id'));
+        $departmentId = $currentRole ? $currentRole->department_id : (session("{$prefix}_department_id") ?? session('operator_department_id') ?? session('pimpinan_department_id'));
+        $programStudyId = $currentRole ? $currentRole->program_study_id : (session("{$prefix}_program_study_id") ?? session('operator_program_study_id') ?? session('pimpinan_program_study_id'));
+        $position = $currentRole ? $currentRole->position : session('pimpinan_position');
 
         // Ensure empty strings are treated as null to avoid invalid UUID comparisons in Postgres
         $facultyId = $facultyId ?: null;

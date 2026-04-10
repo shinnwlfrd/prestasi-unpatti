@@ -64,42 +64,28 @@ class DashboardController extends Controller
         // so data shown is always relevant to the viewed period
 
         // Helper for inclusive status counts
-        $getInclusiveCount = function ($statuses, $pId = null) {
-            return StudentAchievement::whereIn('validation_status', $statuses)
-                ->when($pId, fn($q) => $q->where('academic_period_id', $pId))
-                ->count();
-        };
+
 
         // Status groupings (inclusive of legacy and new statuses)
-        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'university_review', 'appeal_submitted'];
-        $approvedStatuses = ['Disetujui', 'faculty_approved', 'university_approved', 'appeal_approved'];
-        $rejectedStatuses = ['Ditolak', 'faculty_rejected', 'university_rejected', 'appeal_rejected', 'faculty_revision'];
+        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'university_review'];
+        $approvedStatuses = ['Disetujui', 'faculty_approved', 'university_approved'];
+        $rejectedStatuses = ['Ditolak', 'faculty_rejected', 'university_rejected', 'faculty_revision'];
 
         // Basic Statistics
         $stats = [
             'students' => Student::count(),
             'achievements' => StudentAchievement::when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
-            'pending' => $getInclusiveCount($pendingStatuses, $periodId),
-            'total_pending' => $getInclusiveCount($pendingStatuses, null),
-            'total_rejected' => $getInclusiveCount($rejectedStatuses, $periodId),
-            'approved' => $getInclusiveCount($approvedStatuses, $periodId),
+            'pending' => $this->getInclusiveCount($pendingStatuses, $periodId),
+            'total_pending' => $this->getInclusiveCount($pendingStatuses, null),
+            'total_rejected' => $this->getInclusiveCount($rejectedStatuses, $periodId),
+            'approved' => $this->getInclusiveCount($approvedStatuses, $periodId),
             'validators' => User::where('role', 'Operator')->where('is_active', true)->count(),
             'total_achievements' => StudentAchievement::count(),
-            'total_avg_time' => (function () use ($approvedStatuses) {
-                $records = StudentAchievement::query()
-                    ->whereIn('validation_status', $approvedStatuses)
-                    ->whereNotNull('updated_at')
-                    ->select('created_at', 'updated_at')
-                    ->get();
-                if ($records->isEmpty())
-                    return 0;
-                $totalDays = $records->sum(fn($item) => Carbon::parse($item->created_at)->diffInDays(Carbon::parse($item->updated_at)));
-                return (int) round($totalDays / $records->count());
-            })(),
+            'total_avg_time' => $this->calculateTotalAvgTime($approvedStatuses),
             'global_status_stats' => [
-                'menunggu' => $getInclusiveCount($pendingStatuses, null),
-                'disetujui' => $getInclusiveCount($approvedStatuses, null),
-                'ditolak' => $getInclusiveCount($rejectedStatuses, null),
+                'menunggu' => $this->getInclusiveCount($pendingStatuses, null),
+                'disetujui' => $this->getInclusiveCount($approvedStatuses, null),
+                'ditolak' => $this->getInclusiveCount($rejectedStatuses, null),
             ],
             'global_level_distribution' => [
                 'Universitas' => StudentAchievement::where('level', 'Universitas')->count(),
@@ -114,7 +100,6 @@ class DashboardController extends Controller
                 ->get(),
             // Two-stage validation stats
             'university_pending' => StudentAchievement::universityPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
-            'appeal_pending' => StudentAchievement::appealPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
         ];
 
         // Recent Achievements (last 10)
@@ -170,9 +155,9 @@ class DashboardController extends Controller
 
         // Quick Stats by Status (including new statuses)
         $statusStats = [
-            'menunggu' => $getInclusiveCount($pendingStatuses, $periodId),
-            'disetujui' => $getInclusiveCount($approvedStatuses, $periodId),
-            'ditolak' => $getInclusiveCount($rejectedStatuses, $periodId),
+            'menunggu' => $this->getInclusiveCount($pendingStatuses, $periodId),
+            'disetujui' => $this->getInclusiveCount($approvedStatuses, $periodId),
+            'ditolak' => $this->getInclusiveCount($rejectedStatuses, $periodId),
             'revisi' => StudentAchievement::whereIn('validation_status', ['Revisi', 'faculty_revision'])->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
             // New two-stage statuses
             'faculty_pending' => StudentAchievement::facultyPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
@@ -250,7 +235,7 @@ class DashboardController extends Controller
             })->sortByDesc('ratio')->values();
 
             // For archived periods: pending items are treated as 'Dibatalkan (Expired)'
-            $expiredCount = $getInclusiveCount($pendingStatuses, $periodId);
+            $expiredCount = $this->getInclusiveCount($pendingStatuses, $periodId);
 
             // Previous period comparison (n-1)
             $previousPeriod = AcademicPeriod::where('start_date', '<', $selectedPeriod->start_date)
@@ -328,6 +313,27 @@ class DashboardController extends Controller
         ));
     }
 
+    protected function getInclusiveCount(array $statuses, $pId = null): int
+    {
+        return StudentAchievement::whereIn('validation_status', $statuses)
+            ->when($pId, fn($q) => $q->where('academic_period_id', $pId))
+            ->count();
+    }
+
+    protected function calculateTotalAvgTime(array $approvedStatuses): int
+    {
+        $records = StudentAchievement::query()
+            ->whereIn('validation_status', $approvedStatuses)
+            ->whereNotNull('updated_at')
+            ->select('created_at', 'updated_at')
+            ->get();
+        if ($records->isEmpty()) {
+            return 0;
+        }
+        $totalDays = $records->sum(fn($item) => Carbon::parse($item->created_at)->diffInDays(Carbon::parse($item->updated_at)));
+        return (int) round($totalDays / $records->count());
+    }
+
     // Helper methods for monitoring dashboard
     protected function getPeriodComparison()
     {
@@ -337,15 +343,15 @@ class DashboardController extends Controller
                 academic_periods.name as period,
                 COUNT(*) as total,
                 SUM(CASE 
-                    WHEN validation_status IN ('Disetujui', 'university_approved', 'appeal_approved') THEN 1 
+                    WHEN validation_status IN ('Disetujui', 'university_approved') THEN 1 
                     ELSE 0 
                 END) as approved,
                 SUM(CASE 
-                    WHEN validation_status IN ('Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review', 'appeal_submitted') THEN 1 
+                    WHEN validation_status IN ('Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review') THEN 1 
                     ELSE 0 
                 END) as pending,
                 SUM(CASE 
-                    WHEN validation_status IN ('Ditolak', 'faculty_rejected', 'university_rejected', 'appeal_rejected') THEN 1 
+                    WHEN validation_status IN ('Ditolak', 'faculty_rejected', 'university_rejected') THEN 1 
                     ELSE 0 
                 END) as rejected
             ")
@@ -422,7 +428,7 @@ class DashboardController extends Controller
                 // If no data, return empty array with proper structure
                 if ($results->isEmpty()) {
                     $monthLabel = ($period && $period->start_date)
-                        ? \Carbon\Carbon::parse($period->start_date)->format('M Y')
+                        ? Carbon::parse($period->start_date)->format('M Y')
                         : now()->format('M Y');
                     return collect([
                         (object) ['month' => $monthLabel, 'submitted' => 0, 'approved' => 0]
@@ -519,15 +525,15 @@ class DashboardController extends Controller
                 COALESCE(students.faculty, 'N/A') as faculty,
                 COUNT(*) as total,
                 SUM(CASE 
-                    WHEN student_achievements.validation_status IN ('Disetujui', 'university_approved', 'appeal_approved') THEN 1 
+                    WHEN student_achievements.validation_status IN ('Disetujui', 'university_approved') THEN 1 
                     ELSE 0 
                 END) as approved,
                 SUM(CASE 
-                    WHEN student_achievements.validation_status IN ('Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review', 'appeal_submitted') THEN 1 
+                    WHEN student_achievements.validation_status IN ('Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review') THEN 1 
                     ELSE 0 
                 END) as pending,
                 SUM(CASE 
-                    WHEN student_achievements.validation_status IN ('Ditolak', 'faculty_rejected', 'university_rejected', 'appeal_rejected') THEN 1 
+                    WHEN student_achievements.validation_status IN ('Ditolak', 'faculty_rejected', 'university_rejected') THEN 1 
                     ELSE 0 
                 END) as rejected,
                 SUM(CASE 
@@ -632,7 +638,7 @@ class DashboardController extends Controller
                 COALESCE(students.program_study, 'N/A') as prodi,
                 COUNT(*) as total,
                 SUM(CASE 
-                    WHEN validation_status IN ('Disetujui', 'university_approved', 'appeal_approved') THEN 1 
+                    WHEN validation_status IN ('Disetujui', 'university_approved') THEN 1 
                     ELSE 0 
                 END) as approved
             ")
@@ -713,7 +719,7 @@ class DashboardController extends Controller
             'Fakultas Pertanian' => 'FP',
         ];
 
-        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review', 'appeal_submitted'];
+        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review'];
 
         $results = \DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
@@ -733,7 +739,7 @@ class DashboardController extends Controller
 
     protected function getCriticalQueue($periodId = null, $limit = 5)
     {
-        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review', 'appeal_submitted'];
+        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review'];
 
         $items = StudentAchievement::with(['student', 'achievement.category'])
             ->whereIn('validation_status', $pendingStatuses)

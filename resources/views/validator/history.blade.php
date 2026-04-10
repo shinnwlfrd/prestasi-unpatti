@@ -81,164 +81,106 @@
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <form method="GET" action="{{ route('validator.history') }}" class="space-y-4">
-                <!-- Row 1: Search -->
-                <div class="grid grid-cols-1 gap-4">
+        <!-- Integrated History Table Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cari</label>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Nama mahasiswa, NIM, atau prestasi..."
-                            class="w-full py-3 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-                </div>
-
-                <!-- Row 2: Status, Category, Level, Faculty (if applicable) -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <!-- Status Filter -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                        <select name="status"
-                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                            <option value="">Semua Status</option>
-                            @php
-                                $statusLabels = [
-                                    'pending' => 'Pending',
-                                    'submitted' => 'Diajukan',
-                                    'faculty_review' => 'Review Fakultas',
-                                    'faculty_approved' => 'Disetujui Fakultas',
-                                    'faculty_rejected' => 'Ditolak Fakultas',
-                                    'university_review' => 'Review Universitas',
-                                    'university_approved' => 'Disetujui Universitas',
-                                    'university_rejected' => 'Ditolak Universitas',
-                                    'rejected' => 'Ditolak',
-                                    'revision_requested' => 'Perlu Revisi',
-                                    'appeal_submitted' => 'Banding Diajukan',
-                                    'appeal_approved' => 'Banding Diterima',
-                                    'appeal_rejected' => 'Banding Ditolak',
-                                ];
-                            @endphp
-                            @foreach($statuses as $status)
-                                <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
-                                    {{ $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Category Filter -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
-                        <select name="category"
-                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                            <option value="">Semua Kategori</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Level Filter -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tingkat</label>
-                        <select name="level"
-                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                            <option value="">Semua Tingkat</option>
-                            @foreach($levels as $level)
-                                <option value="{{ $level }}" {{ request('level') == $level ? 'selected' : '' }}>
-                                    {{ $level }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Faculty Filter (Only for Operator Universitas) -->
-                    @if(isset($faculties) && $faculties->isNotEmpty())
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fakultas</label>
-                        <select name="faculty"
-                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                            <option value="">Semua Fakultas</option>
-                            @foreach($faculties as $faculty)
-                                <option value="{{ $faculty->id }}" {{ request('faculty') == $faculty->id ? 'selected' : '' }}>
-                                    {{ $faculty->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @endif
-                </div>
-
-                <!-- Row 3: Date Range -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Date From -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dari Tanggal</label>
-                        <input type="date" name="date_from" value="{{ request('date_from') }}"
-                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-
-                    <!-- Date To -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sampai
-                            Tanggal</label>
-                        <input type="date" name="date_to" value="{{ request('date_to') }}"
-                            class="w-full py-3 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                    </div>
-                </div>
-
-                <!-- Filter Actions -->
-                <div class="flex items-center gap-3 pt-2">
-                    <button type="submit"
-                        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                        </svg>
-                        Filter
-                    </button>
-                    @if(request()->hasAny(['search', 'status', 'category', 'level', 'faculty', 'date_from', 'date_to']))
-                        <a href="{{ route('validator.history') }}"
-                            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium">
-                            Reset
-                        </a>
-                    @endif
-                    <div class="ml-auto flex items-center gap-2">
-                        <label class="text-sm text-gray-600 dark:text-gray-400">Per halaman:</label>
-                        <select name="per_page" onchange="this.form.submit()"
-                            class="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm">
-                            <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
-                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-                        </select>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- History Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <!-- Header -->
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Riwayat Verifikasi</h2>
+                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Riwayat Verifikasi</h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            @if(request()->hasAny(['search', 'status', 'category', 'level', 'date_from', 'date_to']))
-                                Hasil filter
-                            @else
-                                Histori prestasi yang sudah diverifikasi
-                            @endif
+                            Histori prestasi yang sudah diverifikasi oleh operator.
                         </p>
                     </div>
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        Total: <strong class="text-gray-900 dark:text-white">{{ $logs->total() }}</strong> riwayat
-                    </span>
                 </div>
+
+                <!-- Integrated Compact History Filter -->
+                <form method="GET" action="{{ route('validator.history') }}" class="w-full">
+                    <div class="flex flex-col xl:flex-row gap-3 w-full">
+                        <!-- Fast filters row -->
+                        <div class="flex flex-col sm:flex-row flex-wrap xl:flex-nowrap items-center gap-2 md:gap-3 flex-grow">
+                            <!-- Search -->
+                            <div class="relative w-full sm:w-auto sm:flex-grow xl:w-56 shrink-0">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Nama, NIM, Prestasi..."
+                                    class="pl-9 w-full py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
+                            </div>
+
+                            <!-- Status -->
+                            <select name="status" onchange="this.form.submit()"
+                                class="w-full sm:w-1/3 md:w-auto xl:w-36 shrink-0 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
+                                <option value="">Semua Status</option>
+                                @php
+                                    $statusLabels = [
+                                        'pending' => 'Pending',
+                                        'submitted' => 'Diajukan',
+                                        'faculty_review' => 'Review Fakultas',
+                                        'faculty_approved' => 'Disetujui Fakultas',
+                                        'faculty_rejected' => 'Ditolak Fakultas',
+                                        'university_review' => 'Review Universitas',
+                                        'university_approved' => 'Disetujui Universitas',
+                                        'university_rejected' => 'Ditolak Universitas',
+                                        'rejected' => 'Ditolak',
+                                        'revision_requested' => 'Perlu Revisi',
+                                        'appeal_submitted' => 'Banding Diajukan',
+                                        'appeal_approved' => 'Banding Diterima',
+                                        'appeal_rejected' => 'Banding Ditolak',
+                                    ];
+                                @endphp
+                                @foreach($statuses as $value => $label)
+                                    <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <!-- Category -->
+                            <select name="category" onchange="this.form.submit()"
+                                class="w-full sm:w-1/3 md:w-auto xl:w-36 shrink-0 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
+                                <option value="">Semua Kategori</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+
+                            <!-- Level -->
+                            <select name="level" onchange="this.form.submit()"
+                                class="w-full sm:w-1/4 md:w-auto xl:w-36 shrink-0 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
+                                <option value="">Semua Tingkat</option>
+                                @foreach($levels as $lvl)
+                                    <option value="{{ $lvl->name }}" {{ request('level') == $lvl->name ? 'selected' : '' }}>{{ $lvl->name }}</option>
+                                @endforeach
+                            </select>
+
+
+                        </div>
+
+                        <!-- Actions row -->
+                        <div class="flex items-center justify-end gap-2 w-full xl:w-auto shrink-0 mt-2 xl:mt-0">
+                            <!-- Per Page -->
+                            <select name="per_page" onchange="this.form.submit()"
+                                class="w-20 px-2 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+                                <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
+                                <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                            </select>
+
+                            @if(request()->hasAny(['search', 'status', 'category', 'level']))
+                                <a href="{{ route('validator.history') }}" class="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-lg transition-colors border border-gray-200 dark:border-gray-600" title="Reset Filters">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </a>
+                            @endif
+                            <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors font-bold text-xs shadow-sm uppercase tracking-wider">
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
 
             <div class="overflow-x-auto">

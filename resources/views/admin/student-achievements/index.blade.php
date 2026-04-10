@@ -4,22 +4,6 @@
 
 @section('content')
     <div class="space-y-6">
-        <!-- Header Section -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Prestasi Mahasiswa</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola dan pantau semua capaian prestasi mahasiswa
-                    dari berbagai tingkatan.</p>
-            </div>
-            <a href="{{ route('admin.submit.create') }}"
-                class="w-full md:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tambah Prestasi
-            </a>
-        </div>
-
         <!-- Quick Stats -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
@@ -111,115 +95,103 @@
             </div>
         </div>
 
-        <!-- Search & Filter -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <form method="GET" action="{{ route('admin.student-achievements') }}" class="space-y-3 sm:space-y-4">
-                <!-- SIGAP Cascade Filter -->
-                <x-sigap-filter-simple :faculties="$sigapFaculties" :departments="$sigapDepartments"
-                    :studyPrograms="$sigapStudyPrograms" :selectedFaculty="$selectedFaculty"
-                    :selectedDepartment="$selectedDepartment" :selectedStudyProgram="$selectedStudyProgram" />
-
-                <!-- Search & Additional Filters -->
-                <div class="flex flex-col lg:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
-                    <!-- Search -->
-                    <div class="flex-1">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cari nama mahasiswa, NIM, atau event..."
-                                class="pl-10 w-full py-3 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
-                        </div>
-                    </div>
-
-                    <!-- Filter Status -->
-                    <select name="status" onchange="this.form.submit()"
-                        class="w-full md:w-auto md:min-w-[180px] px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
-                        <option value="">Semua Status</option>
-                        <optgroup label="Validasi Fakultas">
-                            <option value="submitted" {{ request('status') == 'submitted' ? 'selected' : '' }}>Diajukan
-                            </option>
-                            <option value="faculty_review" {{ request('status') == 'faculty_review' ? 'selected' : '' }}>
-                                Review Fakultas</option>
-                            <option value="faculty_approved" {{ request('status') == 'faculty_approved' ? 'selected' : '' }}>
-                                Disetujui Fakultas</option>
-                            <option value="faculty_rejected" {{ request('status') == 'faculty_rejected' ? 'selected' : '' }}>
-                                Ditolak Fakultas</option>
-                            <option value="faculty_revision" {{ request('status') == 'faculty_revision' ? 'selected' : '' }}>
-                                Revisi Fakultas</option>
-                        </optgroup>
-                        <optgroup label="Validasi Universitas">
-                            <option value="university_review" {{ request('status') == 'university_review' ? 'selected' : '' }}>Review Universitas</option>
-                            <option value="university_approved" {{ request('status') == 'university_approved' ? 'selected' : '' }}>Disetujui Universitas</option>
-                            <option value="university_rejected" {{ request('status') == 'university_rejected' ? 'selected' : '' }}>Ditolak Universitas</option>
-                        </optgroup>
-                        <optgroup label="Banding">
-                            <option value="appeal_submitted" {{ request('status') == 'appeal_submitted' ? 'selected' : '' }}>
-                                Banding Diajukan</option>
-                            <option value="appeal_approved" {{ request('status') == 'appeal_approved' ? 'selected' : '' }}>
-                                Banding Diterima</option>
-                            <option value="appeal_rejected" {{ request('status') == 'appeal_rejected' ? 'selected' : '' }}>
-                                Banding Ditolak</option>
-                        </optgroup>
-                        <optgroup label="Legacy (Lama)">
-                            <option value="Menunggu" {{ request('status') == 'Menunggu' ? 'selected' : '' }}>Menunggu</option>
-                            <option value="Disetujui" {{ request('status') == 'Disetujui' ? 'selected' : '' }}>Disetujui
-                            </option>
-                            <option value="Ditolak" {{ request('status') == 'Ditolak' ? 'selected' : '' }}>Ditolak</option>
-                            <option value="Revisi" {{ request('status') == 'Revisi' ? 'selected' : '' }}>Revisi</option>
-                        </optgroup>
-                    </select>
-
-                    <!-- Filter Category -->
-                    <select name="category" onchange="this.form.submit()"
-                        class="w-full md:w-auto md:min-w-[160px] px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
-                        <option value="">Semua Kategori</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <!-- Filter Level -->
-                    <select name="level" onchange="this.form.submit()"
-                        class="w-full md:w-auto md:min-w-[160px] px-3 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
-                        <option value="">Semua Level</option>
-                        <option value="Internasional" {{ request('level') == 'Internasional' ? 'selected' : '' }}>
-                            Internasional</option>
-                        <option value="Nasional" {{ request('level') == 'Nasional' ? 'selected' : '' }}>Nasional</option>
-                        <option value="Universitas" {{ request('level') == 'Universitas' ? 'selected' : '' }}>Universitas
-                        </option>
-                    </select>
-
-                    <!-- Buttons -->
-                    <div class="flex gap-2">
-                        @if(request()->hasAny(['search', 'status', 'level', 'category', 'faculty_id', 'department_id', 'program_study_id']))
-                            <a href="?"
-                                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Reset
-                            </a>
-                        @endif
-                        <button type="submit"
-                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Cari
-                        </button>
+        <!-- Table Section with Integrated Filter -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <!-- Header & Filter Integrated -->
+            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Daftar Prestasi Mahasiswa</h2>
                     </div>
                 </div>
-            </form>
-        </div>
+
+                <!-- Comprehensive Single-Row Filter -->
+                <form method="GET" action="{{ route('admin.student-achievements') }}" class="space-y-4">
+                    <div class="flex flex-col xl:flex-row items-stretch xl:items-center gap-3">
+                        <!-- Cascade Group -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-grow">
+                            <select name="faculty_id" onchange="this.form.submit()" 
+                                class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                <option value="">Fakultas</option>
+                                @foreach($sigapFaculties as $faculty)
+                                    <option value="{{ $faculty['id'] }}" {{ $selectedFaculty == $faculty['id'] ? 'selected' : '' }}>{{ $faculty['nama_en'] }}</option>
+                                @endforeach
+                            </select>
+
+                            <select name="department_id" onchange="this.form.submit()" {{ !$selectedFaculty ? 'disabled' : '' }}
+                                class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 disabled:opacity-50">
+                                <option value="">Jurusan</option>
+                                @foreach($sigapDepartments as $department)
+                                    <option value="{{ $department['id'] }}" {{ $selectedDepartment == $department['id'] ? 'selected' : '' }}>{{ $department['nama_en'] }}</option>
+                                @endforeach
+                            </select>
+
+                            <select name="program_study_id" onchange="this.form.submit()" {{ !$selectedDepartment ? 'disabled' : '' }}
+                                class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 disabled:opacity-50">
+                                <option value="">Prodi</option>
+                                @foreach($sigapStudyPrograms as $program)
+                                    <option value="{{ $program['id'] }}" {{ $selectedStudyProgram == $program['id'] ? 'selected' : '' }}>{{ $program['nama_en'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="hidden xl:block w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
+
+                        <!-- Property Filters -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 xl:flex items-center gap-2">
+                            <select name="status" onchange="this.form.submit()"
+                                class="w-full xl:w-36 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                <option value="">Status</option>
+                                <option value="pending_verification" {{ request('status') == 'pending_verification' ? 'selected' : '' }}>Menunggu</option>
+                                <option value="processing_university" {{ request('status') == 'processing_university' ? 'selected' : '' }}>Proses Univ</option>
+                                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui</option>
+                                <option value="revision" {{ request('status') == 'revision' ? 'selected' : '' }}>Revisi</option>
+                            </select>
+
+                            <select name="category" onchange="this.form.submit()"
+                                class="w-full xl:w-32 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                <option value="">Kategori</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+
+                            <select name="level" onchange="this.form.submit()"
+                                class="w-full xl:w-28 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                <option value="">Level</option>
+                                @foreach($levels as $lvl)
+                                    <option value="{{ $lvl->name }}" {{ request('level') == $lvl->name ? 'selected' : '' }}>{{ $lvl->name }}</option>
+                                @endforeach
+                            </select>
+
+                            <div class="relative flex-grow min-w-[150px]">
+                                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari..."
+                                    class="w-full pl-8 pr-4 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center gap-2">
+                             @if(request()->hasAny(['search', 'status', 'level', 'category', 'faculty_id', 'department_id', 'program_study_id']))
+                                <a href="?" class="p-2 bg-gray-100 dark:bg-gray-700 text-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600" title="Reset Filters">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </a>
+                            @endif
+                            <button type="submit" class="flex-grow xl:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                                Cari
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
         <!-- Table -->
             <!-- Mobile Card View -->

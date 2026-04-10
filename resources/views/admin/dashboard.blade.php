@@ -169,56 +169,12 @@
         </p>
     </div>
 
-    <div class="space-y-6 lg:space-y-8">
-        <!-- Header with Period Filter -->
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-1">
-            <div>
-                <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-                    Dashboard</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Ringkasan data prestasi mahasiswa.
-                </p>
-            </div>
-
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <!-- Period Filter -->
-                <form method="GET" action="{{ route('admin.dashboard') }}" class="relative group">
-                    <div
-                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500 dark:text-gray-400 group-focus-within:text-purple-500 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                            </path>
-                        </svg>
-                    </div>
-                    <select name="period" onchange="this.form.submit()" class="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 
-                                border border-gray-200 dark:border-gray-700 rounded-lg 
-                                text-sm font-medium text-gray-700 dark:text-gray-300 
-                                focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 
-                                transition-colors cursor-pointer appearance-none">
-                        <option value="all" {{ request('period') === 'all' || (!request('period') && !isset($selectedPeriod)) ? 'selected' : '' }}>
-                            Semua Periode Akademik
-                        </option>
-                        @if(isset($periods))
-                            @foreach($periods as $period)
-                                <option value="{{ $period->id }}" {{ isset($selectedPeriod) && $selectedPeriod && $selectedPeriod->id == $period->id ? 'selected' : '' }}>
-                                    {{ $period->name }} {{ $period->is_active ? '• Aktif' : '' }}
-                                </option>
-                            @endforeach
-                        @endif
-                    </select>
-                </form>
-
-
-            </div>
-        </div>
-
-        <!-- Active/Inactive Period Info -->
-        @if($selectedPeriod)
-            @if($isActivePeriod)
-                <!-- Active Period Banner -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl px-5 py-4 border border-gray-200 dark:border-gray-700">
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl px-5 py-4 border border-gray-200 dark:border-gray-700 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    
+        <div class="w-full">
+            @if($selectedPeriod)
+                @if($isActivePeriod)
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                         <div class="flex items-center gap-3">
                             <span class="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0"></span>
                             <div>
@@ -229,17 +185,14 @@
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Periode berjalan</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 border-t sm:border-t-0 sm:border-l border-gray-200 dark:border-gray-700 pt-3 sm:pt-0 sm:pl-6">
                             <span>{{ $selectedPeriod->start_date->format('d M Y') }}</span>
                             <span class="text-gray-300 dark:text-gray-600">→</span>
                             <span>{{ $selectedPeriod->end_date->format('d M Y') }}</span>
                         </div>
                     </div>
-                </div>
-            @else
-                <!-- Inactive Period Banner -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl px-5 py-4 border border-gray-200 dark:border-gray-700">
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                @else
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                         <div class="flex items-center gap-3">
                             <span class="w-2.5 h-2.5 bg-gray-400 dark:bg-gray-500 rounded-full flex-shrink-0"></span>
                             <div>
@@ -250,16 +203,14 @@
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Data dikunci — hanya untuk pelaporan</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 border-t sm:border-t-0 sm:border-l border-gray-200 dark:border-gray-700 pt-3 sm:pt-0 sm:pl-6">
                             <span>{{ $selectedPeriod->start_date->format('d M Y') }}</span>
                             <span class="text-gray-300 dark:text-gray-600">→</span>
                             <span>{{ $selectedPeriod->end_date->format('d M Y') }}</span>
                         </div>
                     </div>
-                </div>
-            @endif
-        @else
-            <div class="bg-white dark:bg-gray-800 rounded-xl px-5 py-4 border border-gray-200 dark:border-gray-700">
+                @endif
+            @else
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,8 +223,38 @@
                         <p class="text-xs text-gray-500 dark:text-gray-400">Agregasi data dari seluruh periode akademik</p>
                     </div>
                 </div>
-            </div>
-        @endif
+            @endif
+        </div>
+
+        <div class="flex-shrink-0 w-full lg:w-auto">
+            <form method="GET" action="{{ route('admin.dashboard') }}" class="relative group">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500 dark:text-gray-400 group-focus-within:text-purple-500 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                </div>
+                <select name="period" onchange="this.form.submit()" class="w-full lg:w-64 pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 
+                            border border-gray-200 dark:border-gray-700 rounded-lg 
+                            text-sm font-medium text-gray-700 dark:text-gray-300 
+                            focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 
+                            transition-colors cursor-pointer appearance-none">
+                    <option value="all" {{ request('period') === 'all' || (!request('period') && !isset($selectedPeriod)) ? 'selected' : '' }}>
+                        Semua Periode Akademik
+                    </option>
+                    @if(isset($periods))
+                        @foreach($periods as $period)
+                            <option value="{{ $period->id }}" {{ isset($selectedPeriod) && $selectedPeriod && $selectedPeriod->id == $period->id ? 'selected' : '' }}>
+                                {{ $period->name }} {{ $period->is_active ? '• Aktif' : '' }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+            </form>
+        </div>
+
+    </div>
 
         @if($isInactivePeriod)
             <!-- Section Heading -->
@@ -2011,7 +1992,7 @@
                                             </div>
                                             <div>
                                                 <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-widest">
-                                                    Operator & Validator</p>
+                                                    Operator Fakultas</p>
                                                 <p class="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white leading-tight">
                                                     {{ $masterData['validators_count'] + $masterData['operators_count'] }}
                                                 </p>

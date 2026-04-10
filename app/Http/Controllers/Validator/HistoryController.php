@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Validator;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Validator\IndexHistoryRequest;
 use App\Models\AchievementCategory;
+use App\Models\AchievementLevel;
 use App\Services\Validator\ValidationService;
 
 class HistoryController extends Controller
@@ -16,10 +17,11 @@ class HistoryController extends Controller
     public function index(IndexHistoryRequest $request)
     {
         $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
         
-        // Get scope from session
-        $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
+        // Get scope from current role or session
+        $level = $currentRole ? $currentRole->level : (session('operator_level') ?? session('pimpinan_level'));
+        $facultyId = $currentRole ? $currentRole->faculty_id : (session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null);
         
         // For backward compatibility
         $faculty = $user->role === 'Operator' ? $user->faculty : null;
@@ -35,8 +37,12 @@ class HistoryController extends Controller
 
         $stats = $this->validationService->getHistoryStatistics($faculty, $level, $facultyId);
         $categories = AchievementCategory::orderBy('name')->get();
-        $levels = ['Universitas', 'Nasional', 'Internasional'];
-        $statuses = ['Disetujui', 'Ditolak', 'Revisi'];
+        $levels = AchievementLevel::where('is_active', true)->orderBy('order')->get();
+        $statuses = [
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+            'revision' => 'Revisi'
+        ];
         
         // Get faculties for filter (only for super validator with university level)
         $faculties = collect();

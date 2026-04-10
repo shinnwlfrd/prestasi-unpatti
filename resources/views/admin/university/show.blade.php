@@ -140,7 +140,7 @@
                             <p class="font-medium text-green-800 dark:text-green-400 text-sm">Disetujui oleh Fakultas
                             </p>
                             <p class="text-xs text-green-700 dark:text-green-500 mt-1">
-                                Validator: {{ $achievement->facultyValidator?->name ?? '-' }}
+                                Verifikator: {{ $achievement->facultyValidator?->name ?? '-' }}
                             </p>
                             @if($achievement->faculty_validated_at)
                                 <p class="text-xs text-green-700 dark:text-green-500 mt-0.5">

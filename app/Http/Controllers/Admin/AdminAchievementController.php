@@ -9,6 +9,8 @@ use App\Models\AchievementDocument;
 use App\Models\AchievementLevel;
 use App\Models\Student;
 use App\Models\StudentAchievement;
+use App\Models\SKDocument;
+use App\Models\SKAssignment;
 use App\Services\AchievementApprovalService;
 use App\Http\Requests\Admin\StoreAchievementRequest;
 use Illuminate\Http\Request;
@@ -30,7 +32,7 @@ class AdminAchievementController extends Controller
         $students = Student::orderBy('name')->get();
         $categories = AchievementCategory::active()->get();
         $levels = AchievementLevel::active()->get();
-        $skDocuments = \App\Models\SKDocument::orderBy('issued_date', 'desc')->get();
+        $skDocuments = SKDocument::orderBy('issued_date', 'desc')->get();
 
         // Handle old student_ids to preserve UI state after validation errors
         $oldStudentIds = old('student_ids', []);
@@ -230,9 +232,9 @@ class AdminAchievementController extends Controller
             $skDocumentPath = null;
 
             if ($request->sk_id) {
-                $skDocument = \App\Models\SKDocument::find($request->sk_id);
+                $skDocument = SKDocument::find($request->sk_id);
                 if ($skDocument) {
-                    \App\Models\SKAssignment::create([
+                    SKAssignment::create([
                         'sk_id' => $skDocument->id,
                         'sa_id' => $achievement->sa_id,
                         'assigned_by' => auth()->id(),

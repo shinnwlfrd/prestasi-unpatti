@@ -16,11 +16,29 @@ class StudentController extends Controller
 
     public function index(IndexStudentRequest $request)
     {
-        $students = $this->studentService->getFilteredStudents(
-            $request->validated(),
-            15
-        );
+        $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
+        $filters = $request->validated();
 
+        // Scope data based on current role if not super admin
+        if (!$user->isSuperAdmin()) {
+            if ($currentRole && $currentRole->level !== 'university') {
+                if ($currentRole->faculty_id) {
+                    $filters['faculty_id'] = $currentRole->faculty_id;
+                    $request->merge(['faculty_id' => $currentRole->faculty_id]);
+                }
+                if ($currentRole->department_id) {
+                    $filters['department_id'] = $currentRole->department_id;
+                    $request->merge(['department_id' => $currentRole->department_id]);
+                }
+                if ($currentRole->program_study_id) {
+                    $filters['program_study_id'] = $currentRole->program_study_id;
+                    $request->merge(['program_study_id' => $currentRole->program_study_id]);
+                }
+            }
+        }
+
+        $students = $this->studentService->getFilteredStudents($filters, 15);
         $faculties = $this->studentService->getFaculties();
         $stats = $this->studentService->getStatistics();
         
@@ -34,19 +52,26 @@ class StudentController extends Controller
         // Get SIGAP data for cascade filter
         $sigapService = app(\App\Services\SigapApiService::class);
         
-        // Get all faculties
-        $sigapFaculties = collect($sigapService->getFaculties());
-        
-        // Get departments based on selected faculty
-        $sigapDepartments = collect();
-        if ($request->filled('faculty_id')) {
-            $sigapDepartments = collect($sigapService->getDepartments($request->faculty_id));
+        // Only show faculty selection if user is Super Admin or University-level
+        $sigapFaculties = collect();
+        if ($user->isSuperAdmin() || ($currentRole && $currentRole->level === 'university')) {
+            $sigapFaculties = collect($sigapService->getFaculties());
         }
         
-        // Get study programs based on selected department
+        // Get departments based on selected faculty or scoped faculty
+        $sigapDepartments = collect();
+        $targetFacultyId = $filters['faculty_id'] ?? $request->faculty_id;
+        
+        if ($targetFacultyId) {
+            $sigapDepartments = collect($sigapService->getDepartments($targetFacultyId));
+        }
+        
+        // Get study programs based on selected department or scoped department
         $sigapStudyPrograms = collect();
-        if ($request->filled('department_id')) {
-            $sigapStudyPrograms = collect($sigapService->getStudyPrograms($request->department_id));
+        $targetDepartmentId = $filters['department_id'] ?? $request->department_id;
+        
+        if ($targetDepartmentId) {
+            $sigapStudyPrograms = collect($sigapService->getStudyPrograms($targetDepartmentId));
         }
 
         return view('admin.students.index', [
@@ -57,9 +82,11 @@ class StudentController extends Controller
             'sigapFaculties' => $sigapFaculties,
             'sigapDepartments' => $sigapDepartments,
             'sigapStudyPrograms' => $sigapStudyPrograms,
-            'selectedFaculty' => $request->input('faculty_id'),
-            'selectedDepartment' => $request->input('department_id'),
-            'selectedStudyProgram' => $request->input('program_study_id'),
+            'selectedFaculty' => $targetFacultyId,
+            'selectedDepartment' => $targetDepartmentId,
+            'selectedStudyProgram' => $filters['program_study_id'] ?? $request->program_study_id,
+            'isFacultyScoped' => ($currentRole && $currentRole->level !== 'university' && $currentRole->faculty_id),
+            'currentRole' => $currentRole
         ]);
     }
 

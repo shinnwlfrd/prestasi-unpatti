@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
         $superadmin = User::create([
-            'name' => 'Super Admin Glori',
+            'name' => 'Glori',
             'email' => '202351041@student.unpatti.ac.id',
             'password' => Hash::make('password'),
             'role' => 'Admin', // Legacy role field
@@ -43,5 +43,8 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('Superadmin created: demo@demo.test / password');
         $this->command->info('Superadmin created: 202351041@student.unpatti.ac.id / password');
+
+        // To seed demo data for dashboard, uncomment the line below:
+        // $this->call(DashboardDemoSeeder::class);
     }
 }

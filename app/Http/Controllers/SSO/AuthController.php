@@ -8,6 +8,10 @@ use InvalidArgumentException;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\Student;
+use App\Models\UserRole;
 
 class AuthController extends Controller
 {
@@ -105,7 +109,7 @@ class AuthController extends Controller
             $isStudentEmail = str_contains($email, '@student.ac.id') || str_contains($email, '@student.unpatti.ac.id');
 
             // PRIORITY 1: Check if user already exists in database (users table)
-            $existingUser = \App\Models\User::withTrashed()->where('email', $email)->first();
+            $existingUser = User::withTrashed()->where('email', $email)->first();
 
             if ($existingUser) {
                 // SECURITY: Block soft-deleted users from logging in
@@ -176,7 +180,7 @@ class AuthController extends Controller
         // ========================================================================
         // SECURITY CHECK: BLOCK SOFT-DELETED STUDENTS
         // ========================================================================
-        $existingStudent = \App\Models\Student::withTrashed()->where('student_id', $nimFromSSO)->first();
+        $existingStudent = Student::withTrashed()->where('student_id', $nimFromSSO)->first();
         
         if ($existingStudent && $existingStudent->trashed()) {
             Log::warning('SSO login blocked for soft-deleted student', [
@@ -192,7 +196,7 @@ class AuthController extends Controller
         // ========================================================================
         // STEP 2: HANDLE IDENTITY (RELIANT ON SESSION FOR STUDENTS)
         // ========================================================================
-        $user = \App\Models\User::where('email', $ssoEmail)->first();
+        $user = User::where('email', $ssoEmail)->first();
 
         if ($user) {
             // Update existing user (to maintain consistency for multi-role users)
@@ -209,7 +213,7 @@ class AuthController extends Controller
 
             // Sync to user_roles table for compatibility with new role system
             // IMPORTANT: Only update existing active role, do NOT recreate soft-deleted roles
-            $existingRole = \App\Models\UserRole::where('user_id', $user->id)
+            $existingRole = UserRole::where('user_id', $user->id)
                 ->where('role', 'mahasiswa')
                 ->first();
 
@@ -220,14 +224,14 @@ class AuthController extends Controller
                 ]);
             } else {
                 // Only create if no soft-deleted version exists
-                $trashedRole = \App\Models\UserRole::onlyTrashed()
+                $trashedRole = UserRole::onlyTrashed()
                     ->where('user_id', $user->id)
                     ->where('role', 'mahasiswa')
                     ->first();
 
                 if (!$trashedRole) {
                     // Truly new - create it
-                    \App\Models\UserRole::create([
+                    UserRole::create([
                         'user_id' => $user->id,
                         'role' => 'mahasiswa',
                         'is_active' => true,
@@ -238,7 +242,7 @@ class AuthController extends Controller
             }
 
             // Login user via Laravel Auth IF they exist in DB
-            \Illuminate\Support\Facades\Auth::login($user);
+            Auth::login($user);
             
             Log::info('User authenticated via Laravel Auth (Existing User)', [
                 'user_id' => $user->id,
@@ -354,7 +358,7 @@ class AuthController extends Controller
         // ========================================================================
         // STEP 6: CHECK IF STUDENT HAS ACHIEVEMENTS (NO DATABASE WRITE)
         // ========================================================================
-        $student = \App\Models\Student::find($nimFromSSO);
+        $student = Student::find($nimFromSSO);
 
         if (!$student) {
             // First time login, no achievements yet
@@ -394,16 +398,16 @@ class AuthController extends Controller
         $name = $userInfo['name'] ?? $userInfo['full_name'] ?? 'User';
         $roles = $userInfo['roles'] ?? [];
 
-        // Check if user already exists (NOT including soft-deleted) to determine role
-        $existingUser = \App\Models\User::where('email', $email)->first();
+        // Check if user already exists in DB to determine role
+        $user = User::where('email', $email)->first();
         
         // Determine role from SSO roles if user doesn't exist
-        $role = $existingUser ? $existingUser->role : $this->determineRoleFromSSO($roles);
+        $role = $user ? $user->role : $this->determineRoleFromSSO($roles);
 
         // SECURITY FIX: If user doesn't exist in DB and is trying to login as Staff/Lecturer
         // we should not automatically grant them access unless they have specific admin roles
         // or we choose to block all unregistered staff.
-        if (!$existingUser) {
+        if (!$user) {
             // Check if the determined role is valid for automatic registration
             // For now, we block all staff that are not pre-registered in the 'users' table
             Log::warning('Unauthorized staff login attempt via SSO', [
@@ -419,7 +423,7 @@ class AuthController extends Controller
         // User exists and is NOT soft-deleted — update their info
         // IMPORTANT: Do NOT overwrite 'role' or 'faculty'
         // Role and faculty are managed by admin, not by SSO auto-detection
-        $existingUser->update([
+        $user->update([
             'name' => $name,
             // 'role' is NOT updated — keep admin-assigned role
             // 'faculty' is NOT updated — keep admin-assigned faculty
@@ -430,14 +434,13 @@ class AuthController extends Controller
             'last_login_at' => now(),
             'last_login_method' => 'sso',
         ]);
-        $user = $existingUser;
 
         // DO NOT auto-sync roles from User.role column to user_roles table
         // Roles in user_roles are managed exclusively by admin
         // Only ensure existing active roles are preserved, never recreate deleted ones
 
         // Login user with Laravel Auth
-        \Illuminate\Support\Facades\Auth::login($user);
+        Auth::login($user);
 
         // Store additional session data
         $request->session()->put([
@@ -472,6 +475,30 @@ class AuthController extends Controller
                 'active_role_type' => $activeRole->role,
             ]);
 
+            // Store specific level and scope in session
+            if ($activeRole->role === 'operator') {
+                session([
+                    'operator_level' => $activeRole->level,
+                    'operator_faculty_id' => $activeRole->faculty_id,
+                    'operator_faculty_name' => $activeRole->faculty_name,
+                    'operator_department_id' => $activeRole->department_id,
+                    'operator_department_name' => $activeRole->department_name,
+                    'operator_program_study_id' => $activeRole->program_study_id,
+                    'operator_program_study_name' => $activeRole->program_study_name,
+                ]);
+            } elseif ($activeRole->role === 'pimpinan') {
+                session([
+                    'pimpinan_level' => $activeRole->level,
+                    'pimpinan_faculty_id' => $activeRole->faculty_id,
+                    'pimpinan_faculty_name' => $activeRole->faculty_name,
+                    'pimpinan_department_id' => $activeRole->department_id,
+                    'pimpinan_department_name' => $activeRole->department_name,
+                    'pimpinan_program_study_id' => $activeRole->program_study_id,
+                    'pimpinan_program_study_name' => $activeRole->program_study_name,
+                    'pimpinan_position' => $activeRole->position,
+                ]);
+            }
+
             return match ($activeRole->role) {
                 'super_admin', 'admin' => redirect()->route('admin.dashboard')
                     ->with('success', 'Selamat datang, ' . $name . '!'),
@@ -487,7 +514,7 @@ class AuthController extends Controller
         }
 
         // No active roles found - block login
-        \Illuminate\Support\Facades\Auth::logout();
+        Auth::logout();
         return redirect()->route('login')
             ->with('error', 'Akun Anda (' . $email . ') tidak memiliki role aktif. Hubungi Administrator.');
     }

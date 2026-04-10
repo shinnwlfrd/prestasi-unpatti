@@ -20,8 +20,8 @@ class ProfileController extends Controller
             $email = $user->email;
             $name = $user->name;
 
-            // Get all active roles for this user from user_roles table
-            $availableRoles = $user->activeRoles()->get()->map(function ($role) use ($user) {
+            // Get all switchable roles for this user (including virtual roles for Superadmin)
+            $availableRoles = $user->getSwitchableRoles()->map(function ($role) use ($user) {
                 $isCurrent = session('active_role_id') == $role->id;
                 
                 return [
@@ -43,7 +43,7 @@ class ProfileController extends Controller
         $studentId = session('student_id');
         
         if ($isStudentSession && $studentId) {
-            $student = \App\Models\Student::where('student_id', $studentId)->first();
+            $student = Student::where('student_id', $studentId)->first();
             $studentData = session('student_data');
             
             // Collect info from student record or session
@@ -87,7 +87,6 @@ class ProfileController extends Controller
             'is_active' => $user?->is_active ?? true,
             'photo_url' => $user?->photo_url ?? session('student_data.foto_url') ?? null,
             'last_login_method' => $user?->last_login_method ?? (session('sso_authenticated') ? 'sso' : null),
-            'password' => $user?->password ?? null,
             'provider' => $user?->provider ?? (session('sso_authenticated') ? 'unpatti_sso' : null),
             'linked_at' => $user?->linked_at ?? null,
             'last_login_at' => $user?->last_login_at ?? null,

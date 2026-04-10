@@ -49,8 +49,15 @@ class UserManagementService
                     $programStudyName = null;
                 } elseif ($data['role'] === 'Pimpinan') {
                     $roleType = 'pimpinan';
-                    $level = 'university'; // Access level like rector
-                    $position = 'rektor';  // Position like rector
+                    $level = $data['pimpinan_level'] ?? 'university';
+                    $positionMap = [
+                        'university' => 'rektor',
+                        'faculty' => 'dekan',
+                        'department' => 'ketua_jurusan',
+                        'program_study' => 'kaprodi',
+                        'graduate_program' => 'direktur_pps',
+                    ];
+                    $position = $data['pimpinan_position'] ?? ($positionMap[$level] ?? 'rektor');
                     $facultyName = $data['pimpinan_faculty'] ?? null;
                     $departmentName = $data['pimpinan_department'] ?? null;
                     $programStudyName = $data['pimpinan_program_study'] ?? null;
@@ -123,8 +130,15 @@ class UserManagementService
                 $programStudyName = null;
             } elseif ($data['role'] === 'Pimpinan') {
                 $roleType = 'pimpinan';
-                $level = 'university'; // Access level like rector
-                $position = 'rektor';  // Default position like rector
+                $level = $data['pimpinan_level'] ?? 'university';
+                $positionMap = [
+                    'university' => 'rektor',
+                    'faculty' => 'dekan',
+                    'department' => 'ketua_jurusan',
+                    'program_study' => 'kaprodi',
+                    'graduate_program' => 'direktur_pps',
+                ];
+                $position = $data['pimpinan_position'] ?? ($positionMap[$level] ?? 'rektor');
                 $facultyName = $data['pimpinan_faculty'] ?? null;
                 $departmentName = $data['pimpinan_department'] ?? null;
                 $programStudyName = $data['pimpinan_program_study'] ?? null;

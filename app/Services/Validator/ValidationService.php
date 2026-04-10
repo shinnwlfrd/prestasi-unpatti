@@ -111,7 +111,18 @@ class ValidationService
 
         // Status filter
         if (!empty($filters['status'])) {
-            $query->where('new_status', $filters['status']);
+            $status = $filters['status'];
+            $groups = [
+                'approved' => ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'],
+                'rejected' => ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'],
+                'revision' => ['faculty_revision', 'Revisi', 'revision_requested'],
+            ];
+
+            if (isset($groups[$status])) {
+                $query->whereIn('new_status', $groups[$status]);
+            } else {
+                $query->where('new_status', $status);
+            }
         }
 
         // Category filter
@@ -159,9 +170,9 @@ class ValidationService
 
         return [
             'total' => $query->count(),
-            'approved' => (clone $query)->where('new_status', 'Disetujui')->count(),
-            'rejected' => (clone $query)->where('new_status', 'Ditolak')->count(),
-            'revision' => (clone $query)->where('new_status', 'Revisi')->count(),
+            'approved' => (clone $query)->whereIn('new_status', ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'])->count(),
+            'rejected' => (clone $query)->whereIn('new_status', ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'])->count(),
+            'revision' => (clone $query)->whereIn('new_status', ['faculty_revision', 'Revisi', 'revision_requested'])->count(),
         ];
     }
 }

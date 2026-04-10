@@ -2,67 +2,55 @@
 @section('title', 'Kelola Users')
 @section('content')
     <div class="max-w-7xl mx-auto w-full space-y-6 px-4 sm:px-6 lg:px-8" x-data="userManagement()" @keydown.escape.window="showModal = false">
-        <!-- Header Section -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Kelola Users</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manajemen hak akses user admin, operator, dan
-                    pimpinan unit.</p>
-            </div>
-            <div class="flex flex-col sm:flex-row items-center gap-3">
-                <button @click="showCreateUserModal = true"
-                    class="w-full sm:w-auto justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                    Tambah User Baru
-                </button>
-                <button @click="showModal = true"
-                    class="w-full sm:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Tambah Role
-                </button>
-            </div>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
-            <form method="GET" action="{{ route('admin.users') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div class="flex-1 relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+        <!-- Table Section with Integrated Header & Actions -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <!-- Header & Search Integrated -->
+            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                    <div class="flex-grow">
+                        <form method="GET" action="{{ route('admin.users') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <div class="flex-grow relative">
+                                <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama, email, role, atau fakultas..."
+                                    class="w-full pl-10 pr-4 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">
+                                    Filter
+                                </button>
+                                @if($search)
+                                    <a href="{{ route('admin.users') }}" class="p-2 bg-gray-100 dark:bg-gray-700 text-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-700" title="Reset Search">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </a>
+                                @endif
+                            </div>
+                        </form>
                     </div>
-                    <input type="text" name="search" value="{{ $search ?? '' }}"
-                        placeholder="Cari nama, email, role, atau fakultas..."
-                        class="pl-10 w-full py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
-                </div>
-                <div class="flex flex-row gap-2">
-                    <button type="submit"
-                        class="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                        Cari
-                    </button>
-                    @if($search)
-                        <a href="{{ route('admin.users') }}"
-                            class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+
+                    <div class="flex items-center gap-2">
+                        <button @click="showCreateUserModal = true"
+                            class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-2 transition-colors shadow-sm tracking-wider">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                             </svg>
-                            Reset
-                        </a>
-                    @endif
+                            User
+                        </button>
+                        <button @click="showModal = true"
+                            class="flex-1 sm:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-2 transition-colors shadow-sm tracking-wider">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Role
+                        </button>
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
 
         <!-- Mobile View -->
         <div class="md:hidden space-y-4">
@@ -374,10 +362,10 @@
                     </button>
                 </div>
 
-                @if($errors->any())
+                @if(session('errors') && session('errors')->any())
                     <div
                         class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-3 rounded-lg mb-4 text-sm">
-                        @foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach
+                        @foreach(session('errors')->all() as $e)<p>{{ $e }}</p>@endforeach
                     </div>
                 @endif
 

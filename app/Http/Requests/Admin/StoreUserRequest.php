@@ -122,8 +122,8 @@ class StoreUserRequest extends FormRequest
 
             if ($student) {
                 $data['name'] = $student->name;
-                // Auto-generate password from student_id
-                $data['password'] = $student->student_id;
+                // Use random string, user will use SSO
+                $data['password'] = \Illuminate\Support\Str::random(32);
             } elseif (\Illuminate\Support\Str::endsWith(strtolower($data['email']), '@staff.unpatti.ac.id')) {
                 // New staff user - name from local part of email if not provided
                 if (!isset($data['name'])) {

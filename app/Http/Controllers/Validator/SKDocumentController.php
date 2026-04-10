@@ -29,12 +29,13 @@ class SKDocumentController extends Controller
     public function getAchievements(SKDocument $sk)
     {
         $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
 
-        // Use session-based scope filtering (more robust for multi-role)
-        $level = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null;
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id') ?: null;
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null;
+        // Use database-backed active role for more robust scope detection
+        $level = $currentRole ? $currentRole->level : (session('operator_level') ?? session('pimpinan_level'));
+        $facultyId = $currentRole ? $currentRole->faculty_id : (session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null);
+        $departmentId = $currentRole ? $currentRole->department_id : (session('operator_department_id') ?? session('pimpinan_department_id') ?: null);
+        $programStudyId = $currentRole ? $currentRole->program_study_id : (session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null);
 
         // Get pending achievements for AJAX request
         $query = StudentAchievement::with(['student', 'achievement.category', 'academicPeriod'])

@@ -35,7 +35,6 @@ class UpdateUserRequest extends FormRequest
                 'email',
                 'unique:users,email,'.$userId, // Ignore current user's email
             ],
-            'password' => 'nullable|min:6',
             'role' => 'required|in:Admin,Operator,Pimpinan',
             'faculty' => 'required_if:role,Operator|nullable|string|max:255',
             'is_active' => 'nullable|boolean',

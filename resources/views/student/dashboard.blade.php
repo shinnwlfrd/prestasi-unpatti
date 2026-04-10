@@ -135,9 +135,6 @@
                                     'university_review' => ['label' => 'Sedang Ditinjau Universitas', 'class' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', 'icon' => 'clock'],
                                     'university_approved' => ['label' => 'Disetujui oleh Universitas', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
                                     'university_rejected' => ['label' => 'Ditolak oleh Universitas', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
-                                    'appeal_submitted' => ['label' => 'Banding Diajukan', 'class' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', 'icon' => 'clock'],
-                                    'appeal_approved' => ['label' => 'Banding Diterima', 'class' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', 'icon' => 'check'],
-                                    'appeal_rejected' => ['label' => 'Banding Ditolak', 'class' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', 'icon' => 'x'],
                                 ];
                                 $status = $statusConfig[$item->validation_status] ?? $statusConfig['Menunggu'];
                                 

@@ -27,11 +27,6 @@ class ValidationStatusHelper
             StudentAchievement::STATUS_UNIVERSITY_APPROVED => 'Disetujui Universitas',
             StudentAchievement::STATUS_UNIVERSITY_REJECTED => 'Ditolak Universitas',
             
-            // Appeal Process
-            StudentAchievement::STATUS_APPEAL_SUBMITTED => 'Banding Diajukan',
-            StudentAchievement::STATUS_APPEAL_APPROVED => 'Banding Diterima',
-            StudentAchievement::STATUS_APPEAL_REJECTED => 'Banding Ditolak',
-            
             // Legacy statuses (for backward compatibility)
             StudentAchievement::STATUS_PENDING, 'Menunggu' => 'Menunggu Verifikasi',
             StudentAchievement::STATUS_APPROVED, 'Disetujui' => 'Selesai Diverifikasi',
@@ -64,7 +59,6 @@ class ValidationStatusHelper
             
             // Final Approved
             StudentAchievement::STATUS_UNIVERSITY_APPROVED,
-            StudentAchievement::STATUS_APPEAL_APPROVED,
             StudentAchievement::STATUS_APPROVED,
             'Disetujui' => 
                 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -72,7 +66,6 @@ class ValidationStatusHelper
             // Rejected
             StudentAchievement::STATUS_FACULTY_REJECTED,
             StudentAchievement::STATUS_UNIVERSITY_REJECTED,
-            StudentAchievement::STATUS_APPEAL_REJECTED,
             StudentAchievement::STATUS_REJECTED,
             'Ditolak' => 
                 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
@@ -82,10 +75,6 @@ class ValidationStatusHelper
             StudentAchievement::STATUS_NEED_REVISION,
             'Revisi' => 
                 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-            
-            // Appeal
-            StudentAchievement::STATUS_APPEAL_SUBMITTED => 
-                'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
             
             // Legacy Pending
             StudentAchievement::STATUS_PENDING,
@@ -111,9 +100,6 @@ class ValidationStatusHelper
             StudentAchievement::STATUS_UNIVERSITY_REVIEW => 'Sedang direview oleh universitas',
             StudentAchievement::STATUS_UNIVERSITY_APPROVED => 'Prestasi telah diverifikasi',
             StudentAchievement::STATUS_UNIVERSITY_REJECTED => 'Tidak memenuhi kriteria universitas',
-            StudentAchievement::STATUS_APPEAL_SUBMITTED => 'Menunggu review banding',
-            StudentAchievement::STATUS_APPEAL_APPROVED => 'Banding diterima',
-            StudentAchievement::STATUS_APPEAL_REJECTED => 'Banding ditolak',
             StudentAchievement::STATUS_PENDING, 'Menunggu' => 'Menunggu verifikasi',
             StudentAchievement::STATUS_APPROVED, 'Disetujui' => 'Telah diverifikasi',
             StudentAchievement::STATUS_REJECTED, 'Ditolak' => 'Tidak memenuhi kriteria',
@@ -134,18 +120,15 @@ class ValidationStatusHelper
             StudentAchievement::STATUS_UNIVERSITY_REVIEW => 'clock',
             StudentAchievement::STATUS_FACULTY_APPROVED => 'check-circle',
             StudentAchievement::STATUS_UNIVERSITY_APPROVED,
-            StudentAchievement::STATUS_APPEAL_APPROVED,
             StudentAchievement::STATUS_APPROVED,
             'Disetujui' => 'check-badge',
             StudentAchievement::STATUS_FACULTY_REJECTED,
             StudentAchievement::STATUS_UNIVERSITY_REJECTED,
-            StudentAchievement::STATUS_APPEAL_REJECTED,
             StudentAchievement::STATUS_REJECTED,
             'Ditolak' => 'x-circle',
             StudentAchievement::STATUS_FACULTY_REVISION,
             StudentAchievement::STATUS_NEED_REVISION,
             'Revisi' => 'arrow-path',
-            StudentAchievement::STATUS_APPEAL_SUBMITTED => 'scale',
             StudentAchievement::STATUS_PENDING,
             'Menunggu' => 'clock',
             default => 'question-mark-circle',
@@ -160,7 +143,6 @@ class ValidationStatusHelper
         return in_array($status, [
             StudentAchievement::STATUS_FACULTY_APPROVED,
             StudentAchievement::STATUS_UNIVERSITY_APPROVED,
-            StudentAchievement::STATUS_APPEAL_APPROVED,
             StudentAchievement::STATUS_APPROVED,
             'Disetujui',
         ]);
@@ -174,7 +156,6 @@ class ValidationStatusHelper
         return in_array($status, [
             StudentAchievement::STATUS_FACULTY_REJECTED,
             StudentAchievement::STATUS_UNIVERSITY_REJECTED,
-            StudentAchievement::STATUS_APPEAL_REJECTED,
             StudentAchievement::STATUS_REJECTED,
             'Ditolak',
         ]);
@@ -190,7 +171,6 @@ class ValidationStatusHelper
             StudentAchievement::STATUS_FACULTY_REVIEW,
             StudentAchievement::STATUS_FACULTY_APPROVED,
             StudentAchievement::STATUS_UNIVERSITY_REVIEW,
-            StudentAchievement::STATUS_APPEAL_SUBMITTED,
             StudentAchievement::STATUS_PENDING,
             'Menunggu',
         ]);
@@ -227,12 +207,6 @@ class ValidationStatusHelper
                 StudentAchievement::STATUS_UNIVERSITY_REVIEW => self::getLabel(StudentAchievement::STATUS_UNIVERSITY_REVIEW),
                 StudentAchievement::STATUS_UNIVERSITY_APPROVED => self::getLabel(StudentAchievement::STATUS_UNIVERSITY_APPROVED),
                 StudentAchievement::STATUS_UNIVERSITY_REJECTED => self::getLabel(StudentAchievement::STATUS_UNIVERSITY_REJECTED),
-            ],
-            // Appeal
-            'appeal' => [
-                StudentAchievement::STATUS_APPEAL_SUBMITTED => self::getLabel(StudentAchievement::STATUS_APPEAL_SUBMITTED),
-                StudentAchievement::STATUS_APPEAL_APPROVED => self::getLabel(StudentAchievement::STATUS_APPEAL_APPROVED),
-                StudentAchievement::STATUS_APPEAL_REJECTED => self::getLabel(StudentAchievement::STATUS_APPEAL_REJECTED),
             ],
         ];
     }

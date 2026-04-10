@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\IndexAchievementRequest;
 use App\Models\AchievementCategory;
+use App\Models\AchievementLevel;
 use App\Repositories\Contracts\AchievementRepositoryInterface;
 
 class AchievementController extends Controller
@@ -23,6 +24,7 @@ class AchievementController extends Controller
         );
 
         $categories = AchievementCategory::orderBy('name')->get();
+        $levels = AchievementLevel::active()->get();
 
         // Get SIGAP data for cascade filter
         $sigapService = app(\App\Services\SigapApiService::class);
@@ -42,6 +44,7 @@ class AchievementController extends Controller
         return view('admin.student-achievements.index', [
             'achievements' => $achievements,
             'categories' => $categories,
+            'levels' => $levels,
             'sigapFaculties' => $sigapFaculties,
             'sigapDepartments' => $sigapDepartments,
             'sigapStudyPrograms' => $sigapStudyPrograms,

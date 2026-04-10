@@ -264,7 +264,11 @@
         @endif
 
         <!-- Quick Access for Super Admin -->
-        @if(!$isStudent && auth()->check() && auth()->user()->isSuperAdmin())
+        @php
+            $isSuperAdmin = auth()->check() && auth()->user()->isSuperAdmin();
+        @endphp
+
+        @if(!$isStudent && $isSuperAdmin)
             @php
                 // Determine current page context
                 $isAdminPage = request()->routeIs('admin.*');
@@ -287,8 +291,8 @@
                 if (!$isValidatorPage) {
                     $quickAccessLinks[] = [
                         'url' => route('validator.pending.index'),
-                        'title' => 'Halaman Validator',
-                        'description' => 'Akses verifikasi prestasi (Level Universitas)',
+                        'title' => 'Verifikasi Fakultas',
+                        'description' => 'Akses verifikasi prestasi tingkat fakultas (Operator)',
                         'color' => 'emerald',
                         'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
                     ];
@@ -339,41 +343,6 @@
         <!-- Authentication Info -->
         <x-card title="Metode Autentikasi">
             <div class="space-y-4">
-                <!-- Local Auth Status -->
-                <div
-                    class="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="font-medium text-gray-800 dark:text-white">Login Lokal</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Email & Password</p>
-                        </div>
-                    </div>
-                    @if($user->password)
-                        <span
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Aktif
-                        </span>
-                    @else
-                        <span
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400">
-                            Tidak Tersedia
-                        </span>
-                    @endif
-                </div>
-
                 <!-- SSO Status -->
                 <div
                     class="flex items-center justify-between p-4 rounded-xl {{ $user->provider ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600' }} border">
@@ -430,24 +399,16 @@
                     <div class="flex items-center justify-between p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                         <div class="flex items-center gap-3">
                             <div
-                                class="w-8 h-8 rounded-lg {{ $user->last_login_method === 'sso' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-600' }} flex items-center justify-center">
-                                @if($user->last_login_method === 'sso')
-                                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                @else
-                                    <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                @endif
+                                class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-800 dark:text-white">
-                                    {{ $user->last_login_method === 'sso' ? 'Login via SSO' : 'Login Lokal' }}
+                                    Login via SSO
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     {{ $user->last_login_at->format('d M Y, H:i') }}
@@ -463,36 +424,5 @@
                 @endif
             </div>
         </x-card>
-
-        <!-- SSO Migration Notice -->
-        @if(config('sso.migration.deadline') && !$user->provider)
-            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-                <div class="flex items-start gap-3">
-                    <div
-                        class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-amber-800 dark:text-amber-300">Migrasi ke SSO</h4>
-                        <p class="text-sm text-amber-600 dark:text-amber-400 mt-1">
-                            Sistem akan beralih ke SSO penuh pada
-                            {{ \Carbon\Carbon::parse(config('sso.migration.deadline'))->format('d M Y') }}.
-                            Silakan hubungkan akun Anda dengan SSO SIAKAD sebelum tanggal tersebut.
-                        </p>
-                        <a href="{{ route('sso.redirect') }}"
-                            class="inline-flex items-center gap-2 px-2 py-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                            Hubungkan Sekarang
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        @endif
     </div>
 @endsection

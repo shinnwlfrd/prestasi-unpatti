@@ -19,23 +19,6 @@
     @endphp
 
     <div class="space-y-6 lg:space-y-8">
-        <!-- Header Section -->
-        <div
-            class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8 xl:p-10 shadow-sm group desktop-card-hover">
-            <div
-                class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all duration-700">
-            </div>
-            <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Verifikasi Fakultas</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-50 animate-pulse"></span>
-                        Review dan verifikasi awal prestasi mahasiswa di tingkat fakultas.
-                    </p>
-                </div>
-            </div>
-        </div>
-
         <!-- Statistics Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6 xl:gap-8">
             <!-- Pending Card -->
@@ -99,9 +82,8 @@
                 </div>
                 <div class="flex items-center justify-between relative z-10">
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Revisi Diminta</p>
-                        <p class="text-3xl font-black text-gray-900 dark:text-white mt-2">
-                            {{ number_format($statistics['revision_requested'] ?? 0) }}</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Meminta Revisi</p>
+                        <p class="text-3xl font-black text-gray-900 dark:text-white mt-2">{{ number_format($statistics['revision'] ?? 0) }}</p>
                     </div>
                     <div
                         class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center border border-blue-100 dark:border-blue-800/50">
@@ -114,23 +96,23 @@
                 </div>
             </div>
 
-            <!-- Review Card -->
+            <!-- Process Card -->
             <div
                 class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                 <div class="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <svg class="w-16 h-16 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <svg class="w-16 h-16 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </div>
                 <div class="flex items-center justify-between relative z-10">
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Review (Avg)</p>
-                        <p class="text-3xl font-black text-gray-900 dark:text-white mt-2">
-                            {{ number_format($statistics['avg_review_time_hours'] ?? 0, 1) }}h</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Selesai</p>
+                        <p class="text-3xl font-black text-gray-900 dark:text-white mt-2">{{ number_format($statistics['total_verified'] ?? 0) }}</p>
                     </div>
                     <div
-                        class="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center border border-purple-100 dark:border-purple-800/50">
-                        <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor"
+                        class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50">
+                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -140,121 +122,78 @@
             </div>
         </div>
 
-        <!-- Filters Section -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 shadow-sm">
-            <form method="GET" action="{{ route($routePrefix . '.pending.index') }}"
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4 xl:gap-6">
-                <!-- Search -->
-                <div class="lg:col-span-4">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Pencarian</label>
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            placeholder="Cari Nama, NIM, atau Event..."
-                            class="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none">
-                    </div>
-                </div>
-
-                <!-- Level -->
-                <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Tingkat</label>
-                    <select name="level"
-                        class="w-full px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
-                        <option value="">Semua Tingkat</option>
-                        <option value="Universitas" {{ request('level') === 'Universitas' ? 'selected' : '' }}>Universitas
-                        </option>
-                        <option value="Nasional" {{ request('level') === 'Nasional' ? 'selected' : '' }}>Nasional</option>
-                        <option value="Internasional" {{ request('level') === 'Internasional' ? 'selected' : '' }}>
-                            Internasional</option>
-                    </select>
-                </div>
-
-                <!-- Category -->
-                <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Kategori</label>
-                    <select name="category"
-                        class="w-full px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
-                        <option value="">Semua Kategori</option>
-                        @foreach($categories ?? [] as $category)
-                            <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Faculty (Only for Operator Universitas) -->
-                @if(isset($faculties) && $faculties->isNotEmpty())
-                <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Fakultas</label>
-                    <select name="faculty"
-                        class="w-full px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
-                        <option value="">Semua Fakultas</option>
-                        @foreach($faculties as $faculty)
-                            <option value="{{ $faculty->id }}" {{ request('faculty') == $faculty->id ? 'selected' : '' }}>
-                                {{ $faculty->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                @endif
-
-                <!-- Sort Date -->
-                <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 sm:mb-2.5">Urutkan</label>
-                    <select name="sort_date"
-                        class="w-full px-4 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white dark:focus:bg-gray-700 transition-all text-sm outline-none cursor-pointer appearance-none">
-                        <option value="oldest" {{ request('sort_date') === 'oldest' ? 'selected' : '' }}>Terlama</option>
-                        <option value="newest" {{ request('sort_date') === 'newest' ? 'selected' : '' }}>Terbaru</option>
-                    </select>
-                </div>
-
-                <!-- Actions -->
-                <div class="lg:col-span-2 flex items-end gap-2">
-                    <button type="submit"
-                        class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 dark:shadow-none active:scale-95 flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                        </svg>
-                        Filter
-                    </button>
-                    <a href="{{ route($routePrefix . '.pending.index') }}"
-                        class="p-3 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-all active:scale-95"
-                        title="Reset Filter">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                    </a>
-                </div>
-            </form>
-        </div>
-
-        <!-- Table Section -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 border-b border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
+        <!-- Main Pending Achievements Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <!-- Integrated Header: Title + Filter Row -->
+            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Antrean Verifikasi Prestasi</h2>
-                        <p class="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">
+                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tight">Antrean Verifikasi Prestasi</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             @if($isPimpinan)
                                 Daftar prestasi yang menunggu verifikasi tingkat fakultas
                             @else
-                                Klik prestasi untuk melakukan verifikasi awal
+                                Klik prestasi untuk melakukan verifikasi awal (Total: {{ $achievements->total() }})
                             @endif
                         </p>
                     </div>
-                    <span class="text-sm lg:text-base font-medium text-gray-500 dark:text-gray-400">
-                        Total: <strong class="text-gray-900 dark:text-white">{{ $achievements->total() }}</strong> prestasi
-                    </span>
                 </div>
+
+                <!-- ultra-compact Single-Row Filter -->
+                <form method="GET" action="{{ route($routePrefix . '.pending.index') }}" class="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+                    <div class="flex-grow grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 w-full">
+                        <!-- Search Field -->
+                        <div class="relative">
+                            <input type="text" name="search" value="{{ $filters['search'] ?? '' }}"
+                                placeholder="Cari Nama, NIM, atau Event..."
+                                class="w-full pl-9 pr-4 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 transition-all">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Level Filter -->
+                        <select name="level" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 transition-all">
+                            <option value="">Semua Tingkat</option>
+                            @foreach($levels as $lvl)
+                                <option value="{{ $lvl->name }}" {{ ($filters['level'] ?? '') == $lvl->name ? 'selected' : '' }}>{{ $lvl->name }}</option>
+                            @endforeach
+                        </select>
+
+                        <!-- Category Filter -->
+                        <select name="category" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 transition-all">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}" {{ ($filters['category'] ?? '') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+
+                        <!-- Sort Filter -->
+                        <select name="sort_date" onchange="this.form.submit()"
+                            class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 transition-all">
+                            <option value="oldest" {{ ($filters['sort_date'] ?? 'oldest') === 'oldest' ? 'selected' : '' }}>Terlama (Prioritas)</option>
+                            <option value="newest" {{ ($filters['sort_date'] ?? '') === 'newest' ? 'selected' : '' }}>Terbaru</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        @if(request()->hasAny(['search', 'level', 'category', 'sort_date']))
+                            <a href="{{ route($routePrefix . '.pending.index') }}" 
+                                class="p-2 bg-gray-100 dark:bg-gray-700 text-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 transition-colors" title="Reset Filters">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </a>
+                        @endif
+                        <button type="submit" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold uppercase tracking-wider shadow-sm transition-all whitespace-nowrap">
+                            Filter
+                        </button>
+                    </div>
+                </form>
             </div>
 
             <!-- Mobile Card View -->

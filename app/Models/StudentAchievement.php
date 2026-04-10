@@ -27,10 +27,7 @@ class StudentAchievement extends Model
         'validation_status',
         'validator_id',
         'submitted_by',
-        'is_appeal',
-        'appeal_reason',
         'publication_link',
-        'appealed_at',
         'sk_required',
         'sk_waiver_reason',
         'sk_waiver_notes',
@@ -54,8 +51,6 @@ class StudentAchievement extends Model
     protected $casts = [
         'event_date' => 'date',
         'submitted_at' => 'datetime',
-        'appealed_at' => 'datetime',
-        'is_appeal' => 'boolean',
         'sk_required' => 'boolean',
         'faculty_validated_at' => 'datetime',
         'university_validated_at' => 'datetime',
@@ -77,11 +72,6 @@ class StudentAchievement extends Model
     const STATUS_UNIVERSITY_APPROVED = 'university_approved';
     const STATUS_UNIVERSITY_REJECTED = 'university_rejected';
 
-    // Appeal Process
-    const STATUS_APPEAL_SUBMITTED = 'appeal_submitted';
-    const STATUS_APPEAL_APPROVED = 'appeal_approved';
-    const STATUS_APPEAL_REJECTED = 'appeal_rejected';
-
     // Legacy statuses (for backward compatibility during migration)
     const STATUS_PENDING = 'Menunggu';
     const STATUS_APPROVED = 'Disetujui';
@@ -91,7 +81,6 @@ class StudentAchievement extends Model
     // Validation Stages
     const STAGE_FACULTY = 'faculty';
     const STAGE_UNIVERSITY = 'university';
-    const STAGE_APPEAL = 'appeal';
     const STAGE_COMPLETED = 'completed';
 
     const LEVEL_UNIVERSITAS = 'Universitas';
@@ -196,9 +185,6 @@ class StudentAchievement extends Model
             self::STATUS_UNIVERSITY_REVIEW => 'warning',
             self::STATUS_UNIVERSITY_APPROVED => 'success',
             self::STATUS_UNIVERSITY_REJECTED => 'danger',
-            self::STATUS_APPEAL_SUBMITTED => 'info',
-            self::STATUS_APPEAL_APPROVED => 'success',
-            self::STATUS_APPEAL_REJECTED => 'danger',
                 // Legacy statuses
             self::STATUS_PENDING => 'warning',
             self::STATUS_APPROVED => 'success',
@@ -221,9 +207,6 @@ class StudentAchievement extends Model
             self::STATUS_UNIVERSITY_REVIEW => 'Sedang Ditinjau Universitas',
             self::STATUS_UNIVERSITY_APPROVED => 'Disetujui oleh Universitas',
             self::STATUS_UNIVERSITY_REJECTED => 'Ditolak oleh Universitas',
-            self::STATUS_APPEAL_SUBMITTED => 'Banding Diajukan',
-            self::STATUS_APPEAL_APPROVED => 'Banding Diterima',
-            self::STATUS_APPEAL_REJECTED => 'Banding Ditolak',
                 // Legacy statuses
             self::STATUS_PENDING, 'Menunggu' => 'Menunggu Verifikasi',
             self::STATUS_APPROVED, 'Disetujui' => 'Selesai Diverifikasi',
@@ -283,15 +266,6 @@ class StudentAchievement extends Model
         return in_array($this->validation_status, [
             self::STATUS_FACULTY_APPROVED,
             self::STATUS_UNIVERSITY_REVIEW,
-        ]);
-    }
-
-    public function isInAppealProcess(): bool
-    {
-        return in_array($this->validation_status, [
-            self::STATUS_APPEAL_SUBMITTED,
-            self::STATUS_APPEAL_APPROVED,
-            self::STATUS_APPEAL_REJECTED,
         ]);
     }
 
@@ -355,11 +329,6 @@ class StudentAchievement extends Model
     public function scopeUniversityRejected($query)
     {
         return $query->where('validation_status', self::STATUS_UNIVERSITY_REJECTED);
-    }
-
-    public function scopeAppealPending($query)
-    {
-        return $query->where('validation_status', self::STATUS_APPEAL_SUBMITTED);
     }
 
     public function scopeByFaculty($query, string $faculty)

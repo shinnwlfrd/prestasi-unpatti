@@ -193,8 +193,31 @@ class RoleSwitchController extends Controller
                 'active_role_type' => $selectedRole->role,
             ]);
 
+            // Store specific level and scope in session
+            if ($selectedRole->role === 'operator') {
+                session([
+                    'operator_level' => $selectedRole->level,
+                    'operator_faculty_id' => $selectedRole->faculty_id,
+                    'operator_faculty_name' => $selectedRole->faculty_name,
+                    'operator_department_id' => $selectedRole->department_id,
+                    'operator_department_name' => $selectedRole->department_name,
+                    'operator_program_study_id' => $selectedRole->program_study_id,
+                    'operator_program_study_name' => $selectedRole->program_study_name,
+                ]);
+            } elseif ($selectedRole->role === 'pimpinan') {
+                session([
+                    'pimpinan_level' => $selectedRole->level,
+                    'pimpinan_faculty_id' => $selectedRole->faculty_id,
+                    'pimpinan_faculty_name' => $selectedRole->faculty_name,
+                    'pimpinan_department_id' => $selectedRole->department_id,
+                    'pimpinan_department_name' => $selectedRole->department_name,
+                    'pimpinan_program_study_id' => $selectedRole->program_study_id,
+                    'pimpinan_program_study_name' => $selectedRole->program_study_name,
+                    'pimpinan_position' => $selectedRole->position,
+                ]);
+            }
+
             // Update user's primary role/context in database
-            // Mapping UserRole 'role' to User 'role'
             $userRoleToUserTable = match ($selectedRole->role) {
                 'super_admin', 'admin' => 'Admin',
                 'operator' => 'Operator',
@@ -255,14 +278,23 @@ class RoleSwitchController extends Controller
     {
         session()->forget([
             'operator_level',
+            'operator_scope',
             'operator_faculty_id',
+            'operator_faculty_name',
             'operator_department_id',
+            'operator_department_name',
             'operator_program_study_id',
+            'operator_program_study_name',
             'pimpinan_level',
+            'pimpinan_scope',
             'pimpinan_faculty_id',
+            'pimpinan_faculty_name',
             'pimpinan_department_id',
+            'pimpinan_department_name',
             'pimpinan_program_study_id',
-            'pimpinan_position'
+            'pimpinan_program_study_name',
+            'pimpinan_position',
+            'is_read_only',
         ]);
     }
 }

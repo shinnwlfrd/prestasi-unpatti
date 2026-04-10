@@ -5,19 +5,35 @@
 @section('content')
     <div class="space-y-6"
         x-data="{ showModal: false, editMode: false, categoryId: null, categoryName: '', categoryDescription: '' }">
-        <!-- Header Section -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Kategori Prestasi</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola kategori prestasi mahasiswa untuk pengelompokan data yang lebih baik.</p>
+        <!-- Integrated Header Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm mb-6">
+            <div class="px-5 lg:px-6 py-4 lg:py-6">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Kategori Prestasi</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Klasifikasi bidang prestasi mahasiswa.</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="relative w-full lg:w-64">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" id="categorySearch" placeholder="Cari Kategori..."
+                                class="pl-9 w-full py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all">
+                        </div>
+                        <button @click="showModal = true; editMode = false; categoryName = ''; categoryDescription = ''"
+                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm tracking-wider flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Tambah
+                        </button>
+                    </div>
+                </div>
             </div>
-            <button @click="showModal = true; editMode = false; categoryName = ''; categoryDescription = ''"
-                class="w-full md:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tambah Kategori
-            </button>
         </div>
 
         <!-- Categories Grid -->

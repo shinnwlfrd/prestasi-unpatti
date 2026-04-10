@@ -2,21 +2,6 @@
 @section('title', 'Daftar Mahasiswa')
 @section('content')
     <div class="space-y-6 lg:space-y-8">
-        <!-- Header Section -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 dark:text-white">Daftar Mahasiswa</h2>
-                <p class="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">Kelola data mahasiswa dan pantau capaian prestasi mereka.</p>
-            </div>
-            <a href="{{ route('admin.submit.create') }}"
-                class="w-full sm:w-auto justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tambah Prestasi
-            </a>
-        </div>
-
         <!-- Quick Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 xl:gap-8">
             <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:p-6 xl:p-8 desktop-card-hover">
@@ -67,70 +52,10 @@
             </div>
         </div>
 
-        <!-- Search & Filter -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 p-4 lg:p-6 xl:p-8">
-            <form method="GET" action="{{ route('admin.students') }}" class="space-y-3 sm:space-y-4">
-                <!-- SIGAP Cascade Filter -->
-                <x-sigap-filter-simple :faculties="$sigapFaculties" :departments="$sigapDepartments"
-                    :studyPrograms="$sigapStudyPrograms" :selectedFaculty="$selectedFaculty"
-                    :selectedDepartment="$selectedDepartment" :selectedStudyProgram="$selectedStudyProgram" />
-
-                <!-- Search & Additional Filters -->
-                <div class="flex flex-col lg:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
-                    <!-- Search -->
-                    <div class="flex-1">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                placeholder="Cari NIM, nama, atau email mahasiswa..."
-                                class="pl-10 w-full py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        </div>
-                    </div>
-
-                    <!-- Filter Angkatan -->
-                    <select name="angkatan" onchange="this.form.submit()"
-                        class="w-full lg:w-auto px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        <option value="">Semua Angkatan</option>
-                        @foreach($angkatanList as $angkatan)
-                            <option value="{{ $angkatan }}" {{ request('angkatan') == $angkatan ? 'selected' : '' }}>Angkatan {{ $angkatan }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <!-- Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-                        @if(request()->hasAny(['search', 'faculty_id', 'department_id', 'program_study_id', 'angkatan']))
-                            <a href="?"
-                                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                <span class="hidden sm:inline">Reset</span>
-                            </a>
-                        @endif
-                        <button type="submit"
-                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <span class="hidden sm:inline">Cari</span>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Table -->
+        <!-- Table with Integrated Filter -->
         <div class="bg-white dark:bg-gray-800 rounded-xl lg:rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-5 border-b border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
+            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                     <div>
                         <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Daftar Mahasiswa</h2>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -138,6 +63,90 @@
                         </p>
                     </div>
                 </div>
+
+                <!-- Filter Integration -->
+                <form method="GET" action="{{ route('admin.students') }}" class="space-y-4">
+                    <div class="flex flex-wrap xl:flex-nowrap items-center gap-3">
+                        <!-- Cascade Filters Group -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 flex-grow w-full xl:w-auto">
+                            <!-- Faculty -->
+                            @if(!$isFacultyScoped)
+                                <select name="faculty_id" onchange="this.form.submit()" 
+                                    class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                    <option value="">Semua Fakultas</option>
+                                    @foreach($sigapFaculties as $faculty)
+                                        <option value="{{ $faculty['id'] }}" {{ $selectedFaculty == $faculty['id'] ? 'selected' : '' }}>
+                                            {{ $faculty['nama_en'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @endif
+
+                            <!-- Department -->
+                            @if(!($currentRole && $currentRole->department_id))
+                                <select name="department_id" onchange="this.form.submit()" {{ !$selectedFaculty ? 'disabled' : '' }}
+                                    class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 disabled:opacity-50">
+                                    <option value="">Semua Jurusan</option>
+                                    @foreach($sigapDepartments as $department)
+                                        <option value="{{ $department['id'] }}" {{ $selectedDepartment == $department['id'] ? 'selected' : '' }}>
+                                            {{ $department['nama_en'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @endif
+
+                            <!-- Prodi -->
+                            @if(!($currentRole && $currentRole->program_study_id))
+                                <select name="program_study_id" onchange="this.form.submit()" {{ !$selectedDepartment ? 'disabled' : '' }}
+                                    class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 disabled:opacity-50">
+                                    <option value="">Semua Program Studi</option>
+                                    @foreach($sigapStudyPrograms as $program)
+                                        <option value="{{ $program['id'] }}" {{ $selectedStudyProgram == $program['id'] ? 'selected' : '' }}>
+                                            {{ $program['nama_en'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @endif
+                        </div>
+
+                        <!-- Search & Angkatan -->
+                        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full xl:w-auto">
+                            <!-- Filter Angkatan -->
+                            <select name="angkatan" onchange="this.form.submit()"
+                                class="w-full sm:w-32 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                <option value="">Angkatan</option>
+                                @foreach($angkatanList as $angkatan)
+                                    <option value="{{ $angkatan }}" {{ request('angkatan') == $angkatan ? 'selected' : '' }}>{{ $angkatan }}</option>
+                                @endforeach
+                            </select>
+
+                            <!-- Search -->
+                            <div class="relative flex-grow sm:w-64">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Mahasiswa..."
+                                    class="pl-9 w-full py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="flex items-center gap-2">
+                                @if(request()->hasAny(['search', 'faculty_id', 'department_id', 'program_study_id', 'angkatan']))
+                                    <a href="?" class="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-lg transition-colors border border-gray-200 dark:border-gray-600" title="Reset Filters">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </a>
+                                @endif
+                                <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-bold text-xs shadow-sm">
+                                    Cari
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
 
             <!-- Mobile Card View -->

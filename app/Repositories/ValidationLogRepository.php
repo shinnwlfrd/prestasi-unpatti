@@ -54,7 +54,21 @@ class ValidationLogRepository implements ValidationLogRepositoryInterface
 
         // Filter by new_status (decision)
         if (! empty($filters['decision'])) {
-            $query->where('new_status', $filters['decision']);
+            $status = $filters['decision'];
+            $groups = [
+                'approved' => ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'],
+                'rejected' => ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'],
+                'revision' => ['faculty_revision', 'Revisi', 'revision_requested'],
+                'Disetujui' => ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'],
+                'Ditolak' => ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'],
+                'Revisi' => ['faculty_revision', 'Revisi', 'revision_requested'],
+            ];
+
+            if (isset($groups[$status])) {
+                $query->whereIn('new_status', $groups[$status]);
+            } else {
+                $query->where('new_status', $status);
+            }
         }
 
         // Filter by validator
@@ -163,9 +177,9 @@ class ValidationLogRepository implements ValidationLogRepositoryInterface
     {
         return [
             'total' => $this->model->count(),
-            'approved' => $this->countByStatus('Disetujui'),
-            'rejected' => $this->countByStatus('Ditolak'),
-            'revision' => $this->countByStatus('Revisi'),
+            'approved' => $this->model->whereIn('new_status', ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'])->count(),
+            'rejected' => $this->model->whereIn('new_status', ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'])->count(),
+            'revision' => $this->model->whereIn('new_status', ['faculty_revision', 'Revisi', 'revision_requested'])->count(),
             'today' => $this->countToday(),
         ];
     }
