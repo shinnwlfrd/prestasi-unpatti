@@ -75,10 +75,27 @@ class AchievementApprovalService
 
     public function processChecklist(StudentAchievement $achievement, User $validator, array $checklistData): ValidationChecklist
     {
-        return ValidationChecklist::updateOrCreate(
-            ['sa_id' => $achievement->sa_id, 'validator_id' => $validator->id],
-            $checklistData
-        );
+        // Check for soft-deleted checklist first to avoid duplicate creation
+        $checklist = ValidationChecklist::withTrashed()
+            ->where('sa_id', $achievement->sa_id)
+            ->where('validator_id', $validator->id)
+            ->first();
+
+        if ($checklist) {
+            // Restore if soft-deleted
+            if ($checklist->trashed()) {
+                $checklist->restore();
+            }
+
+            $checklist->update($checklistData);
+            return $checklist;
+        }
+
+        // Create new checklist
+        return ValidationChecklist::create(array_merge($checklistData, [
+            'sa_id' => $achievement->sa_id,
+            'validator_id' => $validator->id,
+        ]));
     }
 
     protected function createValidationLog(

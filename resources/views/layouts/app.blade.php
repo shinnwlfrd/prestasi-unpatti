@@ -12,6 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - SIMAPRES UNPATTI</title>
+    @include('partials.pwa-meta')
     <!-- Tailwind CSS CDN - For development only. Consider installing via npm for production -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -73,32 +74,17 @@
         }
 
         .glass {
-            backdrop-filter: blur(12px);
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .dark .glass {
-            background: rgba(30, 41, 59, 0.8);
-        }
-
-        .gradient-border {
-            background: linear-gradient(135deg, #6366f1, #14b8a6);
-            padding: 2px;
-        }
-
-        .gradient-border>* {
-            background: white;
-        }
-
-        .dark .gradient-border>* {
-            background: #1e293b;
+            background: rgba(30, 41, 59, 0.95);
         }
     </style>
     @stack('styles')
 </head>
 
-<body
-    class="bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 min-h-screen transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-slate-900 min-h-screen transition-colors duration-300">
 
     @php
         // IMPORTANT: Check auth()->check() FIRST to prevent role confusion
@@ -115,9 +101,9 @@
         }
 
         $roleColors = [
-            'student' => ['from-blue-500', 'to-indigo-600', 'bg-blue-500', 'text-blue-600', 'border-blue-200'],
-            'Validator' => ['from-emerald-500', 'to-teal-600', 'bg-emerald-500', 'text-emerald-600', 'border-emerald-200'],
-            'Admin' => ['from-purple-500', 'to-pink-600', 'bg-purple-500', 'text-purple-600', 'border-purple-200'],
+            'student' => ['from-indigo-600', 'to-indigo-600', 'bg-indigo-600', 'text-indigo-600', 'border-indigo-200'],
+            'Operator' => ['from-indigo-600', 'to-indigo-600', 'bg-indigo-600', 'text-indigo-600', 'border-indigo-200'],
+            'Admin' => ['from-indigo-600', 'to-indigo-600', 'bg-indigo-600', 'text-indigo-600', 'border-indigo-200'],
             'guest' => ['from-gray-500', 'to-gray-600', 'bg-gray-500', 'text-gray-600', 'border-gray-200'],
         ];
         $colors = $roleColors[$role] ?? $roleColors['guest'];
@@ -129,12 +115,8 @@
             <div class="flex justify-between items-center h-16">
                 <!-- Logo & Brand -->
                 <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 bg-gradient-to-br {{ $colors[0] }} {{ $colors[1] }} rounded-xl flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                        </svg>
+                    <div class="w-10 h-10 flex items-center justify-center p-0.5">
+                        <img src="{{ asset('img/logo.png') }}" class="w-full h-full object-contain" alt="Logo UNPATTI">
                     </div>
                     <div>
                         <h1 class="text-lg font-bold text-gray-800 dark:text-white">SIMAPRES</h1>
@@ -152,7 +134,7 @@
                 <div class="flex items-center gap-3">
                     <!-- Dark Mode Toggle -->
                     <button @click="darkMode = !darkMode"
-                        class="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-105">
+                        class="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200">
                         <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -176,7 +158,7 @@
                         <a href="{{ $profileRoute }}"
                             class="flex items-center gap-2 hover:opacity-80 transition-opacity">
                             <div
-                                class="w-8 h-8 rounded-lg bg-gradient-to-br {{ $colors[0] }} {{ $colors[1] }} flex items-center justify-center text-white text-sm font-bold">
+                                class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-sm font-bold">
                                 {{ strtoupper(substr($userName ?? 'U', 0, 1)) }}
                             </div>
                             <div class="flex flex-col">
@@ -214,7 +196,7 @@
                     <form action="{{ $logoutRoute }}" method="POST">
                         @csrf
                         <button type="submit"
-                            class="p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 hover:scale-105"
+                            class="p-2.5 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200"
                             title="Logout{{ auth()->check() && auth()->user()->last_login_method === 'sso' ? ' (SSO)' : '' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -263,13 +245,14 @@
                 @foreach($errors->all() as $error)
                     showToast('error', '{{ $error }}');
                 @endforeach
-                        });
+                                    });
         </script>
     @endif
 
     @stack('scripts')
     <script src="https://instant.page/5.2.0" type="module"
         integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"></script>
+    @include('partials.pwa-sw-register')
 </body>
 
 </html>

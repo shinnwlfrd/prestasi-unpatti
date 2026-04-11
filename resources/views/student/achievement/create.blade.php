@@ -14,12 +14,12 @@
     </nav>
 
     <!-- Header Section -->
-    <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
+    <div class="relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
         <div class="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -mb-8 -ml-8 w-48 h-48 bg-blue-500/5 rounded-full blur-2xl"></div>
         
         <div class="relative flex flex-col md:flex-row md:items-center gap-6">
-            <div class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center transform hover:scale-105 transition-transform">
+            <div class="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center transform hover:scale-105 transition-transform">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                 </svg>
@@ -39,7 +39,7 @@
         @csrf
         
         <!-- Section 1: Kategori -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden group">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden group">
             <div class="bg-gray-50/50 dark:bg-gray-700/50 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
                 <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@
                 </label>
                 <div class="relative">
                     <select name="category_id" required
-                        class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-2xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm @error('category_id') border-red-500 @enderror">
+                        class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm @error('category_id') border-red-500 @enderror">
                         <option value="">Pilih Kategori Prestasi</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
@@ -75,7 +75,7 @@
         </div>
 
         <!-- Section 2: Detail Kegiatan -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden group">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden group">
             <div class="bg-gray-50/50 dark:bg-gray-700/50 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
                 <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +91,7 @@
                         Nama Lomba/Kegiatan <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="event_name" value="{{ old('event_name') }}" required
-                        class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-2xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm @error('event_name') border-red-500 @enderror placeholder:text-gray-400"
+                        class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm @error('event_name') border-red-500 @enderror placeholder:text-gray-400"
                         placeholder="Contoh: Juara 1 Lomba Karya Tulis Ilmiah Nasional">
                     @error('event_name')
                         <p class="text-red-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
@@ -131,7 +131,7 @@
                         Penyelenggara <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="organizer" value="{{ old('organizer') }}" required
-                        class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-2xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm @error('organizer') border-red-500 @enderror"
+                        class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm @error('organizer') border-red-500 @enderror"
                         placeholder="Contoh: Kemendikbudristek / Universitas Indonesia">
                     @error('organizer')
                         <p class="text-red-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
@@ -145,7 +145,7 @@
                             Tanggal Pelaksanaan <span class="text-red-500">*</span>
                         </label>
                         <input type="date" name="event_date" value="{{ old('event_date') }}" required
-                            class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-2xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm @error('event_date') border-red-500 @enderror">
+                            class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm @error('event_date') border-red-500 @enderror">
                         @error('event_date')
                             <p class="text-red-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
                         @enderror
@@ -155,7 +155,7 @@
                             Peringkat/Ranking <span class="text-gray-400 font-normal text-xs ml-1">(Opsional)</span>
                         </label>
                         <input type="text" name="ranking" value="{{ old('ranking') }}"
-                            class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-2xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm"
+                            class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm"
                             placeholder="Contoh: Juara 1, Finalis, atau Peserta">
                     </div>
                 </div>
@@ -166,7 +166,7 @@
                         Deskripsi <span class="text-gray-400 font-normal text-xs ml-1">(Opsional)</span>
                     </label>
                     <textarea name="description" rows="4"
-                        class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-2xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm placeholder:text-gray-400"
+                        class="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 dark:text-white rounded-xl py-4 px-5 text-base font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm placeholder:text-gray-400"
                         placeholder="Ceritakan sedikit tentang pencapaian Anda...">{{ old('description') }}</textarea>
                 </div>
             </div>
@@ -175,7 +175,7 @@
         <!-- Section 3: Berkas -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Certificate Upload Area -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col group">
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col group">
                 <div class="bg-gray-50/50 dark:bg-gray-700/50 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400">
@@ -206,9 +206,9 @@
                                 }
                             ">
                         
-                        <label for="certificate" class="h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer transition-all p-8 text-center">
+                        <label for="certificate" class="h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 hover:border-indigo-300 dark:hover:border-indigo-700 cursor-pointer transition-all p-8 text-center">
                             <div x-show="!fileName" class="flex flex-col items-center animate-pulse-subtle">
-                                <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-2xl shadow-sm flex items-center justify-center mb-4 group-hover/upload:scale-110 transition-transform">
+                                <div class="w-16 h-16 bg-white dark:bg-gray-700 rounded-xl shadow-sm flex items-center justify-center mb-4 group-hover/upload:scale-110 transition-transform">
                                     <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                     </svg>
@@ -230,7 +230,7 @@
                                     </div>
                                 </template>
                                 <template x-if="fileType === 'application/pdf'">
-                                    <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mb-3">
+                                    <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center mb-3">
                                         <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
                                             <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
@@ -252,7 +252,7 @@
                     <div x-show="showPreview" x-cloak
                         class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
                         @click.self="showPreview = false">
-                        <div class="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in duration-300">
                             <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                                 <p class="font-bold text-gray-900 dark:text-white" x-text="fileName"></p>
                                 <button type="button" @click="showPreview = false" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-gray-600">
@@ -279,7 +279,7 @@
             </div>
 
             <!-- Additional Documents Area -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col group">
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col group">
                 <div class="bg-gray-50/50 dark:bg-gray-700/50 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400">
@@ -350,7 +350,7 @@
                     <div class="relative mb-6" x-show="allFiles.length < maxFiles">
                         <input type="file" accept=".pdf,.jpg,.jpeg,.png" multiple @change="addFiles"
                             class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                        <div class="group/plus bg-white dark:bg-gray-800 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-2xl p-6 text-center transition-all hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10">
+                        <div class="group/plus bg-white dark:bg-gray-800 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-xl p-6 text-center transition-all hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10">
                             <div class="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl mx-auto flex items-center justify-center mb-2 group-hover/plus:scale-110 transition-transform">
                                 <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -398,7 +398,7 @@
         </div>
 
         <!-- Sticky Bottom Actions -->
-        <div class="sticky bottom-4 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-8 py-4 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-8 duration-500">
+        <div class="sticky bottom-4 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-8 py-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-8 duration-500">
             <div class="hidden sm:block">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Formulir Pengajuan</p>
                 <div class="flex items-center gap-2 mt-1">
@@ -409,11 +409,11 @@
             
             <div class="flex items-center gap-3 w-full sm:w-auto">
                 <a href="{{ route('student.dashboard') }}" 
-                   class="flex-1 sm:flex-none px-8 py-3 rounded-2xl border-2 border-gray-100 dark:border-gray-700 text-sm font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 transition-all text-center uppercase tracking-widest">
+                   class="flex-1 sm:flex-none px-8 py-3 rounded-xl border-2 border-gray-100 dark:border-gray-700 text-sm font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 transition-all text-center uppercase tracking-widest">
                     Batal
                 </a>
                 <button type="submit" :disabled="loading"
-                    class="flex-1 sm:flex-none px-10 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 active:scale-95 text-white rounded-2xl text-sm font-bold shadow-xl shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 group">
+                    class="flex-1 sm:flex-none px-10 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 active:scale-95 text-white rounded-xl text-sm font-bold shadow-xl shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 group">
                     <svg x-show="loading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

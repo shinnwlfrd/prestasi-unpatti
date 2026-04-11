@@ -18,8 +18,8 @@ class RoleSwitchController extends Controller
             return redirect()->route('login');
         }
 
-        // Get all active roles for this user from user_roles table
-        $roles = $user->activeRoles()->with('user')->get();
+        // Get available roles for this user (including virtual roles for super_admin)
+        $roles = $user->getSwitchableRoles();
 
         // Check if user email exists in students table (mahasiswa role)
         $student = \App\Models\Student::where('email', $user->email)->first();
@@ -135,6 +135,44 @@ class RoleSwitchController extends Controller
             }
         }
 
+        // Clean role-specific session variables before switching
+        $this->clearRoleSession();
+
+        // Check if switching to virtual validator role (for super admin)
+        if ($role_id === 'virtual_validator_university') {
+            session([
+                'active_role_id' => 'virtual_validator_university',
+                'active_role_type' => 'operator',
+                'operator_level' => 'university',
+            ]);
+
+            $user->update(['role' => 'Operator']);
+
+            return response()->json([
+                'success' => true,
+                'redirect_url' => route('validator.pending.index'),
+                'role' => 'Super Operator',
+            ]);
+        }
+
+        // Check if switching to virtual pimpinan role (for super admin)
+        if ($role_id === 'virtual_pimpinan_university') {
+            session([
+                'active_role_id' => 'virtual_pimpinan_university',
+                'active_role_type' => 'pimpinan',
+                'pimpinan_level' => 'university',
+                'pimpinan_position' => 'super_admin',
+            ]);
+
+            $user->update(['role' => 'Pimpinan']);
+
+            return response()->json([
+                'success' => true,
+                'redirect_url' => route('pimpinan.dashboard'),
+                'role' => 'Pimpinan Universitas',
+            ]);
+        }
+
         // Switching from student to user role
         if (session('auth_role') === 'student') {
             // Clear student session
@@ -155,11 +193,34 @@ class RoleSwitchController extends Controller
                 'active_role_type' => $selectedRole->role,
             ]);
 
+            // Store specific level and scope in session
+            if ($selectedRole->role === 'operator') {
+                session([
+                    'operator_level' => $selectedRole->level,
+                    'operator_faculty_id' => $selectedRole->faculty_id,
+                    'operator_faculty_name' => $selectedRole->faculty_name,
+                    'operator_department_id' => $selectedRole->department_id,
+                    'operator_department_name' => $selectedRole->department_name,
+                    'operator_program_study_id' => $selectedRole->program_study_id,
+                    'operator_program_study_name' => $selectedRole->program_study_name,
+                ]);
+            } elseif ($selectedRole->role === 'pimpinan') {
+                session([
+                    'pimpinan_level' => $selectedRole->level,
+                    'pimpinan_faculty_id' => $selectedRole->faculty_id,
+                    'pimpinan_faculty_name' => $selectedRole->faculty_name,
+                    'pimpinan_department_id' => $selectedRole->department_id,
+                    'pimpinan_department_name' => $selectedRole->department_name,
+                    'pimpinan_program_study_id' => $selectedRole->program_study_id,
+                    'pimpinan_program_study_name' => $selectedRole->program_study_name,
+                    'pimpinan_position' => $selectedRole->position,
+                ]);
+            }
+
             // Update user's primary role/context in database
-            // Mapping UserRole 'role' to User 'role'
             $userRoleToUserTable = match ($selectedRole->role) {
                 'super_admin', 'admin' => 'Admin',
-                'operator' => 'Validator',
+                'operator' => 'Operator',
                 'pimpinan' => 'Pimpinan',
                 'mahasiswa' => 'Mahasiswa',
                 default => ucfirst($selectedRole->role),
@@ -209,5 +270,31 @@ class RoleSwitchController extends Controller
         }
 
         return redirect($this->getRedirectUrl($role));
+    }
+    /**
+     * Clear role-specific session variables
+     */
+    private function clearRoleSession()
+    {
+        session()->forget([
+            'operator_level',
+            'operator_scope',
+            'operator_faculty_id',
+            'operator_faculty_name',
+            'operator_department_id',
+            'operator_department_name',
+            'operator_program_study_id',
+            'operator_program_study_name',
+            'pimpinan_level',
+            'pimpinan_scope',
+            'pimpinan_faculty_id',
+            'pimpinan_faculty_name',
+            'pimpinan_department_id',
+            'pimpinan_department_name',
+            'pimpinan_program_study_id',
+            'pimpinan_program_study_name',
+            'pimpinan_position',
+            'is_read_only',
+        ]);
     }
 }

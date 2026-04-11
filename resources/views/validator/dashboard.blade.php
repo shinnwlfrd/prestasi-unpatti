@@ -1,6 +1,6 @@
 @extends('layouts.validator')
 
-@section('title', $isPimpinan ? 'Dashboard Pimpinan' : 'Dashboard Validator')
+@section('title', $isPimpinan ? 'Dashboard Pimpinan' : 'Dashboard Operator')
 
 @push('styles')
     <style>
@@ -22,145 +22,96 @@
         'avg_review_time_hours' => 0,
     ];
 
-    $userName = auth()->user()->name ?? ($isPimpinan ? 'Pimpinan' : 'Validator');
+    $userName = auth()->user()->name ?? ($isPimpinan ? 'Pimpinan' : 'Operator');
     $pendingCount = $pendingAchievements->count();
 @endphp
 
 @section('content')
-    <div x-data="validatorDashboard()" class="space-y-6">
-        <!-- Header -->
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div class="flex-1">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <p class="text-gray-500 dark:text-gray-400 mt-1">
-                        Selamat datang,
-                        <span class="font-semibold text-gray-900 dark:text-white">
-                            {{ $isPimpinan ? ($positionLabel . ' ' . ($scopeName ?? '')) : auth()->user()->name }}
-                        </span>
-                        @if($isPimpinan)
-                            <span
-                                class="ml-2 text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full">
-                                📊 Mode Read-Only
-                            </span>
-                        @endif
-                    </p>
-
-                    @if($isPimpinan)
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-medium text-gray-400 mr-1">Cetak Laporan:</span>
-                            <div class="inline-flex rounded-lg shadow-sm" role="group">
-                                <a href="{{ route('api.export.achievements', array_merge(request()->all(), ['format' => 'excel'])) }}"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-l-lg hover:bg-emerald-100 hover:text-emerald-800 transition-colors dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/40">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div x-data="validatorDashboard()" class="gap-6 ">
+        @if($isPimpinan && !empty($positionLabel))
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-1">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                                @if($level === 'university')
+                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                     </svg>
-                                    Excel
-                                </a>
-                                <a href="{{ route('api.export.achievements', array_merge(request()->all(), ['format' => 'csv'])) }}"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 border border-l-0 border-blue-200 rounded-r-lg hover:bg-blue-100 hover:text-blue-800 transition-colors dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40">
-                                    CSV
-                                </a>
+                                @elseif($level === 'faculty')
+                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                    </svg>
+                                @elseif($level === 'department')
+                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                @elseif($level === 'program_study')
+                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                @else
+                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                @endif
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Tingkat Pimpinan</p>
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ $positionLabel }}</h3>
+                                @if(!empty($scopeName))
+                                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{{ $scopeName }}</p>
+                                @endif
                             </div>
                         </div>
-                    @endif
+                        <div class="flex flex-wrap items-center gap-2">
+                            @php
+                                $levelColors = [
+                                    'university' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
+                                    'faculty' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+                                    'department' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+                                    'program_study' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+                                    'graduate_program' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+                                ];
+                                $levelLabels = [
+                                    'university' => 'Tingkat Universitas',
+                                    'faculty' => 'Tingkat Fakultas',
+                                    'department' => 'Tingkat Jurusan',
+                                    'program_study' => 'Tingkat Program Studi',
+                                    'graduate_program' => 'Program Pascasarjana',
+                                ];
+                                $levelColor = $levelColors[$level] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600';
+                                $levelLabel = $levelLabels[$level] ?? ucfirst(str_replace('_', ' ', $level ?? 'Unknown'));
+                            @endphp
+                            <span
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border {{ $levelColor }}">
+                                <span class="w-2 h-2 rounded-full bg-current opacity-60"></span>
+                                {{ $levelLabel }}
+                            </span>
+                            <span
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                {{ number_format($totalStudents) }} Mahasiswa
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            @unless($isPimpinan)
-                <a href="{{ route('validator.submit.form') }}"
-                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors w-fit">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Ajukan Prestasi
-                </a>
-            @endunless
-        </div>
-
-        <!-- @if($isPimpinan && !empty($positionLabel))
-                                                                            <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg p-1">
-                                                                                <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
-                                                                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                                                                        <div class="flex items-center gap-4">
-                                                                                            <div
-                                                                                                class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                                                                                                @if($level === 'university')
-                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                                                                    </svg>
-                                                                                                @elseif($level === 'faculty')
-                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                            d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-                                                                                                    </svg>
-                                                                                                @elseif($level === 'department')
-                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                                                                                    </svg>
-                                                                                                @elseif($level === 'program_study')
-                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                                                                                    </svg>
-                                                                                                @else
-                                                                                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                                                                    </svg>
-                                                                                                @endif
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                                                                    Tingkat Pimpinan</p>
-                                                                                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ $positionLabel }}</h3>
-                                                                                                @if(!empty($scopeName))
-                                                                                                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{{ $scopeName }}</p>
-                                                                                                @endif
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div class="flex flex-wrap items-center gap-2">
-                                                                                            @php
-                                                                                                $levelColors = [
-                                                                                                    'university' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
-                                                                                                    'faculty' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-                                                                                                    'department' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-                                                                                                    'program_study' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
-                                                                                                    'graduate_program' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800',
-                                                                                                ];
-                                                                                                $levelLabels = [
-                                                                                                    'university' => 'Tingkat Universitas',
-                                                                                                    'faculty' => 'Tingkat Fakultas',
-                                                                                                    'department' => 'Tingkat Jurusan',
-                                                                                                    'program_study' => 'Tingkat Program Studi',
-                                                                                                    'graduate_program' => 'Program Pascasarjana',
-                                                                                                ];
-                                                                                                $levelColor = $levelColors[$level] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600';
-                                                                                                $levelLabel = $levelLabels[$level] ?? ucfirst(str_replace('_', ' ', $level ?? 'Unknown'));
-                                                                                            @endphp
-                                                                                            <span
-                                                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border {{ $levelColor }}">
-                                                                                                <span class="w-2 h-2 rounded-full bg-current opacity-60"></span>
-                                                                                                {{ $levelLabel }}
-                                                                                            </span>
-                                                                                            <span
-                                                                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
-                                                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                                                </svg>
-                                                                                                {{ number_format($totalStudents) }} Mahasiswa
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        @endif -->
+        @endif
 
 
         <!-- Period Filter Bar -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-1">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-1 mb-8">
             <form id="globalFilterForm" method="GET" action="{{ route($routePrefix . '.dashboard') }}"
                 class="flex items-center">
                 <!-- Preserve existing filters -->
@@ -345,10 +296,19 @@
 
             <!-- Charts Section - 12 Column Grid -->
             @if($isPimpinan)
+                <!-- Row 1: Trend & Comparison (2 columns) -->
                 <div class="grid grid-cols-12 gap-6 mb-8">
-                    @if(!empty($hierarchicalComparison) && isset($hierarchicalComparison['items']) && $hierarchicalComparison['items']->count() > 0)
-                        <!-- Hierarchical Comparison Chart (col-span-6) -->
-                        <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <!-- Achievement Trend Chart (col-span-12 lg:col-span-6) -->
+                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Analisis Tren Pertumbuhan</h3>
+                        <div class="relative h-72">
+                            <canvas id="achievementTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Hierarchical Comparison Chart (col-span-12 lg:col-span-6) -->
+                    <div class="col-span-12 lg:col-span-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        @if(!empty($hierarchicalComparison) && isset($hierarchicalComparison['items']) && $hierarchicalComparison['items']->count() > 0)
                             <div class="mb-4">
                                 <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
                                     <button id="backBtn"
@@ -363,7 +323,7 @@
                                     {{ $hierarchicalComparison['label'] }}
                                 </h3>
                             </div>
-                            <div class="relative h-64">
+                            <div class="relative h-72">
                                 <canvas id="hierarchicalChart"></canvas>
                                 <div id="chartLoading"
                                     class="hidden absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800 bg-opacity-75">
@@ -379,67 +339,10 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Efficiency Ratio Ranking (col-span-3) -->
-                        <div class="col-span-12 lg:col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Efisiensi Capaian Prestasi</h3>
-                                <div class="group relative">
-                                    <svg class="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <div
-                                        class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                        Efisiensi: Jumlah prestasi dibagi populasi mahasiswa. Menunjukkan produktivitas unit.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="space-y-4 max-h-64 overflow-y-auto pr-1">
-                                @forelse($efficiencyRanking as $rank)
-                                    <div class="flex items-center justify-between">
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"
-                                                title="{{ $rank['name'] }}">
-                                                {{ $rank['name'] }}
-                                            </p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ $rank['achievements'] }} Pres / {{ $rank['students'] }} Mhs
-                                            </p>
-                                        </div>
-                                        <div class="ml-2 text-right">
-                                            <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                                                {{ number_format($rank['ratio'], 3) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="flex flex-col items-center justify-center py-8 text-center text-gray-500 dark:text-gray-400">
-                                        <svg class="w-8 h-8 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                        <p class="text-xs">Data tidak tersedia</p>
-                                    </div>
-                                @endforelse
-                            </div>
-                        </div>
-
-                        <!-- Achievement Trend (col-span-3) -->
-                        <div class="col-span-12 lg:col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Analisis Tren Pertumbuhan</h3>
-                            <div class="relative h-64">
-                                <canvas id="achievementTrendChart"></canvas>
-                            </div>
-                        </div>
-                    @else
-                        <!-- No Data Message -->
-                        <div class="col-span-12 lg:col-span-12 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Perbandingan Hierarkis</h3>
-                            <div class="flex items-center justify-center h-64">
-                                <div class="text-center">
+                        @else
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Perbandingan Prestasi</h3>
+                            <div class="flex items-center justify-center h-72 text-center">
+                                <div>
                                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -447,21 +350,59 @@
                                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Tidak ada data untuk perbandingan</p>
                                 </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
 
-                <!-- Row 3 - Specialized Distributions -->
-                <div class="grid grid-cols-12 gap-6 mb-6">
-                    <!-- Level Distribution Chart (col-span-4) -->
+                <!-- Row 2: Efficiency & Distributions (3 columns) -->
+                <div class="grid grid-cols-12 gap-6 mb-8">
+                    <!-- Efficiency Ratio Ranking (col-span-12 lg:col-span-4) -->
                     <div class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Tingkat Capaian</h3>
-                        <div class="relative h-64">
-                            <canvas id="levelDistributionChart"></canvas>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Efisiensi Capaian Prestasi</h3>
+                            <div class="group relative">
+                                <svg class="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div
+                                    class="absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                    Efisiensi: Jumlah prestasi dibagi populasi mahasiswa. Menunjukkan produktivitas unit.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-1">
+                            @forelse($efficiencyRanking as $rank)
+                                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate"
+                                            title="{{ $rank['name'] }}">
+                                            {{ $rank['name'] }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $rank['achievements'] }} Pres / {{ $rank['students'] }} Mhs
+                                        </p>
+                                    </div>
+                                    <div class="ml-2 text-right">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                            {{ number_format($rank['ratio'], 3) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="col-span-full flex flex-col items-center justify-center py-8 text-center text-gray-500 dark:text-gray-400">
+                                    <svg class="w-8 h-8 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                    <p class="text-xs">Data tidak tersedia</p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
 
-                    <!-- Category Distribution Chart (col-span-4) -->
+                    <!-- Category Distribution Chart (col-span-12 lg:col-span-4) -->
                     <div class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Bidang Prestasi</h3>
                         <div class="relative h-64">
@@ -469,57 +410,16 @@
                         </div>
                     </div>
 
-                    <!-- Indicator Risk & Insight List (col-span-4) -->
-                    <div
-                        class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-t-4 border-amber-500 dark:border-amber-600">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Pusat Kendali & Manajemen Risiko</h3>
-                            <span
-                                class="px-2 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold rounded-full">
-                                {{ count($riskIndicators) }} Poin
-                            </span>
-                        </div>
-                        <div class="space-y-4">
-                            @forelse($riskIndicators as $risk)
-                                <div
-                                    class="flex items-start gap-3 p-3 rounded-lg {{ $risk['type'] === 'danger' ? 'bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400' : 'bg-amber-50 dark:bg-amber-900/10 text-amber-700 dark:text-amber-400' }}">
-                                    <div class="mt-0.5">
-                                        @if($risk['icon'] === 'clock')
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        @elseif($risk['icon'] === 'trending-down')
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                                            </svg>
-                                        @elseif($risk['icon'] === 'users')
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                            </svg>
-                                        @else
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                            </svg>
-                                        @endif
-                                    </div>
-                                    <p class="text-xs font-medium leading-relaxed">{{ $risk['message'] }}</p>
-                                </div>
-                            @empty
-                                <div class="flex flex-col items-center justify-center py-12 text-center text-gray-400">
-                                    <svg class="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p class="text-sm">Semua metrik dalam batas aman</p>
-                                </div>
-                            @endforelse
+                    <!-- Level Distribution Chart (col-span-12 lg:col-span-4) -->
+                    <div class="col-span-12 lg:col-span-4 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Komposisi Tingkat Capaian</h3>
+                        <div class="relative h-64">
+                            <canvas id="levelDistributionChart"></canvas>
                         </div>
                     </div>
                 </div>
+
+
             @endif
 
 
@@ -642,13 +542,13 @@
                 </div>
             @endif
         @else
-        <!-- Validator Pending Achievements Table -->
+        <!-- Operator Pending Achievements Table -->
         <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Menunggu Validasi</h2>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Klik prestasi untuk validasi</p>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Menunggu Verifikasi</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Klik prestasi untuk verifikasi</p>
                     </div>
                     <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
                         Total: <strong class="text-gray-900 dark:text-white">{{ $pendingAchievements->total() }}</strong>
@@ -836,15 +736,15 @@
             @endif
         </div>
     @endif
-    <!-- End of Pimpinan/Validator conditional -->
+    <!-- End of Pimpinan/Operator conditional -->
 
 
     @unless($isPimpinan)
-        <!-- Modal Validasi (Only for Validator) -->
+        <!-- Modal Validasi (Only for Operator) -->
         <div x-show="showModal" x-cloak @click.self="closeModal()"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
             <div @click.away="closeModal()"
-                class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
 
                 <!-- Loading State -->
                 <div x-show="loading" class="p-12 text-center">
@@ -1108,7 +1008,7 @@
         <div x-show="showEventModal" x-cloak @click.self="closeEventModal()"
             class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 p-4">
             <div @click.away="closeEventModal()"
-                class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
 
                 <!-- Modal Header -->
                 <div
@@ -1219,6 +1119,278 @@
             </div>
         </div>
         <!-- End Modal Peserta Event -->
+
+        <!-- Modal SLA Breach Details (Pimpinan Only) -->
+        @if($isPimpinan)
+            <div x-show="showSlaBreachModal" x-cloak @click.self="closeSlaBreachModal()"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 p-4">
+                <div @click.stop 
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700">
+                    
+                    <!-- Modal Header -->
+                    <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-red-50 via-orange-50 to-red-50 dark:from-red-900/20 dark:via-orange-900/20 dark:to-red-900/20">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center shadow-sm">
+                                    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">Prestasi Melampaui SLA</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Pengajuan yang melampaui batas waktu validasi (> 7 hari)</p>
+                                </div>
+                            </div>
+                            <button @click="closeSlaBreachModal()" type="button"
+                                class="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-700 transition-colors">
+                                <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+                        <!-- Loading State -->
+                        <div x-show="slaBreachLoading" class="flex flex-col items-center justify-center py-12">
+                            <svg class="animate-spin w-12 h-12 text-red-600 dark:text-red-400 mb-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Memuat data...</p>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div x-show="!slaBreachLoading && slaBreachData.length > 0" class="space-y-4">
+                            <!-- Summary Card -->
+                            <div class="bg-red-50 dark:bg-red-900/10 border-2 border-red-200 dark:border-red-800/50 rounded-xl p-4 shadow-sm">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-red-900 dark:text-red-300">
+                                            Total: <span x-text="slaBreachTotal"></span> Pengajuan Terlambat
+                                        </p>
+                                        <p class="text-xs text-red-700 dark:text-red-400 mt-0.5">
+                                            Memerlukan tindakan segera untuk mempercepat proses validasi
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Responsive Table -->
+                            <div class="overflow-x-auto rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100 dark:bg-gray-900/50 border-b-2 border-gray-200 dark:border-gray-700">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider">Mahasiswa</th>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider">Prestasi</th>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider">Kategori</th>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider">Tingkat</th>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider">Tanggal Submit</th>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider">Keterlambatan</th>
+                                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-800 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                                        <template x-for="(breach, index) in slaBreachData" :key="breach.sa_id">
+                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                                <td class="px-4 py-3">
+                                                    <div>
+                                                        <p class="font-semibold text-gray-900 dark:text-white" x-text="breach.student_name"></p>
+                                                        <p class="text-xs text-gray-600 dark:text-gray-400" x-text="breach.student_id"></p>
+                                                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5" x-text="breach.program_study"></p>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <p class="text-gray-900 dark:text-white font-medium" x-text="breach.event_name"></p>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800" x-text="breach.category"></span>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border"
+                                                        :class="{
+                                                            'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800': breach.level === 'Internasional',
+                                                            'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800': breach.level === 'Nasional',
+                                                            'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800': breach.level === 'Universitas'
+                                                        }"
+                                                        x-text="breach.level"></span>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <p class="text-gray-800 dark:text-gray-300 font-medium" x-text="breach.submitted_at"></p>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border"
+                                                        :class="{
+                                                            'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800': breach.days_overdue > 14,
+                                                            'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800': breach.days_overdue <= 14
+                                                        }">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <span x-text="breach.days_overdue + ' hari'"></span>
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800" x-text="breach.status_label"></span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div x-show="!slaBreachLoading && slaBreachData.length === 0" class="flex flex-col items-center justify-center py-12 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700">
+                            <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p class="text-sm font-bold text-gray-900 dark:text-white mb-1">Tidak Ada Pelanggaran SLA</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400">Semua pengajuan diproses tepat waktu</p>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="px-6 py-4 border-t-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                            <p class="text-xs text-gray-600 dark:text-gray-400">
+                                <span class="font-bold text-gray-800 dark:text-gray-300">Catatan:</span> Data yang ditampilkan adalah prestasi yang belum selesai divalidasi dan sudah melewati batas waktu 7 hari
+                            </p>
+                            <button @click="closeSlaBreachModal()" type="button"
+                                class="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-semibold transition-colors shadow-sm hover:shadow">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+        <!-- End Modal SLA Breach Details -->
+
+        <!-- Export Report Card (Pimpinan Only) -->
+        @if($isPimpinan)
+            <div class="mt-8">
+                <div class="bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden relative group">
+                    <!-- Decorative Elements -->
+                    <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-50 dark:bg-emerald-900/10 rounded-full -mr-48 -mt-48 transition-transform group-hover:scale-110 duration-700"></div>
+                    <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-50 dark:bg-blue-900/10 rounded-full -ml-32 -mb-32 transition-transform group-hover:scale-110 duration-700"></div>
+
+                    <div class="relative z-10 flex flex-col lg:flex-row items-stretch">
+                        <!-- Left Side: Status -->
+                        <div class="lg:w-1/3 p-8 lg:p-12 bg-gray-50 dark:bg-gray-900/50 flex flex-col items-center justify-center text-center border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-gray-700">
+                            <div class="relative mb-6">
+                                <div class="absolute inset-0 bg-emerald-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+                                <div class="w-24 h-24 bg-white dark:bg-gray-800 rounded-full shadow-xl flex items-center justify-center border-4 border-emerald-500 relative">
+                                    <svg class="w-12 h-12 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <h4 class="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter mb-2">Laporan Eksekutif</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium px-4">Data capaian prestasi untuk monitoring dan evaluasi strategis</p>
+                            <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800/50">
+                                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                <span class="text-[10px] font-black uppercase tracking-widest leading-none">Data Terverifikasi</span>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Details & Actions -->
+                        <div class="flex-1 p-8 lg:p-12 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-4">Unduh Laporan Prestasi</h3>
+                                <p class="text-gray-500 dark:text-gray-400 text-base font-medium max-w-xl mb-8">
+                                    Ekspor data prestasi mahasiswa untuk analisis, pelaporan, dan pengambilan keputusan strategis. 
+                                    Laporan mencakup semua data yang telah terfilter sesuai periode dan unit yang dipilih.
+                                </p>
+
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-10">
+                                    <div class="space-y-1">
+                                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Prestasi</p>
+                                        <p class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{{ number_format($totalAchievements) }}</p>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mahasiswa Aktif</p>
+                                        <p class="text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">{{ number_format($totalStudents) }}</p>
+                                    </div>
+                                    <div class="space-y-1 hidden md:block">
+                                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Periode</p>
+                                        <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">{{ count($selectedPeriods) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row items-center gap-4 border-t border-gray-100 dark:border-gray-700 pt-8" x-data="{ open: false }">
+                                <div class="relative flex-1 w-full sm:w-auto">
+                                    <button @click="open = !open" @click.away="open = false" 
+                                        class="w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-900/20 dark:shadow-none group">
+                                        <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        UNDUH LAPORAN SEKARANG
+                                        <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+
+                                    <!-- Dropdown Menu -->
+                                    <div x-show="open" 
+                                        x-transition:enter="transition ease-out duration-200"
+                                        x-transition:enter-start="transform opacity-0 -translate-y-4"
+                                        x-transition:enter-end="transform opacity-100 translate-y-0"
+                                        x-transition:leave="transition ease-in duration-150"
+                                        x-transition:leave-start="transform opacity-100 translate-y-0"
+                                        x-transition:leave-end="transform opacity-0 -translate-y-4"
+                                        class="absolute bottom-full left-0 mb-4 w-72 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-[50] overflow-hidden" 
+                                        x-cloak>
+                                        <div class="p-3 space-y-2">
+                                            <a href="{{ route('api.export.achievements', array_merge(request()->all(), ['format' => 'excel'])) }}" 
+                                                class="flex items-center gap-4 px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-2xl transition-all group/item">
+                                                <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="font-black">Microsoft Excel</span>
+                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Format .xlsx</span>
+                                                </div>
+                                            </a>
+                                            <a href="{{ route('api.export.achievements', array_merge(request()->all(), ['format' => 'csv'])) }}" 
+                                                class="flex items-center gap-4 px-5 py-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl transition-all group/item">
+                                                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center group-hover/item:scale-110 transition-transform">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="font-black">CSV Data Stream</span>
+                                                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Format .csv</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-400 font-medium italic sm:max-w-[200px]">
+                                    Laporan ini mencakup semua filter yang aktif dan dapat digunakan untuk analisis lebih lanjut.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+        <!-- End Export Report Card -->
         </div>
 
         <script>
@@ -1236,6 +1408,44 @@
                     eventLoading: false,
                     eventParticipants: [],
                     eventInfo: { name: '', organizer: '', level: '' },
+
+                    // SLA Breach Modal State
+                    showSlaBreachModal: false,
+                    slaBreachLoading: false,
+                    slaBreachData: [],
+                    slaBreachTotal: 0,
+
+                    async openSlaBreachModal() {
+                        this.showSlaBreachModal = true;
+                        this.slaBreachLoading = true;
+                        this.slaBreachData = [];
+                        this.slaBreachTotal = 0;
+
+                        // Add state to history so back button closes modal
+                        if (!window.location.hash.includes('sla-breach-modal')) {
+                            window.history.pushState({ modal: 'sla-breach' }, '', window.location.pathname + window.location.search + '#sla-breach-modal');
+                        }
+
+                        try {
+                            const params = new URLSearchParams(window.location.search);
+                            const response = await fetch("{{ route($routePrefix . '.sla-breach-details') }}?" + params);
+                            const data = await response.json();
+                            this.slaBreachData = data.breaches;
+                            this.slaBreachTotal = data.total;
+                        } catch (error) {
+                            console.error('Error loading SLA breach details:', error);
+                            alert('Gagal memuat detail pelanggaran SLA');
+                        } finally {
+                            this.slaBreachLoading = false;
+                        }
+                    },
+
+                    closeSlaBreachModal() {
+                        this.showSlaBreachModal = false;
+                        if (window.location.hash.includes('sla-breach-modal')) {
+                            window.history.back();
+                        }
+                    },
 
                     async openEventModal(eventName, organizer, level) {
                         this.showEventModal = true;
@@ -1277,6 +1487,9 @@
                         window.addEventListener('popstate', (event) => {
                             if (this.showEventModal && !window.location.hash.includes('event-modal')) {
                                 this.showEventModal = false;
+                            }
+                            if (this.showSlaBreachModal && !window.location.hash.includes('sla-breach-modal')) {
+                                this.showSlaBreachModal = false;
                             }
                         });
                     },

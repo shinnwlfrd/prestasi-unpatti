@@ -19,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Handle subfolder deployment for URL generation
+        if (env('APP_SUBFOLDER')) {
+            \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
+        }
+
         // Register model observers
         \App\Models\StudentAchievement::observe(\App\Observers\StudentAchievementObserver::class);
     }

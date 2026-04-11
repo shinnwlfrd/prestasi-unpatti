@@ -5,7 +5,7 @@ namespace App\Enums;
 enum UserRole: string
 {
     case ADMIN = 'Admin';
-    case VALIDATOR = 'Validator';
+    case OPERATOR = 'Operator';
     case STUDENT = 'Student';
 
     public function label(): string
@@ -17,7 +17,7 @@ enum UserRole: string
     {
         return match ($this) {
             self::ADMIN => true,
-            self::VALIDATOR => in_array($permission, ['validate', 'view', 'upload_document']),
+            self::OPERATOR => in_array($permission, ['validate', 'view', 'upload_document']),
             self::STUDENT => in_array($permission, ['submit', 'view_own', 'appeal']),
         };
     }
@@ -26,7 +26,7 @@ enum UserRole: string
     {
         return match ($this) {
             self::ADMIN => 'admin.dashboard',
-            self::VALIDATOR => 'validator.dashboard',
+            self::OPERATOR => 'validator.dashboard',
             self::STUDENT => 'student.dashboard',
         };
     }

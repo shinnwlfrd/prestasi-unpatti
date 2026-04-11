@@ -11,29 +11,53 @@ class UserManagementService
 {
     public function __construct(
         protected UserRepositoryInterface $userRepo
-    ) {}
+    ) {
+    }
 
     public function createUser(array $data): User
     {
         \Illuminate\Support\Facades\DB::beginTransaction();
-        
+
         try {
-            // Check if user already exists
-            $existingUser = User::where('email', $data['email'])->first();
-            
+            // Check if user already exists (including soft-deleted)
+            $existingUser = User::withTrashed()->where('email', $data['email'])->first();
+
             if ($existingUser) {
+                // Restore if soft-deleted
+                if ($existingUser->trashed()) {
+                    $existingUser->restore();
+                    $existingUser->update(['is_active' => true]);
+                    \Illuminate\Support\Facades\Log::info('Restored soft-deleted user for role addition', [
+                        'email' => $data['email'],
+                    ]);
+                }
+
                 // User exists - add new role to existing user
                 \Illuminate\Support\Facades\Log::info('Adding role to existing user', [
                     'email' => $data['email'],
                     'new_role' => $data['role'],
                     'faculty' => $data['faculty'] ?? null
                 ]);
-                
+
                 // Determine role type and level based on role field
-                if ($data['role'] === 'Pimpinan') {
+                if ($data['role'] === 'Super Admin') {
+                    $roleType = 'super_admin';
+                    $level = 'university';
+                    $position = null;
+                    $facultyName = null;
+                    $departmentName = null;
+                    $programStudyName = null;
+                } elseif ($data['role'] === 'Pimpinan') {
                     $roleType = 'pimpinan';
-                    $level = $data['pimpinan_level'];
-                    $position = $data['pimpinan_position'];
+                    $level = $data['pimpinan_level'] ?? 'university';
+                    $positionMap = [
+                        'university' => 'rektor',
+                        'faculty' => 'dekan',
+                        'department' => 'ketua_jurusan',
+                        'program_study' => 'kaprodi',
+                        'graduate_program' => 'direktur_pps',
+                    ];
+                    $position = $data['pimpinan_position'] ?? ($positionMap[$level] ?? 'rektor');
                     $facultyName = $data['pimpinan_faculty'] ?? null;
                     $departmentName = $data['pimpinan_department'] ?? null;
                     $programStudyName = $data['pimpinan_program_study'] ?? null;
@@ -46,19 +70,14 @@ class UserManagementService
                     $programStudyName = null;
                 } else {
                     $roleType = 'operator';
-                    $level = 'faculty';
-                    $position = null;
+                    // FIX: Set level based on faculty selection
                     $facultyName = $data['faculty'] ?? null;
+                    $level = ($facultyName && $facultyName !== 'Semua Fakultas') ? 'faculty' : 'university';
+                    $position = null;
                     $departmentName = null;
                     $programStudyName = null;
-                    
-                    // Handle "Semua Fakultas" case - university level
-                    if (isset($data['faculty']) && $data['faculty'] === 'Semua Fakultas') {
-                        $level = 'university';
-                        $facultyName = null;
-                    }
                 }
-                
+
                 // Create new UserRole
                 \App\Models\UserRole::create([
                     'user_id' => $existingUser->id,
@@ -74,14 +93,14 @@ class UserManagementService
                     'is_active' => true,
                     'activated_at' => now(),
                 ]);
-                
+
                 \Illuminate\Support\Facades\DB::commit();
                 return $existingUser;
             }
-            
+
             // User doesn't exist - check if it's a student
             $student = \App\Models\Student::where('email', $data['email'])->first();
-            
+
             if ($student) {
                 // Create user from student data
                 \Illuminate\Support\Facades\Log::info('Creating user from student', [
@@ -89,7 +108,7 @@ class UserManagementService
                     'student_id' => $student->student_id,
                     'role' => $data['role']
                 ]);
-                
+
                 $data['name'] = $student->name;
                 $data['password'] = Hash::make('password'); // Default password
             } else {
@@ -100,12 +119,26 @@ class UserManagementService
                     $data['password'] = Hash::make($data['password']);
                 }
             }
-            
+
             // Determine role type and level
-            if ($data['role'] === 'Pimpinan') {
+            if ($data['role'] === 'Super Admin') {
+                $roleType = 'super_admin';
+                $level = 'university';
+                $position = null;
+                $facultyName = null;
+                $departmentName = null;
+                $programStudyName = null;
+            } elseif ($data['role'] === 'Pimpinan') {
                 $roleType = 'pimpinan';
-                $level = $data['pimpinan_level'];
-                $position = $data['pimpinan_position'];
+                $level = $data['pimpinan_level'] ?? 'university';
+                $positionMap = [
+                    'university' => 'rektor',
+                    'faculty' => 'dekan',
+                    'department' => 'ketua_jurusan',
+                    'program_study' => 'kaprodi',
+                    'graduate_program' => 'direktur_pps',
+                ];
+                $position = $data['pimpinan_position'] ?? ($positionMap[$level] ?? 'rektor');
                 $facultyName = $data['pimpinan_faculty'] ?? null;
                 $departmentName = $data['pimpinan_department'] ?? null;
                 $programStudyName = $data['pimpinan_program_study'] ?? null;
@@ -118,25 +151,20 @@ class UserManagementService
                 $programStudyName = null;
             } else {
                 $roleType = 'operator';
-                $level = 'faculty';
-                $position = null;
+                // FIX: Set level based on faculty selection
                 $facultyName = $data['faculty'] ?? null;
+                $level = ($facultyName && $facultyName !== 'Semua Fakultas') ? 'faculty' : 'university';
+                $position = null;
                 $departmentName = null;
                 $programStudyName = null;
-                
-                // Handle "Semua Fakultas" case
-                if (isset($data['faculty']) && $data['faculty'] === 'Semua Fakultas') {
-                    $level = 'university';
-                    $facultyName = null;
-                }
             }
-            
+
             // New users are always active
             $data['is_active'] = true;
-            
+
             // Create user
             $user = $this->userRepo->create($data);
-            
+
             // Create UserRole
             \App\Models\UserRole::create([
                 'user_id' => $user->id,
@@ -152,10 +180,10 @@ class UserManagementService
                 'is_active' => true,
                 'activated_at' => now(),
             ]);
-            
+
             \Illuminate\Support\Facades\DB::commit();
             return $user;
-            
+
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
             \Illuminate\Support\Facades\Log::error('Error creating user', [
@@ -172,9 +200,9 @@ class UserManagementService
         if (empty($data['name'])) {
             unset($data['name']);
         }
-        
+
         // Hash password if provided
-        if (! empty($data['password'])) {
+        if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']);
@@ -221,15 +249,26 @@ class UserManagementService
         // Apply search filter
         if ($search) {
             $query->where(function ($q) use ($search) {
+                // 1. Cari di tabel users (termasuk kolom legacy/lama jika masih ada yang pakai)
                 $q->where('name', 'ILIKE', "%{$search}%")
-                  ->orWhere('email', 'ILIKE', "%{$search}%")
-                  ->orWhere('role', 'ILIKE', "%{$search}%")
-                  ->orWhere('faculty', 'ILIKE', "%{$search}%");
+                    ->orWhere('email', 'ILIKE', "%{$search}%")
+                    ->orWhere('role', 'ILIKE', "%{$search}%")
+                    ->orWhere('faculty', 'ILIKE', "%{$search}%")
+
+                    // 2. Cari di tabel relasi user_roles menggunakan whereHas
+                    ->orWhereHas('activeRoles', function ($roleQuery) use ($search) {
+                        $roleQuery->where('role', 'ILIKE', "%{$search}%")
+                            ->orWhere('faculty_name', 'ILIKE', "%{$search}%")
+                            ->orWhere('department_name', 'ILIKE', "%{$search}%")
+                            ->orWhere('program_study_name', 'ILIKE', "%{$search}%")
+                            ->orWhere('level', 'ILIKE', "%{$search}%")
+                            ->orWhere('position', 'ILIKE', "%{$search}%");
+                    });
             });
         }
 
         return $query->orderBy('created_at', 'desc')
             ->paginate($perPage)
-            ->appends(['search' => $search]);
+            ->appends(['search' => $search]); // appends() sudah benar untuk pagination query string
     }
 }

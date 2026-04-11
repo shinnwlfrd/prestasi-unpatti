@@ -27,10 +27,7 @@ class StudentAchievement extends Model
         'validation_status',
         'validator_id',
         'submitted_by',
-        'is_appeal',
-        'appeal_reason',
         'publication_link',
-        'appealed_at',
         'sk_required',
         'sk_waiver_reason',
         'sk_waiver_notes',
@@ -54,8 +51,6 @@ class StudentAchievement extends Model
     protected $casts = [
         'event_date' => 'date',
         'submitted_at' => 'datetime',
-        'appealed_at' => 'datetime',
-        'is_appeal' => 'boolean',
         'sk_required' => 'boolean',
         'faculty_validated_at' => 'datetime',
         'university_validated_at' => 'datetime',
@@ -77,11 +72,6 @@ class StudentAchievement extends Model
     const STATUS_UNIVERSITY_APPROVED = 'university_approved';
     const STATUS_UNIVERSITY_REJECTED = 'university_rejected';
 
-    // Appeal Process
-    const STATUS_APPEAL_SUBMITTED = 'appeal_submitted';
-    const STATUS_APPEAL_APPROVED = 'appeal_approved';
-    const STATUS_APPEAL_REJECTED = 'appeal_rejected';
-
     // Legacy statuses (for backward compatibility during migration)
     const STATUS_PENDING = 'Menunggu';
     const STATUS_APPROVED = 'Disetujui';
@@ -91,7 +81,6 @@ class StudentAchievement extends Model
     // Validation Stages
     const STAGE_FACULTY = 'faculty';
     const STAGE_UNIVERSITY = 'university';
-    const STAGE_APPEAL = 'appeal';
     const STAGE_COMPLETED = 'completed';
 
     const LEVEL_UNIVERSITAS = 'Universitas';
@@ -165,16 +154,6 @@ class StudentAchievement extends Model
         return $this->hasOne(ValidationChecklist::class, 'sa_id', 'sa_id');
     }
 
-    public function appeals()
-    {
-        return $this->hasMany(AchievementAppeal::class, 'sa_id', 'sa_id');
-    }
-
-    public function latestAppeal()
-    {
-        return $this->hasOne(AchievementAppeal::class, 'sa_id', 'sa_id')->latestOfMany();
-    }
-
     public function skAssignment()
     {
         return $this->hasOne(SKAssignment::class, 'sa_id', 'sa_id');
@@ -196,7 +175,7 @@ class StudentAchievement extends Model
     public function getStatusBadgeAttribute(): string
     {
         return match ($this->validation_status) {
-            // New statuses
+                // New statuses
             self::STATUS_DRAFT => 'secondary',
             self::STATUS_SUBMITTED => 'info',
             self::STATUS_FACULTY_REVIEW => 'warning',
@@ -206,10 +185,7 @@ class StudentAchievement extends Model
             self::STATUS_UNIVERSITY_REVIEW => 'warning',
             self::STATUS_UNIVERSITY_APPROVED => 'success',
             self::STATUS_UNIVERSITY_REJECTED => 'danger',
-            self::STATUS_APPEAL_SUBMITTED => 'info',
-            self::STATUS_APPEAL_APPROVED => 'success',
-            self::STATUS_APPEAL_REJECTED => 'danger',
-            // Legacy statuses
+                // Legacy statuses
             self::STATUS_PENDING => 'warning',
             self::STATUS_APPROVED => 'success',
             self::STATUS_REJECTED => 'danger',
@@ -221,22 +197,19 @@ class StudentAchievement extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->validation_status) {
-            // New statuses
+                // New statuses
             self::STATUS_DRAFT => 'Draft',
-            self::STATUS_SUBMITTED => 'Diajukan',
-            self::STATUS_FACULTY_REVIEW => 'Review Fakultas',
-            self::STATUS_FACULTY_APPROVED => 'Disetujui Fakultas',
-            self::STATUS_FACULTY_REJECTED => 'Ditolak Fakultas',
-            self::STATUS_FACULTY_REVISION => 'Revisi Fakultas',
-            self::STATUS_UNIVERSITY_REVIEW => 'Review Universitas',
-            self::STATUS_UNIVERSITY_APPROVED => 'Disetujui Universitas',
-            self::STATUS_UNIVERSITY_REJECTED => 'Ditolak Universitas',
-            self::STATUS_APPEAL_SUBMITTED => 'Banding Diajukan',
-            self::STATUS_APPEAL_APPROVED => 'Banding Diterima',
-            self::STATUS_APPEAL_REJECTED => 'Banding Ditolak',
-            // Legacy statuses
-            self::STATUS_PENDING, 'Menunggu' => 'Menunggu Validasi',
-            self::STATUS_APPROVED, 'Disetujui' => 'Disetujui',
+            self::STATUS_SUBMITTED => 'Telah Diajukan',
+            self::STATUS_FACULTY_REVIEW => 'Sedang Ditinjau Fakultas',
+            self::STATUS_FACULTY_APPROVED => 'Disetujui oleh Fakultas',
+            self::STATUS_FACULTY_REJECTED => 'Ditolak oleh Fakultas',
+            self::STATUS_FACULTY_REVISION => 'Perlu Revisi (Fakultas)',
+            self::STATUS_UNIVERSITY_REVIEW => 'Sedang Ditinjau Universitas',
+            self::STATUS_UNIVERSITY_APPROVED => 'Disetujui oleh Universitas',
+            self::STATUS_UNIVERSITY_REJECTED => 'Ditolak oleh Universitas',
+                // Legacy statuses
+            self::STATUS_PENDING, 'Menunggu' => 'Menunggu Verifikasi',
+            self::STATUS_APPROVED, 'Disetujui' => 'Selesai Diverifikasi',
             self::STATUS_REJECTED, 'Ditolak' => 'Ditolak',
             self::STATUS_NEED_REVISION, 'Revisi' => 'Perlu Revisi',
             default => $this->validation_status ?? 'Unknown',
@@ -260,12 +233,6 @@ class StudentAchievement extends Model
         return $this->documents->count() >= 1;
     }
 
-    public function canBeAppealed(): bool
-    {
-        return $this->validation_status === self::STATUS_FACULTY_REVISION
-            && ! $this->appeals()->where('status', 'pending')->exists();
-    }
-
     public function isFinalStatus(): bool
     {
         return in_array($this->validation_status, [
@@ -282,7 +249,7 @@ class StudentAchievement extends Model
 
     public function canBeSubmitted(): bool
     {
-        return $this->validation_status === self::STATUS_DRAFT 
+        return $this->validation_status === self::STATUS_DRAFT
             && $this->hasMinimumDocuments();
     }
 
@@ -299,15 +266,6 @@ class StudentAchievement extends Model
         return in_array($this->validation_status, [
             self::STATUS_FACULTY_APPROVED,
             self::STATUS_UNIVERSITY_REVIEW,
-        ]);
-    }
-
-    public function isInAppealProcess(): bool
-    {
-        return in_array($this->validation_status, [
-            self::STATUS_APPEAL_SUBMITTED,
-            self::STATUS_APPEAL_APPROVED,
-            self::STATUS_APPEAL_REJECTED,
         ]);
     }
 
@@ -371,11 +329,6 @@ class StudentAchievement extends Model
     public function scopeUniversityRejected($query)
     {
         return $query->where('validation_status', self::STATUS_UNIVERSITY_REJECTED);
-    }
-
-    public function scopeAppealPending($query)
-    {
-        return $query->where('validation_status', self::STATUS_APPEAL_SUBMITTED);
     }
 
     public function scopeByFaculty($query, string $faculty)

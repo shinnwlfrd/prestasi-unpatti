@@ -12,17 +12,20 @@ Route::get('/', function () {
         $role = auth()->user()->role;
         if ($role === 'Admin') {
             return redirect('/admin');
-        } elseif ($role === 'Validator') {
+        } elseif ($role === 'Operator') {
             return redirect()->route('validator.dashboard');
+        } elseif ($role === 'Pimpinan') {
+            return redirect()->route('pimpinan.dashboard');
         }
     }
 
     return redirect()->route('login');
 });
 
+// Panduan Penggunaan (Public - no auth required)
+
 // Route login
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Role Switch Routes (for multi-role users)
@@ -46,7 +49,22 @@ Route::get('/generate-sample-pdf', function () {
     return $pdf->download('prestasi_mahasiswa_dokumen_sample.pdf');
 })->name('generate.sample.pdf');
 
+// API Routes for AJAX
+Route::prefix('api')->name('api.')->group(function () {
+    Route::middleware(['auth'])->group(function () {
+        // Search mahasiswa from SIAKAD (for dropdown)
+        Route::get('/siakad/mahasiswa/search', [
+            \App\Http\Controllers\Api\SiakadMahasiswaController::class,
+            'search'
+        ])->name('siakad.mahasiswa.search');
 
+        // Get mahasiswa detail by ID
+        Route::get('/siakad/mahasiswa/{id}', [
+            \App\Http\Controllers\Api\SiakadMahasiswaController::class,
+            'show'
+        ])->name('siakad.mahasiswa.show');
+    });
+});
 
 // Route Mahasiswa (dilindungi oleh middleware khusus)
 Route::middleware(['auth.student'])->group(function () {
@@ -63,7 +81,7 @@ Route::middleware(['auth.student'])->group(function () {
     // Request Review Ulang (menggantikan fitur banding)
     Route::post('/achievements/{achievement}/request-review', [\App\Http\Controllers\Student\AchievementController::class, 'requestReview'])
         ->name('student.achievement.request-review');
-    
+
     // Delete Achievement (soft delete for rejected achievements)
     Route::delete('/achievements/{achievement}', [\App\Http\Controllers\Student\AchievementController::class, 'destroy'])
         ->name('student.achievement.destroy');
@@ -184,9 +202,13 @@ Route::get('/api/check-user-data', function (Illuminate\Http\Request $request) {
         // Check in students table
         $student = \App\Models\Student::where('email', $email)->first();
 
+        // Check if it's a staff email domain
+        $isStaffDomain = str_ends_with(strtolower($email), '@staff.unpatti.ac.id');
+
         return response()->json([
             'exists_in_users' => $user !== null,
             'exists_in_students' => $student !== null,
+            'is_staff' => $isStaffDomain,
             'user_data' => $user ? [
                 'name' => $user->name,
                 'email' => $user->email,
@@ -230,6 +252,7 @@ Route::middleware(['auth', 'multi.role:operator', 'operator.level'])->prefix('va
     // Dashboard AJAX endpoints
     Route::get('/api/hierarchical-chart-data', [\App\Http\Controllers\Validator\DashboardController::class, 'getHierarchicalChartData'])->name('api.hierarchical-chart-data');
     Route::get('/api/event-participants', [\App\Http\Controllers\Validator\DashboardController::class, 'getEventParticipants'])->name('api.event-participants');
+    Route::get('/api/sla-breach-details', [\App\Http\Controllers\Validator\DashboardController::class, 'getSlaBreachDetails'])->name('sla-breach-details');
 
     // Students
     Route::get('/students', [\App\Http\Controllers\Validator\StudentController::class, 'index'])->name('students.index');
@@ -267,6 +290,7 @@ Route::middleware(['auth', 'multi.role:pimpinan', 'pimpinan.level'])->prefix('pi
     // Dashboard AJAX endpoints
     Route::get('/api/hierarchical-chart-data', [\App\Http\Controllers\Validator\DashboardController::class, 'getHierarchicalChartData'])->name('api.hierarchical-chart-data');
     Route::get('/api/event-participants', [\App\Http\Controllers\Validator\DashboardController::class, 'getEventParticipants'])->name('api.event-participants');
+    Route::get('/api/sla-breach-details', [\App\Http\Controllers\Validator\DashboardController::class, 'getSlaBreachDetails'])->name('sla-breach-details');
 
     // Students (Read-only - same as validator)
     Route::get('/students', [\App\Http\Controllers\Validator\StudentController::class, 'index'])->name('students.index');
@@ -291,6 +315,13 @@ Route::middleware(['auth', 'multi.role:pimpinan', 'pimpinan.level'])->prefix('pi
 Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard - using new controller
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+
+    // API for Dashboard Anomalies
+    Route::get('/api/anomalies/{type}', [\App\Http\Controllers\Admin\DashboardController::class, 'getAnomalyDetails'])->name('api.anomalies');
+    Route::delete('/api/achievements/{id}', [\App\Http\Controllers\Admin\DashboardController::class, 'deleteAchievement'])->name('api.achievements.delete');
+
+    // API for Unit Distribution
+    Route::get('/api/unit-distribution', [\App\Http\Controllers\Admin\DashboardController::class, 'getUnitDistribution'])->name('api.unit-distribution');
 
     // University Validation (Two-Stage System)
     Route::prefix('university')->name('university.')->group(function () {

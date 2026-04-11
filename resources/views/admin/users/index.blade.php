@@ -1,81 +1,205 @@
 @extends('layouts.admin')
 @section('title', 'Kelola Users')
 @section('content')
-    <div class="space-y-6" x-data="userManagement()" @keydown.escape.window="showModal = false">
-        <!-- Header -->
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Kelola Users</h2>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">Manajemen user admin dan validator</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button @click="showCreateUserModal = true"
-                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                    Tambah User Baru
-                </button>
-                <button @click="showModal = true"
-                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Tambah Role
-                </button>
-            </div>
-        </div>
-
-        <!-- Search Bar -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <form method="GET" action="{{ route('admin.users') }}" class="flex items-center gap-3">
-                <div class="flex-1 relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+    <div class="max-w-7xl mx-auto w-full space-y-6 px-4 sm:px-6 lg:px-8" x-data="userManagement()" @keydown.escape.window="showModal = false">
+        <!-- Table Section with Integrated Header & Actions -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <!-- Header & Search Integrated -->
+            <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                    <div class="flex-grow">
+                        <form method="GET" action="{{ route('admin.users') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <div class="flex-grow relative">
+                                <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama, email, role, atau fakultas..."
+                                    class="w-full pl-10 pr-4 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">
+                                    Filter
+                                </button>
+                                @if($search)
+                                    <a href="{{ route('admin.users') }}" class="p-2 bg-gray-100 dark:bg-gray-700 text-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-700" title="Reset Search">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </a>
+                                @endif
+                            </div>
+                        </form>
                     </div>
-                    <input type="text" name="search" value="{{ $search ?? '' }}" 
-                        placeholder="Cari nama, email, role, atau fakultas..." 
-                        class="pl-10 w-full py-3 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500">
+
+                    <div class="flex items-center gap-2">
+                        <button @click="showCreateUserModal = true"
+                            class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-2 transition-colors shadow-sm tracking-wider">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                            </svg>
+                            User
+                        </button>
+                        <button @click="showModal = true"
+                            class="flex-1 sm:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold uppercase flex items-center justify-center gap-2 transition-colors shadow-sm tracking-wider">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Role
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" 
-                    class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    Cari
-                </button>
-                @if($search)
-                    <a href="{{ route('admin.users') }}" 
-                        class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium flex items-center gap-2 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                        Reset
-                    </a>
-                @endif
-            </form>
+            </div>
+
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4">
+            @forelse($users as $u)
+                @php
+                    $userRoles = $u->activeRoles;
+                    $hasStudentAccount = \App\Models\Student::where('email', $u->email)->exists();
+                @endphp
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+
+                    <!-- Header -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                            {{ strtoupper(substr($u->name, 0, 1)) }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-semibold text-gray-900 dark:text-white truncate">
+                                {{ $u->name }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {{ $u->email }}
+                            </p>
+
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                @if($u->provider && $u->provider_id)
+                                    <span class="text-xs text-blue-600 dark:text-blue-400">SSO</span>
+                                @elseif($u->provider)
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Menunggu SSO</span>
+                                @endif
+
+                                @if($hasStudentAccount)
+                                    <span class="text-xs text-indigo-600 dark:text-indigo-400">Multi-Role</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Roles -->
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Role & Scope</p>
+
+                        @if($userRoles->count() > 0)
+                            <div class="space-y-2">
+                                @foreach($userRoles as $userRole)
+                                    <div class="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-xs font-medium px-2 py-1 rounded
+                                                @if($userRole->role === 'super_admin') bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400
+                                                @elseif($userRole->role === 'admin') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                                @elseif($userRole->role === 'operator') bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                                                @elseif($userRole->role === 'pimpinan') bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400
+                                                @else bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400
+                                                @endif">
+                                                {{ $userRole->getRoleDisplayName() }}
+                                            </span>
+
+                                            @if($u->id !== auth()->id() && $userRoles->count() > 1 && (auth()->user()->isSuperAdmin() || (!in_array($userRole->role, ['super_admin', 'admin']))))
+                                                <form action="{{ route('admin.users.delete-role', ['user' => $u, 'roleId' => $userRole->id]) }}"
+                                                    method="POST"
+                                                    onsubmit="return confirm('Hapus role ini?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit"
+                                                        class="text-red-600 dark:text-red-400 text-xs">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+
+                                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                            {{ $userRole->getScopeDescription() }}
+                                        </p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ $u->role ?? 'No Role' }}
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Status -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Status</p>
+                            @if($u->is_active)
+                                <span class="text-xs px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="text-xs px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full">
+                                    Nonaktif
+                                </span>
+                            @endif
+                        </div>
+
+                        <!-- Action -->
+                        <div>
+                            @if($u->id === auth()->id())
+                                <span class="text-xs text-gray-400 font-medium">Akun Saya</span>
+                            @elseif(auth()->user()->isSuperAdmin() || (!$u->isAdmin() && !$u->isSuperAdmin()))
+                                <form action="{{ route('admin.users.delete', $u) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Hapus user ini?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                        class="text-red-600 dark:text-red-400 text-sm font-medium">
+                                        Hapus
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-xs text-gray-500 italic">Otoritas Terbatas</span>
+                            @endif
+                        </div>
+                    </div>
+
+                </div>
+            @empty
+                <div class="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
+                    Belum ada user.
+                </div>
+            @endforelse
+
+            @if($users->hasPages())
+                <div class="pt-4">
+                    {{ $users->links() }}
+                </div>
+            @endif
         </div>
 
-        <!-- Users Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <!-- Desktop Table -->
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">User</th>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Email</th>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Role & Scope</th>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Status</th>
-                            <th class="px-6 py-3 text-left text-gray-600 dark:text-gray-300 font-medium">Aksi</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">User</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">Email</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">Role & Scope</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">Status</th>
+                            <th class="px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base text-left text-gray-600 dark:text-gray-300 font-medium">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($users as $u)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                <td class="px-6 py-4">
+                                <td class="px-4 sm:px-6 py-2.5 sm:py-4">
                                     <div class="flex items-center gap-3">
                                         <div
                                             class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
@@ -134,12 +258,12 @@
                                                         <div class="flex items-center gap-2">
                                                             <span
                                                                 class="px-2 py-0.5 rounded text-xs font-medium 
-                                                                                                                                                                        @if($userRole->role === 'super_admin') bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400
-                                                                                                                                                                        @elseif($userRole->role === 'admin') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
-                                                                                                                                                                        @elseif($userRole->role === 'operator') bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
-                                                                                                                                                                        @elseif($userRole->role === 'pimpinan') bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400
-                                                                                                                                                                        @else bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400
-                                                                                                                                                                        @endif">
+                                                                                                                                                                                        @if($userRole->role === 'super_admin') bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400
+                                                                                                                                                                                        @elseif($userRole->role === 'admin') bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                                                                                                                                                                        @elseif($userRole->role === 'operator') bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                                                                                                                                                                                        @elseif($userRole->role === 'pimpinan') bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400
+                                                                                                                                                                                        @else bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400
+                                                                                                                                                                                        @endif">
                                                                 {{ $userRole->getRoleDisplayName() }}
                                                             </span>
                                                         </div>
@@ -147,7 +271,7 @@
                                                             {{ $userRole->getScopeDescription() }}
                                                         </div>
                                                     </div>
-                                                    @if($u->id !== auth()->id() && $userRoles->count() > 1)
+                                                    @if($u->id !== auth()->id() && $userRoles->count() > 1 && (auth()->user()->isSuperAdmin() || (!in_array($userRole->role, ['super_admin', 'admin']))))
                                                         <form
                                                             action="{{ route('admin.users.delete-role', ['user' => $u, 'roleId' => $userRole->id]) }}"
                                                             method="POST"
@@ -189,7 +313,9 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
-                                        @if($u->id !== auth()->id())
+                                        @if($u->id === auth()->id())
+                                            <span class="text-gray-400 text-sm font-medium">Akun Saya</span>
+                                        @elseif(auth()->user()->isSuperAdmin() || (!$u->isAdmin() && !$u->isSuperAdmin()))
                                             <form action="{{ route('admin.users.delete', $u) }}" method="POST"
                                                 onsubmit="return confirm('Hapus user {{ $u->name }}?\n\nPeringatan: Semua role user ini akan dihapus!')"
                                                 class="inline">
@@ -200,7 +326,7 @@
                                                 </button>
                                             </form>
                                         @else
-                                            <span class="text-gray-400 text-sm">Anda</span>
+                                            <span class="text-gray-500 text-sm italic">Otoritas Terbatas</span>
                                         @endif
                                     </div>
                                 </td>
@@ -236,10 +362,10 @@
                     </button>
                 </div>
 
-                @if($errors->any())
+                @if(session('errors') && session('errors')->any())
                     <div
                         class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-3 rounded-lg mb-4 text-sm">
-                        @foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach
+                        @foreach(session('errors')->all() as $e)<p>{{ $e }}</p>@endforeach
                     </div>
                 @endif
 
@@ -307,13 +433,13 @@
                                 <p><strong>Program Studi:</strong> <span x-text="studentData?.program_study || '-'"></span>
                                 </p>
                                 <p class="text-xs mt-2 text-blue-600 dark:text-blue-500">
-                                    ℹ️ Mahasiswa ini belum memiliki role admin/validator. Anda dapat menambahkan role.
+                                    ℹ️ Mahasiswa ini belum memiliki role admin/operator. Anda dapat menambahkan role.
                                 </p>
                             </div>
                         </div>
 
                         <!-- Email not found -->
-                        <p x-show="!studentData && !existingUser && !checkingEmail && form.email.length > 5 && !editMode"
+                        <div x-show="!studentData && !existingUser && !checkingEmail && form.email.length > 5 && !editMode && !isStaff"
                             x-cloak class="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center gap-1">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -321,7 +447,24 @@
                                     clip-rule="evenodd" />
                             </svg>
                             Email tidak ditemukan. Pastikan user/mahasiswa sudah terdaftar di sistem.
-                        </p>
+                        </div>
+
+                        <!-- Staff domain detected but not yet a user -->
+                        <div x-show="isStaff && !existingUser && !studentData && !checkingEmail" x-cloak
+                            class="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                            <p class="text-sm font-medium text-purple-800 dark:text-purple-300 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.394 2.822a.75.75 0 00-1.288 0l-8.322 13.17a.75.75 0 00.644 1.158h16.644a.75.75 0 00.644-1.158l-8.322-13.17zM11 15a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V8a1 1 0 00-1-1z" />
+                                </svg>
+                                Domain Staff Unpatti Terdeteksi
+                            </p>
+                            <div class="mt-2 space-y-1 text-sm text-purple-700 dark:text-purple-400">
+                                <p>Email ini belum terdaftar di sistem SIMAPRES, tetapi merupakan domain staff valid.</p>
+                                <p class="text-xs mt-2 text-purple-600 dark:text-purple-500">
+                                    ℹ️ Anda dapat menambahkan role ke staff ini secara langsung. Profil lengkap akan diperbarui secara otomatis saat login via SSO.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
@@ -330,27 +473,27 @@
                         <select name="role" x-model="form.role" required
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                             <option value="">-- Pilih Role --</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Validator">Operator/Validator</option>
+                            <option value="Admin">Admin Universitas</option>
+                            <option value="Operator">Operator</option>
                             <option value="Pimpinan">Pimpinan</option>
                         </select>
                     </div>
 
-                    <!-- Operator/Validator Fields -->
-                    <div x-show="form.role === 'Validator'" x-cloak>
+                    <!-- Operator Fields -->
+                    <div x-show="form.role === 'Operator'" x-cloak>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Fakultas <span class="text-red-500">*</span>
                         </label>
-                        <select name="faculty" x-model="form.faculty" :required="form.role === 'Validator'"
+                        <select name="faculty" x-model="form.faculty" :required="form.role === 'Operator'"
                             :disabled="loadingFaculties"
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white disabled:opacity-50">
                             <option value="">-- Pilih Fakultas --</option>
                             <template x-for="faculty in sigapFaculties" :key="faculty.id || faculty.nama">
                                 <option :value="faculty.nama" x-text="faculty.nama"></option>
                             </template>
-                            <option value="Semua Fakultas">Semua Fakultas (Super Validator)</option>
+                            <option value="Semua Fakultas">Semua Fakultas (Super Operator)</option>
                         </select>
-                        <p x-show="loadingFaculties" class="text-xs text-gray-500 mt-1">
+                        <p x-show="loadingFaculties" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             Memuat data fakultas dari SIGAP...
                         </p>
                     </div>
@@ -414,7 +557,7 @@
                                 </template>
                             </select>
                             <p x-show="form.pimpinan_faculty && filteredDepartments.length === 0"
-                                class="text-xs text-gray-500 mt-1">
+                                class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Tidak ada data jurusan. Silakan input manual atau pilih fakultas lain.
                             </p>
                         </div>
@@ -435,7 +578,7 @@
                                 </template>
                             </select>
                             <p x-show="form.pimpinan_department && filteredPrograms.length === 0"
-                                class="text-xs text-gray-500 mt-1">
+                                class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Tidak ada data program studi. Silakan input manual atau pilih jurusan lain.
                             </p>
                         </div>
@@ -455,7 +598,7 @@
                             class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
                             Batal
                         </button>
-                        <button type="submit" :disabled="submitting || (!studentData && !existingUser)"
+                        <button type="submit" :disabled="submitting || (!studentData && !existingUser && !isStaff)"
                             class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                             <svg x-show="submitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -533,19 +676,19 @@
                             @change="createUserForm.faculty = ''; createUserForm.pimpinan_level = ''"
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                             <option value="">-- Pilih Role --</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Validator">Operator/Validator</option>
+                            <option value="Admin">Admin Universitas</option>
+                            <option value="Operator">Operator</option>
                             <option value="Pimpinan">Pimpinan</option>
                         </select>
                     </div>
 
-                    <!-- Fakultas (for Validator) -->
-                    <div x-show="createUserForm.role === 'Validator'" x-cloak>
+                    <!-- Fakultas (for Operator) -->
+                    <div x-show="createUserForm.role === 'Operator'" x-cloak>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Fakultas <span class="text-red-500">*</span>
                         </label>
                         <select name="validator_faculty" x-model="createUserForm.faculty"
-                            :required="createUserForm.role === 'Validator'" :disabled="loadingFaculties"
+                            :required="createUserForm.role === 'Operator'" :disabled="loadingFaculties"
                             class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white disabled:opacity-50">
                             <option value="">-- Pilih Fakultas --</option>
                             <template x-for="faculty in sigapFaculties" :key="faculty.id || faculty.nama">
@@ -714,6 +857,7 @@
                 submittingNewUser: false,
                 studentData: null,
                 existingUser: null,
+                isStaff: false,
                 loadingFaculties: false,
                 sigapFaculties: [],
                 sigapDepartments: [],
@@ -926,6 +1070,7 @@
                     this.submitting = false;
                     this.studentData = null;
                     this.existingUser = null;
+                    this.isStaff = false;
                     this.filteredDepartments = [];
                     this.filteredPrograms = [];
                     this.form = {
@@ -946,19 +1091,21 @@
 
                 async checkEmailAndLoadData(email) {
                     if (!email || email.length < 5) {
-                        this.multiRoleDetected = false;
-                        this.checkingEmail = false;
                         this.studentData = null;
                         this.existingUser = null;
+                        this.isStaff = false;
                         return;
                     }
 
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    // Lowercase email for detection
+                    email = email.toLowerCase();
+                    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                     if (!emailRegex.test(email)) {
                         this.multiRoleDetected = false;
                         this.checkingEmail = false;
                         this.studentData = null;
                         this.existingUser = null;
+                        this.isStaff = false;
                         return;
                     }
 
@@ -977,14 +1124,17 @@
                             this.multiRoleDetected = true;
                             this.existingUser = data.user_data;
                             this.studentData = null;
+                            this.isStaff = data.is_staff;
                         } else if (data.exists_in_students) {
                             this.multiRoleDetected = true;
                             this.studentData = data.student_data;
                             this.existingUser = null;
+                            this.isStaff = data.is_staff;
                         } else {
                             this.multiRoleDetected = false;
                             this.studentData = null;
                             this.existingUser = null;
+                            this.isStaff = data.is_staff;
                         }
 
                         this.checkingEmail = false;
@@ -993,6 +1143,7 @@
                         this.multiRoleDetected = false;
                         this.studentData = null;
                         this.existingUser = null;
+                        this.isStaff = false;
                         this.checkingEmail = false;
                     }
                 },

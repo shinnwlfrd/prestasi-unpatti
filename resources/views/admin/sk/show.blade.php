@@ -7,13 +7,13 @@
     <div class="mb-6">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-3">
-                <a href="{{ route('admin.sk.index') }}" 
+                <button onclick="window.history.back()" 
                    class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                    title="Kembali">
                     <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
-                </a>
+                </button>
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Detail Surat Keputusan (SK)</h2>
                     <p class="text-gray-600 dark:text-gray-400 mt-1">{{ $sk->sk_number }}</p>
@@ -64,7 +64,7 @@
                             @if($sk->file_type === 'file')
                                 <span class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">File PDF</span>
                             @elseif($sk->file_type === 'link')
-                                <span class="px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-full">Link Eksternal</span>
+                                <span class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-cyan-600 dark:text-cyan-400 rounded-full">Link Eksternal</span>
                             @endif
                         </dd>
                     </div>
@@ -161,7 +161,7 @@
                     @elseif($sk->file_type === 'link')
                         <a href="{{ $sk->external_link }}" 
                            target="_blank" 
-                           class="w-full px-4 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors font-medium">
+                           class="w-full px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors font-medium">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                             Buka Link
                         </a>
@@ -173,11 +173,11 @@
                         Assign ke Prestasi
                     </a>
 
-                    <a href="{{ route('admin.sk.index') }}" 
+                    <button onclick="window.history.back()" 
                        class="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                         Kembali
-                    </a>
+                    </button>
 
                     @if($sk->assignments->count() === 0)
                         <form action="{{ route('admin.sk.destroy', $sk) }}" 

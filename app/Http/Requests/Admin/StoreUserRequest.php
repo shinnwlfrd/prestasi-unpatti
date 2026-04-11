@@ -8,6 +8,11 @@ class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // Only super_admin can assign the 'Admin' or 'Super Admin' role
+        if (in_array($this->input('role'), ['Admin', 'Super Admin'])) {
+            return auth()->check() && auth()->user()->isSuperAdmin();
+        }
+
         return true;
     }
 
@@ -19,8 +24,8 @@ class StoreUserRequest extends FormRequest
                 'email',
                 // Remove unique constraint - allow existing emails for multi-role
             ],
-            'role' => 'required|in:Admin,Validator,Pimpinan',
-            'faculty' => 'required_if:role,Validator|nullable|string|max:255',
+            'role' => 'required|in:Admin,Operator,Pimpinan',
+            'faculty' => 'required_if:role,Operator|nullable|string|max:255',
             'pimpinan_level' => 'required_if:role,Pimpinan|nullable|in:university,faculty,department,program_study,graduate_program',
             'pimpinan_position' => 'required_if:role,Pimpinan|nullable|in:rektor,dekan,ketua_jurusan,kaprodi,direktur_pps',
             'pimpinan_faculty' => 'nullable|string|max:255',
@@ -39,7 +44,7 @@ class StoreUserRequest extends FormRequest
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'role.required' => 'Role wajib dipilih.',
-            'faculty.required_if' => 'Fakultas wajib dipilih untuk Validator.',
+            'faculty.required_if' => 'Fakultas wajib dipilih untuk Operator.',
             'pimpinan_level.required_if' => 'Level pimpinan wajib dipilih.',
             'pimpinan_position.required_if' => 'Posisi pimpinan wajib dipilih.',
         ];
@@ -53,32 +58,42 @@ class StoreUserRequest extends FormRequest
         $validator->after(function ($validator) {
             $email = $this->input('email');
 
-            // Check if email exists in users table
-            $existingUser = \App\Models\User::where('email', $email)->first();
+            // Check if email exists in users table (including soft-deleted)
+            $existingUser = \App\Models\User::withTrashed()->where('email', $email)->first();
 
             if ($existingUser) {
                 // Email already exists in users table - this is OK for multi-role
-                // Just log it
+                // If soft-deleted, the service will restore it
                 \Illuminate\Support\Facades\Log::info('Adding additional role to existing user', [
                     'email' => $email,
                     'existing_user_id' => $existingUser->id,
                     'existing_user_name' => $existingUser->name,
+                    'soft_deleted' => $existingUser->trashed(),
                     'new_role' => $this->input('role'),
                     'new_faculty' => $this->input('faculty')
                 ]);
                 return;
             }
 
-            // Check if email exists in students table (required for new user)
+            // Check if email exists in students table (required for new user, unless staff)
             $student = \App\Models\Student::where('email', $email)->first();
+            $isStaff = \Illuminate\Support\Str::endsWith(strtolower($email), '@staff.unpatti.ac.id');
 
-            if (!$student) {
-                // Email not found in students or users table
+            if (!$student && !$isStaff) {
+                // Email not found in students or users table and not a staff email
                 $validator->errors()->add(
                     'email',
                     'Email tidak ditemukan. Pastikan user/mahasiswa sudah terdaftar di sistem.'
                 );
                 return;
+            }
+
+            // Log staff user being added
+            if ($isStaff && !$student) {
+                \Illuminate\Support\Facades\Log::info('Adding new staff user', [
+                    'email' => $email,
+                    'new_role' => $this->input('role')
+                ]);
             }
 
             // Log new user creation from student
@@ -98,17 +113,24 @@ class StoreUserRequest extends FormRequest
     {
         $data = parent::validated($key, $default);
 
-        // Check if user already exists
-        $existingUser = \App\Models\User::where('email', $data['email'])->first();
+        // Check if user already exists (including soft-deleted)
+        $existingUser = \App\Models\User::withTrashed()->where('email', $data['email'])->first();
 
         if (!$existingUser) {
-            // New user - get student data to fill name and password
+            // New user - get data
             $student = \App\Models\Student::where('email', $data['email'])->first();
 
             if ($student) {
                 $data['name'] = $student->name;
-                // Auto-generate password from student_id
-                $data['password'] = $student->student_id;
+                // Use random string, user will use SSO
+                $data['password'] = \Illuminate\Support\Str::random(32);
+            } elseif (\Illuminate\Support\Str::endsWith(strtolower($data['email']), '@staff.unpatti.ac.id')) {
+                // New staff user - name from local part of email if not provided
+                if (!isset($data['name'])) {
+                    $localPart = explode('@', $data['email'])[0];
+                    // Clean up dots if any, capitalize
+                    $data['name'] = ucwords(str_replace('.', ' ', $localPart));
+                }
             }
         }
 

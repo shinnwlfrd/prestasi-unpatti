@@ -20,7 +20,7 @@ class ValidationController extends Controller
     {
         // Check faculty access for validator
         $user = auth()->user();
-        if ($user->role === 'Validator' && $user->faculty) {
+        if ($user->role === 'Operator' && $user->faculty) {
             if ($achievement->student->faculty !== $user->faculty) {
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
             }
@@ -58,7 +58,7 @@ class ValidationController extends Controller
     {
         // Check faculty access for validator
         $user = auth()->user();
-        if ($user->role === 'Validator' && $user->faculty) {
+        if ($user->role === 'Operator' && $user->faculty) {
             if ($achievement->student->faculty !== $user->faculty) {
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
             }
@@ -143,7 +143,7 @@ class ValidationController extends Controller
     {
         // Check faculty access for validator
         $user = auth()->user();
-        if ($user->role === 'Validator' && $user->faculty) {
+        if ($user->role === 'Operator' && $user->faculty) {
             // Load student first to check faculty
             $achievement->load('student');
             
@@ -195,7 +195,7 @@ class ValidationController extends Controller
 
         // Check faculty access
         $achievement = $document->achievement;
-        if ($validator->role === 'Validator' && $validator->faculty) {
+        if ($validator->role === 'Operator' && $validator->faculty) {
             if ($achievement->student->faculty !== $validator->faculty) {
                 abort(403, 'Anda tidak memiliki akses untuk verifikasi dokumen dari fakultas lain.');
             }

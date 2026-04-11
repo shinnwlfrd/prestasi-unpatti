@@ -7,12 +7,14 @@ use App\Models\StudentAchievement;
 use App\Models\AchievementCategory;
 use App\Models\SKDocument;
 use App\Services\Admin\UniversityValidationService;
+use App\Services\SigapApiService;
 use Illuminate\Http\Request;
 
 class UniversityValidationController extends Controller
 {
     public function __construct(
-        protected UniversityValidationService $universityValidationService
+        protected UniversityValidationService $universityValidationService,
+        protected SigapApiService $sigapApiService
     ) {
     }
 
@@ -56,8 +58,8 @@ class UniversityValidationController extends Controller
                 });
             })
             ->when($filters['faculty'], function ($q) use ($filters) {
-                $q->whereHas('facultyValidator', function ($sq) use ($filters) {
-                    $sq->where('faculty', $filters['faculty']);
+                $q->whereHas('student', function ($sq) use ($filters) {
+                    $sq->where('faculty_id', $filters['faculty']);
                 });
             })
             ->when($filters['level'], fn($q) => $q->where('level', $filters['level']))
@@ -78,20 +80,8 @@ class UniversityValidationController extends Controller
         // Get categories for filter
         $categories = AchievementCategory::where('is_active', true)->orderBy('order')->get();
 
-        // Get unique faculties for filter
-        // Get unique faculties from faculty validators
-        $faculties = \App\Models\User::whereHas('facultyValidatedAchievements', function ($q) {
-            // Filter only those that are in university pending status
-            $q->whereIn('validation_status', [
-                StudentAchievement::STATUS_FACULTY_APPROVED,
-                StudentAchievement::STATUS_UNIVERSITY_REVIEW,
-            ]);
-        })
-            ->select('faculty')
-            ->distinct()
-            ->whereNotNull('faculty')
-            ->orderBy('faculty')
-            ->pluck('faculty');
+        // Get unique faculties from Sigap API
+        $faculties = $this->sigapApiService->getFaculties();
 
         // Get statistics
         $statistics = $this->universityValidationService->getStatistics();
@@ -126,12 +116,19 @@ class UniversityValidationController extends Controller
     public function validate(Request $request, StudentAchievement $achievement)
     {
         // Validate request
-        $request->validate([
+        $validated = $request->validate([
             'action' => 'required|in:approve,reject',
             'sk_id' => 'nullable|exists:sk_documents,id',
             'notes' => 'nullable|string|max:1000',
-            'rejection_reason' => 'required_if:action,reject|string|max:1000',
+            'rejection_reason' => 'nullable|string|max:1000',
         ]);
+
+        // Additional validation for rejection
+        if ($request->action === 'reject') {
+            if (empty($request->rejection_reason) || !is_string($request->rejection_reason)) {
+                return back()->withErrors(['rejection_reason' => 'Alasan penolakan wajib diisi.'])->withInput();
+            }
+        }
 
         $admin = auth()->user();
 

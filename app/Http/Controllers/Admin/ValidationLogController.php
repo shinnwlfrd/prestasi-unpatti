@@ -16,11 +16,30 @@ class ValidationLogController extends Controller
 
     public function index(IndexValidationLogRequest $request)
     {
+        $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
+        $filters = $request->validated();
+
+        // Scope data based on current role if not super admin
+        if (!$user->isSuperAdmin()) {
+            if ($currentRole && $currentRole->level !== 'university') {
+                if ($currentRole->faculty_id) {
+                    $filters['faculty_id'] = $currentRole->faculty_id;
+                    $request->merge(['faculty_id' => $currentRole->faculty_id]);
+                }
+                if ($currentRole->department_id) {
+                    $filters['department_id'] = $currentRole->department_id;
+                    $request->merge(['department_id' => $currentRole->department_id]);
+                }
+                if ($currentRole->program_study_id) {
+                    $filters['program_study_id'] = $currentRole->program_study_id;
+                    $request->merge(['program_study_id' => $currentRole->program_study_id]);
+                }
+            }
+        }
+
         $perPage = $request->input('per_page', 15);
-        $logs = $this->validationLogRepo->getWithFilters(
-            $request->validated(),
-            $perPage
-        );
+        $logs = $this->validationLogRepo->getWithFilters($filters, $perPage);
 
         $validators = $this->userRepo->getValidators();
         $stats = $this->validationLogRepo->getStatistics();
@@ -28,16 +47,22 @@ class ValidationLogController extends Controller
         // Get SIGAP data for cascade filter
         $sigapService = app(\App\Services\SigapApiService::class);
         
-        $sigapFaculties = collect($sigapService->getFaculties());
-        
-        $sigapDepartments = collect();
-        if ($request->filled('faculty_id')) {
-            $sigapDepartments = collect($sigapService->getDepartments($request->faculty_id));
+        // Only show faculty selection if user is Super Admin or University-level
+        $sigapFaculties = collect();
+        if ($user->isSuperAdmin() || ($currentRole && $currentRole->level === 'university')) {
+            $sigapFaculties = collect($sigapService->getFaculties());
         }
         
+        $targetFacultyId = $filters['faculty_id'] ?? $request->faculty_id;
+        $sigapDepartments = collect();
+        if ($targetFacultyId) {
+            $sigapDepartments = collect($sigapService->getDepartments($targetFacultyId));
+        }
+        
+        $targetDepartmentId = $filters['department_id'] ?? $request->department_id;
         $sigapStudyPrograms = collect();
-        if ($request->filled('department_id')) {
-            $sigapStudyPrograms = collect($sigapService->getStudyPrograms($request->department_id));
+        if ($targetDepartmentId) {
+            $sigapStudyPrograms = collect($sigapService->getStudyPrograms($targetDepartmentId));
         }
 
         return view('admin.validation-logs.index', [
@@ -47,9 +72,11 @@ class ValidationLogController extends Controller
             'sigapFaculties' => $sigapFaculties,
             'sigapDepartments' => $sigapDepartments,
             'sigapStudyPrograms' => $sigapStudyPrograms,
-            'selectedFaculty' => $request->input('faculty_id'),
-            'selectedDepartment' => $request->input('department_id'),
-            'selectedStudyProgram' => $request->input('program_study_id'),
+            'selectedFaculty' => $targetFacultyId,
+            'selectedDepartment' => $targetDepartmentId,
+            'selectedStudyProgram' => $filters['program_study_id'] ?? $request->program_study_id,
+            'isFacultyScoped' => ($currentRole && $currentRole->level !== 'university' && $currentRole->faculty_id),
+            'currentRole' => $currentRole
         ]);
     }
 }

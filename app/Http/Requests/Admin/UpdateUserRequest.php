@@ -8,6 +8,19 @@ class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $targetUser = $this->route('user');
+        
+        // If updating an Admin or Super Admin, only another Super Admin can do it
+        // (Admins can only update themselves)
+        if ($targetUser && ($targetUser->isAdmin() || $targetUser->isSuperAdmin()) && !auth()->user()->isSuperAdmin() && $targetUser->id !== auth()->id()) {
+            return false;
+        }
+
+        // Only super_admin can assign the 'Admin' role
+        if ($this->input('role') === 'Admin') {
+            return auth()->check() && auth()->user()->isSuperAdmin();
+        }
+
         return true;
     }
 
@@ -22,9 +35,8 @@ class UpdateUserRequest extends FormRequest
                 'email',
                 'unique:users,email,'.$userId, // Ignore current user's email
             ],
-            'password' => 'nullable|min:6',
-            'role' => 'required|in:Admin,Validator',
-            'faculty' => 'required_if:role,Validator|nullable|string|max:255',
+            'role' => 'required|in:Admin,Operator,Pimpinan',
+            'faculty' => 'required_if:role,Operator|nullable|string|max:255',
             'is_active' => 'nullable|boolean',
         ];
     }
@@ -36,10 +48,10 @@ class UpdateUserRequest extends FormRequest
             'name.max' => 'Nama maksimal 255 karakter.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email sudah terdaftar sebagai Admin/Validator lain. Gunakan email lain.',
+            'email.unique' => 'Email sudah terdaftar sebagai Admin/Operator lain. Gunakan email lain.',
             'password.min' => 'Password minimal 6 karakter.',
             'role.required' => 'Role wajib dipilih.',
-            'faculty.required_if' => 'Fakultas wajib dipilih untuk Validator.',
+            'faculty.required_if' => 'Fakultas wajib dipilih untuk Operator.',
         ];
     }
     

@@ -9,19 +9,18 @@
 
 @php
     $colorClasses = [
-        'blue' => ['bg-blue-50 dark:bg-blue-900/20', 'text-blue-600 dark:text-blue-400', 'from-blue-500 to-indigo-600'],
-        'green' => ['bg-emerald-50 dark:bg-emerald-900/20', 'text-emerald-600 dark:text-emerald-400', 'from-emerald-500 to-teal-600'],
-        'yellow' => ['bg-amber-50 dark:bg-amber-900/20', 'text-amber-600 dark:text-amber-400', 'from-amber-500 to-orange-600'],
-        'red' => ['bg-red-50 dark:bg-red-900/20', 'text-red-600 dark:text-red-400', 'from-red-500 to-pink-600'],
-        'purple' => ['bg-purple-50 dark:bg-purple-900/20', 'text-purple-600 dark:text-purple-400', 'from-purple-500 to-pink-600'],
-        'orange' => ['bg-orange-50 dark:bg-orange-900/20', 'text-orange-600 dark:text-orange-400', 'from-orange-500 to-red-600'],
+        'blue' => ['bg-blue-50 dark:bg-blue-900/20', 'text-blue-600 dark:text-blue-400'],
+        'green' => ['bg-emerald-50 dark:bg-emerald-900/20', 'text-emerald-600 dark:text-emerald-400'],
+        'yellow' => ['bg-amber-50 dark:bg-amber-900/20', 'text-amber-600 dark:text-amber-400'],
+        'red' => ['bg-red-50 dark:bg-red-900/20', 'text-red-600 dark:text-red-400'],
+        'purple' => ['bg-purple-50 dark:bg-purple-900/20', 'text-purple-600 dark:text-purple-400'],
+        'orange' => ['bg-orange-50 dark:bg-orange-900/20', 'text-orange-600 dark:text-orange-400'],
     ];
     $c = $colorClasses[$color] ?? $colorClasses['blue'];
 @endphp
 
-<div {{ $attributes->merge(['class' => 'group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-gray-700 p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1']) }}>
-    <!-- Gradient Background Effect -->
-    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br {{ $c[2] }} opacity-5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+<div {{ $attributes->merge(['class' => 'relative overflow-hidden rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 p-5 shadow-sm']) }}>
+
     
     <div class="relative flex items-start justify-between">
         <div class="flex-1">
@@ -39,7 +38,7 @@
                 </div>
             @endif
         </div>
-        <div class="flex-shrink-0 w-14 h-14 rounded-2xl {{ $c[0] }} flex items-center justify-center">
+        <div class="flex-shrink-0 w-12 h-12 rounded-xl {{ $c[0] }} flex items-center justify-center">
             @if($icon === 'trophy')
                 <svg class="w-7 h-7 {{ $c[1] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
             @elseif($icon === 'clock')

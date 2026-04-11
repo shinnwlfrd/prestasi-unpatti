@@ -40,7 +40,7 @@ class SKDocumentController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'sk_number' => 'required|string|max:255|unique:sk_documents,sk_number',
+            'sk_number' => 'required|string|max:255',
             'title' => 'required|string|max:255',
             'upload_type' => 'required|in:file,link',
             'issued_date' => 'required|date',
@@ -56,6 +56,46 @@ class SKDocumentController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        $existing = SKDocument::withTrashed()->where('sk_number', $request->sk_number)->first();
+
+        if ($existing) {
+            if ($existing->trashed()) {
+                $existing->restore();
+
+                $filePath = $existing->file_path;
+                $externalLink = $existing->external_link;
+
+                if ($request->upload_type === 'file' && $request->hasFile('sk_file')) {
+                    if ($filePath && Storage::disk('public')->exists($filePath)) {
+                        Storage::disk('public')->delete($filePath);
+                    }
+                    $filePath = $request->file('sk_file')->store('sk_documents', 'public');
+                    $externalLink = null;
+                } elseif ($request->upload_type === 'link') {
+                    if ($filePath && Storage::disk('public')->exists($filePath)) {
+                        Storage::disk('public')->delete($filePath);
+                    }
+                    $externalLink = $request->external_link;
+                    $filePath = null;
+                }
+
+                $existing->update([
+                    'title' => $validated['title'],
+                    'file_path' => $filePath,
+                    'external_link' => $externalLink,
+                    'issued_date' => $validated['issued_date'],
+                    'issued_by' => $validated['issued_by'],
+                    'notes' => $validated['notes'] ?? null,
+                    'created_by' => auth()->id(),
+                ]);
+
+                return redirect()->route('admin.sk.index')
+                    ->with('success', 'SK yang sebelumnya dihapus telah dipulihkan dan diperbarui.');
+            }
+
+            return back()->withErrors(['sk_number' => 'Nomor SK sudah digunakan.'])->withInput();
+        }
 
         $filePath = null;
         $externalLink = null;

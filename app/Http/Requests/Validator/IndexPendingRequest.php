@@ -15,7 +15,7 @@ class IndexPendingRequest extends FormRequest
     {
         return [
             'search' => 'nullable|string|max:255',
-            'level' => 'nullable|in:Universitas,Nasional,Internasional',
+            'level' => 'nullable|in:' . \App\Models\AchievementLevel::active()->pluck('name')->implode(','),
             'category' => 'nullable|exists:achievement_categories,id',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date|after_or_equal:date_from',

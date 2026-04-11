@@ -28,6 +28,9 @@ class AchievementService
             throw new \Exception('Tidak ada periode akademik aktif. Hubungi admin.');
         }
 
+        // IMPORTANT: Create student record if not exists (first-time submission)
+        $this->ensureStudentExists($studentId);
+
         // Create achievement with two-stage validation status
         $achievement = StudentAchievement::create([
             'student_id' => $studentId,
@@ -71,7 +74,7 @@ class AchievementService
             'sa_id' => $achievement->sa_id,
             'student_id' => $studentId,
             'academic_period_id' => $activePeriod->id,
-            'certificate_path' => $certificatePath,
+            'certificate' => $certificatePath,
             'additional_docs_count' => count($additionalDocuments ?? []),
             'status' => $achievement->validation_status,
             'stage' => $achievement->current_stage,
@@ -79,6 +82,53 @@ class AchievementService
         ]);
 
         return $achievement;
+    }
+
+    /**
+     * Ensure student record exists in database before submitting achievement
+     * Creates student from session data if not exists
+     */
+    protected function ensureStudentExists(string $studentId): void
+    {
+        $student = \App\Models\Student::withTrashed()->find($studentId);
+        
+        if ($student) {
+            if ($student->trashed()) {
+                $student->restore();
+                \Log::info('Restored soft-deleted student during achievement submission', ['student_id' => $studentId]);
+            }
+            return; // Student already exists
+        }
+
+        // Get student data from session
+        $studentData = session('student_data');
+        
+        if (!$studentData) {
+            throw new \Exception('Student data not found in session. Please login again.');
+        }
+
+        // Create student record from session data
+        \App\Models\Student::create([
+            'student_id' => $studentData['nim'],
+            'name' => $studentData['nama'],
+            'email' => $studentData['email'],
+            'faculty' => $studentData['fakultas'] ?? 'Data Belum Tersedia',
+            'faculty_id' => $studentData['fakultas_id'] ?? null,
+            'major' => $studentData['jurusan'] ?? 'Data Belum Tersedia',
+            'major_id' => $studentData['jurusan_id'] ?? null,
+            'program_study' => $studentData['program_studi'] ?? 'Data Belum Tersedia',
+            'program_study_id' => $studentData['program_studi_id'] ?? null,
+            'year' => $studentData['angkatan'] ?? substr($studentData['nim'], 0, 4),
+            'ipk' => $studentData['ipk'] ?? null,
+            'foto_url' => $studentData['foto_url'] ?? null,
+            'is_active' => true,
+        ]);
+
+        \Log::info('Student record created from session data', [
+            'student_id' => $studentId,
+            'email' => $studentData['email'],
+            'data_source' => $studentData['data_source'] ?? 'unknown'
+        ]);
     }
 
     public function getStudentAchievements(string $studentId)

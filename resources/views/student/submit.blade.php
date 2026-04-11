@@ -64,7 +64,7 @@
                         Level <span class="text-red-500">*</span>
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        @foreach(['Universitas', 'Nasional', 'Internasional'] as $lvl)
+                        @foreach(($levels ?? collect())->pluck('name')->toArray() ?: ['Universitas', 'Nasional', 'Internasional'] as $lvl)
                             <label class="relative">
                                 <input type="radio" name="level" value="{{ $lvl }}" {{ old('level') == $lvl ? 'checked' : '' }}
                                     required class="peer sr-only">

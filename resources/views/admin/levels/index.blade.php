@@ -3,74 +3,74 @@
 @section('title', 'Kelola Level Prestasi')
 
 @section('content')
-    <div class="space-y-6"
+    <div class="space-y-6 px-4 sm:px-6 lg:px-8"
         x-data="{ showModal: false, editMode: false, levelId: null, levelName: '', levelDescription: '', levelPoints: '' }">
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Level Prestasi</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola level prestasi mahasiswa</p>
-            </div>
-            <button @click="showModal = true; editMode = false; levelName = ''; levelDescription = ''; levelPoints = ''"
-                class="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Tambah Level
-            </button>
-        </div>
+        <!-- Desktop Table Section -->
+        <!-- Desktop Table Section -->
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            <!-- Integrated Header -->
+            <div class="px-5 lg:px-6 py-4 lg:py-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white">Level Prestasi</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Konfigurasi poin dan tingkatan prestasi mahasiswa.</p>
+                    </div>
 
-        <!-- Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="flex items-center gap-3">
+                        <div class="relative w-full lg:w-64">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" id="levelSearch" placeholder="Cari Level..."
+                                class="pl-9 w-full py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 transition-all">
+                        </div>
+                        <button @click="showModal = true; editMode = false; levelName = ''; levelDescription = ''; levelPoints = ''"
+                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm tracking-wider flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Tambah
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
                         <tr>
-                            <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                                Nama</th>
-                            <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                                Deskripsi</th>
-                            <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                                Poin</th>
-                            <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                                Status</th>
-                            <th
-                                class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                                Aksi</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Nama</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Deskripsi</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Poin</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                         @forelse($levels as $level)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
                                 <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">{{ $level->name }}</td>
-                                <td class="px-6 py-4 text-gray-600 dark:text-gray-400">{{ $level->description ?? '-' }}</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm">{{ $level->description ?? '-' }}</td>
                                 <td class="px-6 py-4">
-                                    <span
-                                        class="px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded text-xs font-medium">
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded text-xs font-medium">
                                         {{ $level->points }} poin
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     @if($level->is_active)
-                                        <span
-                                            class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs font-medium">Aktif</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs font-medium">Aktif</span>
                                     @else
-                                        <span
-                                            class="px-2 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 rounded text-xs font-medium">Nonaktif</span>
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 rounded text-xs font-medium">Nonaktif</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-2">
-                                        <button
-                                            @click="showModal = true; editMode = true; levelId = {{ $level->id }}; levelName = '{{ $level->name }}'; levelDescription = '{{ $level->description }}'; levelPoints = '{{ $level->points }}'"
-                                            class="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg">
+                                        <button @click="showModal = true; editMode = true; levelId = {{ $level->id }}; levelName = '{{ $level->name }}'; levelDescription = '{{ $level->description }}'; levelPoints = '{{ $level->points }}'"
+                                            class="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                         </button>
                                         <form action="{{ route('admin.levels.destroy', $level) }}" method="POST"
@@ -98,6 +98,54 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4">
+            @forelse($levels as $level)
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3 shadow-sm">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white">{{ $level->name }}</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $level->description ?? 'Tidak ada deskripsi' }}</p>
+                        </div>
+                        <span class="px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400 rounded text-[10px] font-bold">
+                            {{ $level->points }} POIN
+                        </span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                        @if($level->is_active)
+                            <span class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs font-medium">Aktif</span>
+                        @else
+                            <span class="px-2 py-1 bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 rounded text-xs font-medium">Nonaktif</span>
+                        @endif
+
+                        <div class="flex items-center gap-2">
+                            <button @click="showModal = true; editMode = true; levelId = {{ $level->id }}; levelName = '{{ $level->name }}'; levelDescription = '{{ $level->description }}'; levelPoints = '{{ $level->points }}'"
+                                class="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <form action="{{ route('admin.levels.destroy', $level) }}" method="POST"
+                                onsubmit="return confirm('Yakin ingin menghapus level ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
+                    Belum ada level
+                </div>
+            @endforelse
         </div>
 
         <!-- Pagination -->

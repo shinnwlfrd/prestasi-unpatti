@@ -3,90 +3,18 @@
 namespace App\Services;
 
 use App\Models\AuthLog;
-use App\Models\SikadCredential;
-use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class AuthService
 {
-    /**
-     * Authenticate local user (Admin/Validator)
-     */
-    public function authenticateLocal(string $email, string $password): ?User
-    {
-        $user = User::where('email', $email)->first();
-
-        if (! $user) {
-            $this->logAuthActivity(null, 'failed_login', [
-                'method' => 'local',
-                'reason' => 'user_not_found',
-                'email' => $email,
-            ]);
-
-            return null;
-        }
-
-        // Check if user only has SSO (no password)
-        if (! $user->password) {
-            $this->logAuthActivity($user, 'failed_login', [
-                'method' => 'local',
-                'reason' => 'sso_only_account',
-            ]);
-
-            return null;
-        }
-
-        if (! Hash::check($password, $user->password)) {
-            $this->logAuthActivity($user, 'failed_login', [
-                'method' => 'local',
-                'reason' => 'invalid_password',
-            ]);
-
-            return null;
-        }
-
-        if (! $user->is_active) {
-            $this->logAuthActivity($user, 'failed_login', [
-                'method' => 'local',
-                'reason' => 'account_inactive',
-            ]);
-
-            return null;
-        }
-
-        // Update login info
-        $user->update([
-            'last_login_at' => now(),
-            'last_login_method' => 'local',
-        ]);
-
-        $this->logAuthActivity($user, 'login', ['method' => 'local']);
-
-        return $user;
-    }
 
     /**
-     * Authenticate student via SIKAD credentials
-     */
-    public function authenticateStudent(string $studentId, string $password): ?Student
-    {
-        $credential = SikadCredential::where('student_id', $studentId)->first();
-
-        if (! $credential) {
-            return null;
-        }
-
-        if (! Hash::check($password, $credential->password_hash)) {
-            return null;
-        }
-
-        return $credential->student;
-    }
-
-    /**
-     * Find or create user from SSO data
+     * Find user from SSO data (does NOT auto-create)
+     * Non-student users must be pre-registered by admin
+     * 
+     * @throws \Exception if user not found
      */
     public function findOrCreateFromSSO(array $ssoData, array $tokens, string $provider = 'siakad'): User
     {
@@ -109,8 +37,9 @@ class AuthService
             return $this->linkExistingUser($user, $provider, $providerId, $ssoData, $tokens);
         }
 
-        // 3. Create new user
-        return $this->createSSOUser($provider, $providerId, $ssoData, $tokens);
+        // 3. User not found — do NOT auto-create
+        // Non-student accounts must be created manually by admin
+        throw new \Exception('Akun dengan email ' . $email . ' belum terdaftar di sistem. Hubungi Administrator.');
     }
 
     /**
@@ -215,41 +144,9 @@ class AuthService
 
         $mapping = config('sso.role_mapping', []);
 
-        return $mapping[$siakadRole] ?? 'Validator';
+        return $mapping[$siakadRole] ?? 'Operator';
     }
 
-    /**
-     * Check if email exists with different auth method
-     */
-    public function checkAccountConflict(string $email): ?array
-    {
-        $user = User::where('email', $email)->first();
-
-        if (! $user) {
-            return null;
-        }
-
-        if ($user->provider && ! $user->password) {
-            return [
-                'type' => 'sso_only',
-                'message' => 'Akun ini terdaftar via SSO. Silakan login dengan SSO.',
-                'provider' => $user->provider,
-            ];
-        }
-
-        if ($user->provider && $user->password) {
-            return [
-                'type' => 'linked',
-                'message' => 'Akun sudah terhubung dengan SSO. Anda bisa login dengan keduanya.',
-                'provider' => $user->provider,
-            ];
-        }
-
-        return [
-            'type' => 'local_only',
-            'message' => 'Akun lokal ditemukan. Login via SSO akan menghubungkan akun.',
-        ];
-    }
 
     /**
      * Log authentication activity

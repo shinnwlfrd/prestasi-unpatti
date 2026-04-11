@@ -6,39 +6,49 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     /**
-     * Create students table with optimized structure.
-     * Includes SIGAP integration fields and removes unused columns.
+     * Create students table with SIAKAD integration.
+     * Students are only created when they submit their first achievement.
      */
     public function up(): void
     {
         Schema::create('students', function (Blueprint $table) {
-            // Primary key
+            // Primary key - NIM
             $table->string('student_id')->primary();
+            
+            // SIAKAD UUID
+            $table->uuid('id_mahasiswa')->nullable()->index();
             
             // Basic info
             $table->string('name');
             $table->string('email')->unique();
             
-            // Academic info (text fields for display)
+            // Photo
+            $table->string('foto_url')->nullable();
+            
+            // Academic info
+            $table->decimal('ipk', 3, 2)->nullable();
+            $table->year('angkatan')->nullable();
+            $table->decimal('gpa', 3, 2)->nullable(); // Kept for backward compatibility
+            
+            // Fakultas (SIAKAD)
+            $table->uuid('faculty_id')->nullable();
             $table->string('faculty')->nullable();
-            $table->string('program_study')->nullable();
-            $table->decimal('gpa', 3, 2)->nullable();
             
-            // SIGAP integration fields (IDs for filtering/relations)
-            $table->string('faculty_id')->nullable();
-            $table->string('department_id')->nullable();
+            // Jurusan (SIAKAD)
+            $table->uuid('department_id')->nullable();
             $table->string('department')->nullable();
-            $table->string('program_study_id')->nullable();
-            $table->integer('angkatan')->nullable();
             
-            // Media
+            // Program Studi (SIAKAD)
+            $table->uuid('program_study_id')->nullable();
+            $table->string('program_study')->nullable();
+            
+            // Legacy photo field (kept for backward compatibility)
             $table->string('photo')->nullable();
             
             // Timestamps
             $table->timestamps();
             
             // Indexes for performance
-            $table->index('faculty');
             $table->index('faculty_id');
             $table->index('department_id');
             $table->index('program_study_id');

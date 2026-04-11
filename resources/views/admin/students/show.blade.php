@@ -6,12 +6,12 @@
 <div class="space-y-6">
     <!-- Back Button -->
     <div>
-        <a href="{{ route('admin.students') }}" class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+        <button onclick="window.history.back()" class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            Kembali ke Daftar Mahasiswa
-        </a>
+            Kembali
+        </button>
     </div>
 
     <!-- Student Profile Header -->

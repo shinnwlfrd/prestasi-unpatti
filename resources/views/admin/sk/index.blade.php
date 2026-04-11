@@ -1,76 +1,63 @@
+@php /** @var \Illuminate\Support\ViewErrorBag $errors */ @endphp
 @extends('layouts.admin')
 
 @section('title', 'Manajemen SK')
 
 @section('content')
-    <div class="max-w-7xl mx-auto" x-data="skManagement()">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Manajemen Surat Keputusan (SK)</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola SK untuk approval prestasi mahasiswa</p>
-            </div>
-            <button @click="showModal = true"
-                class="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm font-medium">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Upload SK Baru
-            </button>
-        </div>
-
-        <!-- Main Search Bar -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 p-4">
-            <form action="{{ route('admin.sk.index') }}" method="GET" class="relative">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+        <div class="space-y-6 px-4 sm:px-6 lg:px-8" x-data="skManagement()">
+        <!-- Main Desktop Content (Integrated Card) -->
+        <div class="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
+            <!-- Integrated Header: Title + Actions -->
+            <div class="px-5 lg:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="flex-grow">
+                        <form action="{{ route('admin.sk.index') }}" method="GET" class="relative">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <input type="text" name="search" value="{{ request('search') }}"
+                                    class="block w-full pl-10 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 transition-all"
+                                    placeholder="Cari No SK, Judul, NIM, Mahasiswa, atau Lomba...">
+                                @if(request('search'))
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <a href="{{ route('admin.sk.index') }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </form>
                     </div>
-                    <input type="text" name="search" value="{{ request('search') }}"
-                        class="block w-full pl-10 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                        placeholder="Cari berdasarkan No SK, Judul, NIM, Nama Mahasiswa, atau Nama Lomba...">
-
-                    @if(request('search'))
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <a href="{{ route('admin.sk.index') }}"
-                                class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
-                                title="Hapus pencarian">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </a>
-                        </div>
-                    @endif
+                    
+                    <div class="flex items-center gap-3">
+                        <h2 class="hidden lg:block text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mr-2">Opsi:</h2>
+                        <button @click="showModal = true"
+                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Upload SK Baru
+                        </button>
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <!-- Table -->
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
                         <tr>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Nomor SK</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Judul</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Metode Upload</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Tanggal Terbit</th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Penerbit</th>
-                            <th
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Aksi</th>
+                            <th class="px-6 py-4 text-left font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nomor SK</th>
+                            <th class="px-6 py-4 text-left font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Judul</th>
+                            <th class="px-6 py-4 text-left font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Metode</th>
+                            <th class="px-6 py-4 text-left font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Terbit</th>
+                            <th class="px-6 py-4 text-left font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Penerbit</th>
+                            <th class="px-6 py-4 text-center font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -92,7 +79,7 @@
                                             PDF</span>
                                     @elseif($sk->file_type === 'link')
                                         <span
-                                            class="px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 rounded-full">Link
+                                            class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-cyan-600 dark:text-cyan-400 rounded-full">Link
                                             Eksternal</span>
                                     @endif
                                 </td>
@@ -118,7 +105,7 @@
                                             </a>
                                         @elseif($sk->file_type === 'link')
                                             <a href="{{ $sk->external_link }}" target="_blank"
-                                                class="p-2 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 rounded-lg transition-colors"
+                                                class="p-2 text-cyan-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
                                                 title="Buka Link">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -174,6 +161,101 @@
 
             @if($skDocuments->hasPages())
                 <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                    {{ $skDocuments->links() }}
+                </div>
+            @endif
+        </div>
+
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-4 mb-6">
+            @forelse($skDocuments as $sk)
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="font-semibold text-gray-900 dark:text-white truncate">
+                                {{ $sk->sk_number }}
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 truncate">
+                                {{ $sk->title }}
+                            </p>
+                        </div>
+
+                        @if($sk->file_type === 'file')
+                            <span class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full whitespace-nowrap">
+                                PDF
+                            </span>
+                        @else
+                            <span class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-cyan-600 dark:text-cyan-400 rounded-full whitespace-nowrap">
+                                Link
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Meta Info -->
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Tanggal Terbit</p>
+                            <p class="font-medium text-gray-900 dark:text-white">
+                                {{ $sk->issued_date->format('d/m/Y') }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Penerbit</p>
+                            <p class="font-medium text-gray-900 dark:text-white truncate">
+                                {{ $sk->issued_by }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Assignment Info -->
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ $sk->assignments_count }} prestasi ter-assign
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        {{-- Preview / Link --}}
+                        @if($sk->file_type === 'file')
+                            <a href="{{ route('admin.sk.preview', $sk) }}" target="_blank"
+                                class="flex-1 text-center px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg font-medium">
+                                Lihat
+                            </a>
+                        @else
+                            <a href="{{ $sk->external_link }}" target="_blank"
+                                class="flex-1 text-center px-3 py-2 text-sm bg-purple-50 dark:bg-purple-900/30 text-cyan-600 dark:text-cyan-400 rounded-lg font-medium">
+                                Buka Link
+                            </a>
+                        @endif
+
+                        {{-- Assign --}}
+                        <button
+                            @click="openAssignModal({{ $sk->id }}, '{{ addslashes($sk->sk_number) }}', '{{ addslashes($sk->title) }}')"
+                            class="flex-1 px-3 py-2 text-sm bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg font-medium">
+                            Assign
+                        </button>
+
+                        {{-- Delete --}}
+                        <form action="{{ route('admin.sk.destroy', $sk) }}" method="POST" class="flex-1"
+                            onsubmit="return confirm('Yakin ingin menghapus SK ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="w-full px-3 py-2 text-sm bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg font-medium disabled:opacity-50"
+                                @if($sk->assignments_count > 0) disabled @endif>
+                                Hapus
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-12 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    Belum ada SK yang diupload
+                </div>
+            @endforelse
+
+            @if($skDocuments->hasPages())
+                <div class="pt-4">
                     {{ $skDocuments->links() }}
                 </div>
             @endif
@@ -407,7 +489,7 @@
                                 class="w-full pl-10 pr-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                 placeholder="Ketik NIM, nama mahasiswa, atau nama lomba lalu tekan Enter...">
                         </div>
-                        <p class="text-[10px] text-gray-500 mt-1 italic">* Tekan Enter untuk mulai mencari</p>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 italic">* Tekan Enter untuk mulai mencari</p>
                     </div>
 
                     <div x-show="loading" class="flex items-center justify-center py-12">

@@ -10,6 +10,7 @@ use App\Services\Admin\UserManagementService;
 
 class UserController extends Controller
 {
+
     public function __construct(
         protected UserManagementService $userService
     ) {
@@ -46,8 +47,12 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         try {
-            $this->userService->updateUser($user->id, $request->validated());
+            // Prevent non-superadmin from updating other admin/superadmin accounts
+            if (($user->isAdmin() || $user->isSuperAdmin()) && !auth()->user()->isSuperAdmin() && $user->id !== auth()->id()) {
+                return redirect()->route('admin.users')->with('error', 'Hanya Super Admin yang dapat mengubah data akun Admin lain.');
+            }
 
+            $this->userService->updateUser($user->id, $request->validated());
             return redirect()->route('admin.users')->with('success', 'User berhasil diperbarui.');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error updating user', [
@@ -69,6 +74,12 @@ class UserController extends Controller
         // Prevent deleting self
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users')->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        }
+
+        // Prevent non-superadmin from deleting admin/superadmin
+        if (($user->isSuperAdmin() || $user->isAdmin()) && !auth()->user()->isSuperAdmin()) {
+            $roleLabel = $user->isSuperAdmin() ? 'Super Admin' : 'Admin';
+            return redirect()->route('admin.users')->with('error', "Hanya Super Admin yang dapat menghapus akun {$roleLabel}.");
         }
 
         $userName = $user->name;
@@ -100,8 +111,30 @@ class UserController extends Controller
                 return redirect()->route('admin.users')->with('error', 'Role tidak ditemukan.');
             }
 
+            // Prevent non-superadmin from deleting superadmin/admin role
+            if (in_array($role->role, ['super_admin', 'admin']) && !auth()->user()->isSuperAdmin()) {
+                $roleLabel = $role->role === 'super_admin' ? 'Super Admin' : 'Admin';
+                return redirect()->route('admin.users')->with('error', "Hanya Super Admin yang dapat menghapus role {$roleLabel}.");
+            }
+
             $roleName = $role->getRoleDisplayName();
             $role->delete();
+
+            // Sync legacy User.role column with remaining primary role
+            $remainingPrimaryRole = $user->getPrimaryRole();
+            if ($remainingPrimaryRole) {
+                $legacyRoleMapping = [
+                    'super_admin' => 'Admin',
+                    'admin' => 'Admin',
+                    'operator' => 'Operator',
+                    'pimpinan' => 'Pimpinan',
+                    'mahasiswa' => 'Student',
+                ];
+                $user->update([
+                    'role' => $legacyRoleMapping[$remainingPrimaryRole->role] ?? ucfirst($remainingPrimaryRole->role),
+                    'faculty' => $remainingPrimaryRole->faculty_name,
+                ]);
+            }
 
             return redirect()->route('admin.users')->with('success', "Role {$roleName} berhasil dihapus dari {$user->name}.");
         } catch (\Exception $e) {
@@ -120,18 +153,22 @@ class UserController extends Controller
      */
     public function createNewUser(\Illuminate\Http\Request $request)
     {
+        // Check if a soft-deleted user with this email exists
+        $softDeletedUser = User::onlyTrashed()->where('email', $request->email)->first();
+
         // Custom validation based on role and level
         $rules = [
-            'email' => 'required|email|unique:users,email',
+            // Exclude soft-deleted user from unique check if exists
+            'email' => 'required|email|unique:users,email' . ($softDeletedUser ? ',' . $softDeletedUser->id : ',NULL,id,deleted_at,NULL'),
             'name' => 'required|string|max:255',
-            'role' => 'required|in:Admin,Validator,Pimpinan',
+            'role' => 'required|in:Admin,Operator,Pimpinan',
             'faculty_id' => 'nullable|string',
             'department_id' => 'nullable|string',
             'program_study_id' => 'nullable|string',
         ];
 
         // Add conditional rules based on role
-        if ($request->role === 'Validator') {
+        if ($request->role === 'Operator') {
             $rules['validator_faculty'] = 'required|string';
         }
 
@@ -152,6 +189,11 @@ class UserController extends Controller
             }
         }
 
+        // Check if assigning Admin role, must be super_admin
+        if ($request->role === 'Admin' && (!auth()->check() || !auth()->user()->isSuperAdmin())) {
+            return redirect()->route('admin.users')->with('error', 'Hanya Super Admin yang dapat membuat akun Admin baru.');
+        }
+
         $request->validate($rules);
 
         try {
@@ -164,31 +206,54 @@ class UserController extends Controller
             $departmentId = $request->department_id;
             $programStudyId = $request->program_study_id;
 
-            if ($request->role === 'Validator') {
+            if ($request->role === 'Operator') {
                 $faculty = $request->validator_faculty;
             } elseif ($request->role === 'Pimpinan') {
-                if (in_array($request->pimpinan_level, ['faculty', 'department', 'program_study'])) {
+                $pimpinanLevel = $request->pimpinan_level;
+                if (in_array($pimpinanLevel, ['faculty', 'department', 'program_study'])) {
                     $faculty = $request->pimpinan_faculty;
                 }
-                if (in_array($request->pimpinan_level, ['department', 'program_study'])) {
+                if (in_array($pimpinanLevel, ['department', 'program_study'])) {
                     $department = $request->pimpinan_department;
                 }
-                if ($request->pimpinan_level === 'program_study') {
+                if ($pimpinanLevel === 'program_study') {
                     $programStudy = $request->pimpinan_program_study;
                 }
             }
 
-            // Create user with temporary data
-            // Profile will be updated from SSO on first login
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => \Hash::make(\Str::random(32)), // Random password, will use SSO
-                'role' => $request->role,
-                'faculty' => $faculty,
-                'provider' => 'unpatti_sso', // Mark as SSO user
-                'is_active' => true,
-            ]);
+            // If soft-deleted user exists, restore and update instead of creating new
+            if ($softDeletedUser) {
+                $softDeletedUser->restore();
+                $softDeletedUser->update([
+                    'name' => $request->name,
+                    'role' => $request->role,
+                    'faculty' => $faculty,
+                    'provider' => 'unpatti_sso',
+                    'is_active' => true,
+                    'deleted_at' => null,
+                ]);
+                $user = $softDeletedUser;
+
+                // Remove old roles and create fresh ones
+                \App\Models\UserRole::where('user_id', $user->id)->forceDelete();
+
+                \Illuminate\Support\Facades\Log::info('Restored soft-deleted user', [
+                    'email' => $request->email,
+                    'new_role' => $request->role,
+                ]);
+            } else {
+                // Create user with temporary data
+                // Profile will be updated from SSO on first login
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => \Hash::make(\Str::random(32)), // Random password, will use SSO
+                    'role' => $request->role,
+                    'faculty' => $faculty,
+                    'provider' => 'unpatti_sso', // Mark as SSO user
+                    'is_active' => true,
+                ]);
+            }
 
             // Create user role based on role type
             if ($request->role === 'Admin') {
@@ -198,15 +263,16 @@ class UserController extends Controller
                     'level' => 'university',
                     'is_active' => true,
                 ]);
-            } elseif ($request->role === 'Validator') {
+            } elseif ($request->role === 'Operator') {
                 \App\Models\UserRole::create([
                     'user_id' => $user->id,
                     'role' => 'operator',
-                    'level' => 'faculty',
+                    'level' => ($faculty && $faculty !== 'Semua Fakultas') ? 'faculty' : 'university', 
                     'faculty_name' => $faculty,
                     'is_active' => true,
                 ]);
             } elseif ($request->role === 'Pimpinan') {
+                $pimpinanLevel = $request->pimpinan_level;
                 // Map level to position
                 $positionMap = [
                     'university' => 'rektor',
@@ -215,12 +281,12 @@ class UserController extends Controller
                     'program_study' => 'kaprodi',
                     'graduate_program' => 'direktur_pps',
                 ];
-                $position = $positionMap[$request->pimpinan_level] ?? null;
+                $position = $positionMap[$pimpinanLevel] ?? 'rektor';
 
                 \App\Models\UserRole::create([
                     'user_id' => $user->id,
                     'role' => 'pimpinan',
-                    'level' => $request->pimpinan_level,
+                    'level' => $pimpinanLevel,
                     'faculty_name' => $faculty,
                     'faculty_id' => $facultyId,
                     'department_name' => $department,
@@ -232,7 +298,11 @@ class UserController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.users')->with('success', 'User baru berhasil dibuat. Profil akan diupdate otomatis saat login pertama via SSO.');
+            $message = $softDeletedUser
+                ? 'User berhasil diaktifkan kembali dengan role baru.'
+                : 'User baru berhasil dibuat. Profil akan diupdate otomatis saat login pertama via SSO.';
+
+            return redirect()->route('admin.users')->with('success', $message);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error creating new user', [
                 'error' => $e->getMessage(),
