@@ -720,7 +720,7 @@
                     const rejectionReason = rejectionTextarea.value.trim();
                     if (!rejectionReason) {
                         e.preventDefault();
-                        alert('Alasan penolakan wajib diisi!');
+                        showToast('warning', 'Alasan penolakan wajib diisi!');
                         rejectionTextarea.focus();
                         return false;
                     }

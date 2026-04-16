@@ -127,7 +127,7 @@
 
                                         <!-- Hapus -->
                                         <form action="{{ route('admin.sk.destroy', $sk) }}" method="POST" class="inline"
-                                            onsubmit="return confirm('Yakin ingin menghapus SK ini?')">
+                                            @submit.prevent="window.showConfirm('Yakin ingin menghapus SK ini?', () => $el.submit())">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
@@ -237,7 +237,7 @@
 
                         {{-- Delete --}}
                         <form action="{{ route('admin.sk.destroy', $sk) }}" method="POST" class="flex-1"
-                            onsubmit="return confirm('Yakin ingin menghapus SK ini?')">
+                            @submit.prevent="window.showConfirm('Yakin ingin menghapus SK ini?', () => $el.submit())">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -677,7 +677,7 @@
     <script>
         function skManagement() {
             return {
-                showModal: {{ $errors->any() ? 'true' : 'false' }},
+                showModal: {{ (isset($errors) && is_object($errors) && $errors->any()) ? 'true' : 'false' }},
                 uploadType: '{{ old('upload_type', 'file') }}',
                 fileName: '',
                 showAssignModal: false,
@@ -765,42 +765,40 @@
 
                 async submitAssignment() {
                     if (this.selectedAchievements.length === 0) {
-                        alert('Pilih minimal 1 prestasi');
+                        showToast('warning', 'Pilih minimal 1 prestasi');
                         return;
                     }
 
-                    if (!confirm(`Assign SK ke ${this.selectedAchievements.length} prestasi dan approve semuanya?`)) {
-                        return;
-                    }
+                    window.showConfirm(`Assign SK ke ${this.selectedAchievements.length} prestasi dan approve semuanya?`, async () => {
+                        this.submitting = true;
 
-                    this.submitting = true;
+                        try {
+                            const formData = new FormData();
+                            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+                            this.selectedAchievements.forEach(id => {
+                                formData.append('achievement_ids[]', id);
+                            });
+                            if (this.notes) {
+                                formData.append('notes', this.notes);
+                            }
 
-                    try {
-                        const formData = new FormData();
-                        formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-                        this.selectedAchievements.forEach(id => {
-                            formData.append('achievement_ids[]', id);
-                        });
-                        if (this.notes) {
-                            formData.append('notes', this.notes);
+                            const response = await fetch(`/admin/sk/${this.selectedSk.id}/process-assignment`, {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            if (response.ok) {
+                                window.location.reload();
+                            } else {
+                                showToast('error', 'Gagal memproses assignment');
+                            }
+                        } catch (error) {
+                            console.error('Error submitting assignment:', error);
+                            showToast('error', 'Terjadi kesalahan saat memproses assignment');
+                        } finally {
+                            this.submitting = false;
                         }
-
-                        const response = await fetch(`/admin/sk/${this.selectedSk.id}/process-assignment`, {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (response.ok) {
-                            window.location.reload();
-                        } else {
-                            alert('Gagal memproses assignment');
-                        }
-                    } catch (error) {
-                        console.error('Error submitting assignment:', error);
-                        alert('Terjadi kesalahan saat memproses assignment');
-                    } finally {
-                        this.submitting = false;
-                    }
+                    }, 'success', 'Konfirmasi Assign SK');
                 },
 
                 formatDate(dateString) {

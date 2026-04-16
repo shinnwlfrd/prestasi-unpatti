@@ -74,7 +74,7 @@
                                             </svg>
                                         </button>
                                         <form action="{{ route('admin.levels.destroy', $level) }}" method="POST"
-                                            onsubmit="return confirm('Yakin ingin menghapus level ini?')">
+                                            @submit.prevent="window.showConfirm('Yakin ingin menghapus level ini?', () => $el.submit())">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
@@ -129,7 +129,7 @@
                                 </svg>
                             </button>
                             <form action="{{ route('admin.levels.destroy', $level) }}" method="POST"
-                                onsubmit="return confirm('Yakin ingin menghapus level ini?')">
+                                @submit.prevent="window.showConfirm('Yakin ingin menghapus level ini?', () => $el.submit())">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">

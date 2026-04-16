@@ -104,19 +104,19 @@
         <div
             class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
             <!-- Header & Filter Integrated -->
-            <!-- Header & Filter Integrated -->
             <div class="px-5 lg:px-6 xl:px-8 py-4 lg:py-6 border-b border-gray-200 dark:border-gray-700">
                 <div class="mb-4 lg:mb-6">
-                    <h2 class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tight">Riwayat Log Validasi</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Audit seluruh aktivitas verifikasi dan persetujuan prestasi.</p>
+                    <h2
+                        class="text-base lg:text-lg xl:text-xl font-semibold text-gray-900 dark:text-white uppercase tracking-tight">
+                        Riwayat Log Validasi
+                    </h2>
                 </div>
 
-                <!-- ultra-compact Single-Row Filter -->
                 <form method="GET" action="{{ route('admin.validation-logs') }}" class="space-y-4">
-                    <div class="flex flex-col 2xl:flex-row items-stretch 2xl:items-center gap-3">
-                        <!-- Group 1: Search & Basic -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 flex-grow">
-                            <div class="relative min-w-[200px]">
+                    <div class="flex flex-col xl:flex-row gap-3 items-start xl:items-center">
+
+                        <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2">
+                            <div class="relative lg:col-span-1 min-w-0">
                                 <input type="text" name="search" value="{{ request('search') }}"
                                     placeholder="Cari Mahasiswa/Event..."
                                     class="w-full pl-8 pr-4 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
@@ -128,80 +128,80 @@
                                     </svg>
                                 </div>
                             </div>
+
                             <select name="decision" onchange="this.form.submit()"
-                                class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-                                <option value="">Status</option>
+                                class="w-full lg:col-span-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all truncate">
+                                <option value="">Semua Status</option>
                                 <option value="approved" {{ request('decision') == 'approved' ? 'selected' : '' }}>Disetujui
                                 </option>
                                 <option value="rejected" {{ request('decision') == 'rejected' ? 'selected' : '' }}>Ditolak
                                 </option>
-                                <option value="revision" {{ request('decision') == 'revision' ? 'selected' : '' }}>Revisi</option>
+                                <option value="revision" {{ request('decision') == 'revision' ? 'selected' : '' }}>Revisi
+                                </option>
                             </select>
+
                             <select name="validator" onchange="this.form.submit()"
-                                class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-                                <option value="">Validator</option>
+                                class="w-full lg:col-span-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white truncate">
+                                <option value="">Semua Validator</option>
                                 @foreach($validators as $validator)
                                     <option value="{{ $validator->id }}" {{ request('validator') == $validator->id ? 'selected' : '' }}>{{ $validator->name }}</option>
                                 @endforeach
                             </select>
-                        </div>
 
-                        <!-- Divider -->
-                        <div class="hidden 2xl:block w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
-
-                        <!-- Group 2: Academic & Dates -->
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 flex-grow">
                             @if(!$isFacultyScoped)
                                 <select name="faculty_id" onchange="this.form.submit()"
-                                    class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-                                    <option value="">Fakultas</option>
+                                    class="w-full lg:col-span-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 truncate">
+                                    <option value="">Semua Fakultas</option>
                                     @foreach($sigapFaculties as $f)
                                         <option value="{{ $f['id'] }}" {{ $selectedFaculty == $f['id'] ? 'selected' : '' }}>
-                                            {{ $f['nama_en'] }}</option>
+                                            {{ $f['nama'] }}
+                                        </option>
                                     @endforeach
                                 </select>
                             @endif
 
-                            @if(!($currentRole && $currentRole->department_id))
-                                <select name="department_id" onchange="this.form.submit()" {{ !$selectedFaculty ? 'disabled' : '' }}
-                                    class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white disabled:opacity-50">
-                                    <option value="">Jurusan</option>
-                                    @foreach($sigapDepartments as $d)
-                                        <option value="{{ $d['id'] }}" {{ $selectedDepartment == $d['id'] ? 'selected' : '' }}>
-                                            {{ $d['nama_en'] }}</option>
-                                    @endforeach
-                                </select>
-                            @endif
+                            <select name="department_id" onchange="this.form.submit()" {{ !$selectedFaculty ? 'disabled' : '' }}
+                                class="w-full lg:col-span-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 disabled:opacity-50 truncate">
+                                <option value="">Semua Jurusan</option>
+                                @foreach($sigapDepartments as $d)
+                                    <option value="{{ $d['id'] }}" {{ $selectedDepartment == $d['id'] ? 'selected' : '' }}>
+                                        {{ $d['nama'] }}
+                                    </option>
+                                @endforeach
+                            </select>
 
-                            @if(!($currentRole && $currentRole->program_study_id))
-                                <select name="program_study_id" onchange="this.form.submit()" {{ !$selectedDepartment ? 'disabled' : '' }}
-                                    class="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white disabled:opacity-50">
-                                    <option value="">Prodi</option>
-                                    @foreach($sigapStudyPrograms as $p)
-                                        <option value="{{ $p['id'] }}" {{ $selectedStudyProgram == $p['id'] ? 'selected' : '' }}>
-                                            {{ $p['nama_en'] }}</option>
-                                    @endforeach
-                                </select>
-                            @endif
+                            <select name="program_study_id" onchange="this.form.submit()" {{ !$selectedDepartment ? 'disabled' : '' }}
+                                class="w-full lg:col-span-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 disabled:opacity-50 truncate">
+                                <option value="">Semua Prodi</option>
+                                @foreach($sigapStudyPrograms as $p)
+                                    <option value="{{ $p['id'] }}" {{ $selectedStudyProgram == $p['id'] ? 'selected' : '' }}>
+                                        {{ $p['nama'] }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
-                        <!-- Actions -->
-                        <div class="flex items-center gap-2">
-                            @if(request()->hasAny(['search', 'decision', 'validator', 'faculty_id', 'department_id', 'program_study_id']))
-                                <a href="?"
-                                    class="p-2 bg-gray-100 dark:bg-gray-700 text-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-700"
-                                    title="Reset">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </a>
-                            @endif
+                        <div class="flex items-center gap-2 flex-shrink-0 w-full xl:w-auto mt-2 xl:mt-0 justify-end">
+
+                            <a href="?"
+                                class="p-2 text-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 
+                        flex-shrink-0
+                        {{ request()->hasAny(['search', 'decision', 'validator', 'faculty_id', 'department_id', 'program_study_id']) ? 'opacity-100' : 'opacity-0 pointer-events-none' }}"
+                                style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;"
+                                title="Reset">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </a>
+
                             <button type="submit"
-                                class="flex-grow 2xl:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                                class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex-shrink-0"
+                                style="min-width: 80px;">
                                 Cari
                             </button>
                         </div>
+
                     </div>
                 </form>
             </div>

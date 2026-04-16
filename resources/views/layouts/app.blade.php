@@ -1,3 +1,4 @@
+@php /** @var \Illuminate\Support\ViewErrorBag $errors */ @endphp
 <!DOCTYPE html>
 <html lang="id" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarOpen: true, showModal: false }"
     x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
@@ -221,6 +222,7 @@
 
     <!-- Toast Notifications -->
     <x-toast-notification />
+    <x-confirm-modal />
 
     <!-- Show session notifications -->
     @if(session('success'))
@@ -239,13 +241,13 @@
         </script>
     @endif
 
-    @if($errors->any())
+    @if(isset($errors) && (is_object($errors) ? $errors->any() : count($errors) > 0))
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                @foreach($errors->all() as $error)
+                @foreach((is_object($errors) ? $errors->all() : $errors) as $error)
                     showToast('error', '{{ $error }}');
                 @endforeach
-                                    });
+            });
         </script>
     @endif
 

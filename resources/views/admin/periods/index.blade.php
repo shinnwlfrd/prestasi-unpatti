@@ -104,7 +104,7 @@
                                         </a>
                                         @if(!$period->is_active)
                                             <form action="{{ route('admin.periods.destroy', $period) }}" method="POST"
-                                                class="inline" onsubmit="return confirm('Yakin ingin menghapus periode ini?')">
+                                                class="inline" @submit.prevent="window.showConfirm('Yakin ingin menghapus periode ini?', () => $el.submit())">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
@@ -182,7 +182,7 @@
                             </svg>
                         </a>
                         @if(!$period->is_active)
-                            <form action="{{ route('admin.periods.destroy', $period) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus periode ini?')">
+                            <form action="{{ route('admin.periods.destroy', $period) }}" method="POST" class="inline" @submit.prevent="window.showConfirm('Yakin ingin menghapus periode ini?', () => $el.submit())">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
@@ -349,7 +349,7 @@
             });
 
             // Auto-open modal if there are validation errors
-            @if($errors->any() && old('_token'))
+            @if(isset($errors) && (is_object($errors) ? $errors->any() : count($errors) > 0) && old('_token'))
                 openCreateModal();
             @endif
         </script>

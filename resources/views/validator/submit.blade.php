@@ -307,7 +307,7 @@
                                     const newFiles = Array.from(event.target.files);
                                     const remaining = this.maxFiles - this.allFiles.length;
                                     if (newFiles.length > remaining) {
-                                        alert('Maksimal 2 berkas pendukung per mahasiswa.');
+                                        showToast('warning', 'Maksimal 2 berkas pendukung per mahasiswa.');
                                         event.target.value = '';
                                         return;
                                     }

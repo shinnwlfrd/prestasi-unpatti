@@ -468,38 +468,30 @@
 
             <!-- Page Content -->
             <div class="p-4 lg:p-6">
-                @if(session('success'))
-                    <div
-                        class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p class="text-sm text-green-800 dark:text-green-200">{{ session('success') }}</p>
-                        </div>
-                    </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p class="text-sm text-red-800 dark:text-red-200">{{ session('error') }}</p>
-                        </div>
-                    </div>
-                @endif
-
                 @yield('content')
             </div>
         </main>
     </div>
 
+    <!-- Toast Notifications -->
+    <x-toast-notification />
+    <x-confirm-modal />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @foreach(['success', 'error', 'warning', 'info'] as $type)
+                @if(session($type))
+                    showToast('{{ $type }}', '{{ session($type) }}');
+                @endif
+            @endforeach
+
+            @if(isset($errors) && (is_object($errors) ? $errors->any() : count($errors) > 0))
+                @foreach((is_object($errors) ? $errors->all() : $errors) as $error)
+                    showToast('error', '{{ $error }}');
+                @endforeach
+            @endif
+        });
+    </script>
     @stack('scripts')
     @include('partials.pwa-sw-register')
 </body>

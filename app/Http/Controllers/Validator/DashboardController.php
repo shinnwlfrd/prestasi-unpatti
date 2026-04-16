@@ -969,30 +969,24 @@ class DashboardController extends Controller
     {
         $eventName = $request->query('event_name');
         $organizer = $request->query('organizer');
-        $level = $request->query('level');
+        $eventLevel = $request->query('level');
 
         if (!$eventName) {
             return response()->json(['error' => 'Event name is required'], 400);
         }
 
-        $isPimpinan = auth()->user()->getCurrentRole()->role === 'pimpinan';
-
-        // Scope settings from session
-        $scopeLevel = session('operator_level') ?? session('pimpinan_level');
-        $facultyId = session('operator_faculty_id') ?? session('pimpinan_faculty_id');
-        $departmentId = session('operator_department_id') ?? session('pimpinan_department_id');
-        $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
-
-        // Ensure empty strings are treated as null to avoid invalid UUID comparisons in Postgres
-        $facultyId = $facultyId ?: null;
-        $departmentId = $departmentId ?: null;
-        $programStudyId = $programStudyId ?: null;
+        $scope = $this->getDashboardScope();
+        $isPimpinan = $scope['isPimpinan'];
+        $scopeLevel = $scope['level'];
+        $facultyId = $scope['facultyId'];
+        $departmentId = $scope['departmentId'];
+        $programStudyId = $scope['programStudyId'];
 
         $participants = StudentAchievement::query()
             ->with(['student'])
             ->where('event_name', $eventName)
             ->where('organizer', $organizer)
-            ->where('level', $level)
+            ->where('level', $eventLevel)
             ->when($isPimpinan, fn($q) => $q->whereIn('validation_status', ['faculty_approved', 'university_approved']))
             ->when($scopeLevel === 'faculty' && $facultyId, function ($q) use ($facultyId) {
                 $q->whereHas('student', fn($sq) => $sq->where('faculty_id', $facultyId));
@@ -1007,24 +1001,31 @@ class DashboardController extends Controller
                 $q->whereHas('student', fn($sq) => $sq->where('faculty', 'Program Pascasarjana'));
             })
             ->get()
-            ->map(function ($sa) {
-                return [
-                    'student_id' => $sa->student_id,
-                    'student_name' => $sa->student->name ?? 'N/A',
-                    'program_study' => $sa->student->program_study ?? 'N/A',
-                    'faculty' => $sa->student->faculty ?? 'N/A',
-                    'submitted_at' => $sa->submitted_at ? $sa->submitted_at->format('d M Y') : 'N/A',
-                    'validation_status' => $sa->validation_status,
-                    'details_url' => route(auth()->user()->getCurrentRole()->role . '.students.show', $sa->student_id)
-                ];
-            });
+            ->map(fn($sa) => $this->mapParticipantData($sa));
 
         return response()->json([
             'event_name' => $eventName,
             'organizer' => $organizer,
-            'level' => $level,
+            'level' => $eventLevel,
             'participants' => $participants
         ]);
+    }
+
+    /**
+     * Map student achievement to participant data format
+     */
+    private function mapParticipantData($sa): array
+    {
+        $role = auth()->user()->getCurrentRole()->role;
+        return [
+            'student_id' => $sa->student_id,
+            'student_name' => $sa->student->name ?? 'N/A',
+            'program_study' => $sa->student->program_study ?? 'N/A',
+            'faculty' => $sa->student->faculty ?? 'N/A',
+            'submitted_at' => $sa->submitted_at ? $sa->submitted_at->format('d M Y') : 'N/A',
+            'validation_status' => $sa->validation_status,
+            'details_url' => route($role . '.students.show', $sa->student_id)
+        ];
     }
 
     /**

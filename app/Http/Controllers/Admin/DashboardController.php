@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\ValidationLog;
 use App\Models\AuthLog;
 use App\Services\Admin\StatisticsService;
+use App\Services\SigapApiService;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -19,60 +20,72 @@ class DashboardController extends Controller
     use AnomalyAlertsTrait;
 
     public function __construct(
-        protected StatisticsService $statisticsService
+        protected StatisticsService $statisticsService,
+        protected SigapApiService $sigapApiService
     ) {
     }
 
     public function index()
     {
-        // Get active period first
+        // 1. Resolve logical context (Period, State)
+        $context = $this->resolveDashboardContext();
+        $periodId = $context['periodId'];
+        $selectedPeriod = $context['selectedPeriod'];
         $activePeriod = AcademicPeriod::where('is_active', true)->first();
-
-        // Get period filter from request
-        $periodId = request()->input('period');
-
-        // Get all periods for dropdown
         $periods = AcademicPeriod::ordered()->get();
-
-        // Specific data for global charts (always needed)
         $globalTrend = $this->getPeriodComparison();
 
-        // Determine selected period and comparison state
-        $selectedPeriod = null;
-        if ($periodId === null || $periodId === '') {
-            if ($activePeriod) {
-                $periodId = $activePeriod->id;
-                $selectedPeriod = $activePeriod;
-                $periodComparison = null;
-            } else {
-                $periodComparison = null;
-                $periodId = null;
-            }
-        } elseif ($periodId === 'all') {
-            $periodComparison = null;
-            $periodId = null;
-        } else {
-            $selectedPeriod = AcademicPeriod::find($periodId);
-            $periodComparison = null;
-        }
-
+        // 2. Resolve view state variables
         $isGlobal = !$selectedPeriod;
         $isActivePeriod = $selectedPeriod && $selectedPeriod->is_active;
         $isInactivePeriod = $selectedPeriod && !$selectedPeriod->is_active;
 
-        // Anomalies use the currently selected period
-        // so data shown is always relevant to the viewed period
-
-        // Helper for inclusive status counts
-
-
-        // Status groupings (inclusive of legacy and new statuses)
+        // 3. Status groupings
         $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'university_review'];
         $approvedStatuses = ['Disetujui', 'faculty_approved', 'university_approved'];
         $rejectedStatuses = ['Ditolak', 'faculty_rejected', 'university_rejected', 'faculty_revision'];
 
-        // Basic Statistics
-        $stats = [
+        // 4. Gather Core Data
+        $stats = $this->getDashboardSummaryStats($periodId, $pendingStatuses, $approvedStatuses, $rejectedStatuses);
+        $recentAchievements = $this->getRecentAchievementsForDashboard($periodId);
+        $queues = $this->getDashboardQueues($periodId);
+        $recentValidations = $this->getRecentValidationsForDashboard($periodId);
+        $statusStats = $this->getQuickStatusStats($periodId, $pendingStatuses, $approvedStatuses, $rejectedStatuses);
+
+        // 5. Gather Monitoring/Leaderboard Data
+        $monitoring = $this->getDashboardMonitoringData($periodId, $approvedStatuses);
+        $globalLeaderboard = $this->getGlobalLeaderboardData($approvedStatuses);
+
+        // 6. Context-aware anomalies
+        $alertContext = $this->resolveAlertContext($selectedPeriod);
+        $anomalyData = $this->getDashboardAnomalyData($periodId, $alertContext);
+
+        // 7. View-specific data (Active vs Inactive)
+        $viewData = [
+            'archivedStats' => $isInactivePeriod ? $this->getArchivedDashboardStats($periodId, $selectedPeriod, $stats, $pendingStatuses) : null,
+            'activeStats' => $isActivePeriod ? $this->getActiveDashboardStats($periodId) : null,
+            'masterData' => $this->getMasterDataSummary(),
+        ];
+
+        $achievementLevels = \App\Models\AchievementLevel::active()->ordered()->get();
+        return view('admin.dashboard', array_merge(
+            compact(
+                'stats', 'recentAchievements', 'recentValidations', 'statusStats',
+                'activePeriod', 'periods', 'selectedPeriod', 'globalTrend', 'alertContext',
+                'isActivePeriod', 'isInactivePeriod', 'isGlobal', 'achievementLevels'
+            ),
+            $queues,
+            $monitoring,
+            $globalLeaderboard,
+            $anomalyData,
+            $viewData
+        ));
+    }
+
+
+    protected function getDashboardSummaryStats($periodId, array $pendingStatuses, array $approvedStatuses, array $rejectedStatuses): array
+    {
+        return [
             'students' => Student::count(),
             'achievements' => StudentAchievement::when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
             'pending' => $this->getInclusiveCount($pendingStatuses, $periodId),
@@ -87,11 +100,9 @@ class DashboardController extends Controller
                 'disetujui' => $this->getInclusiveCount($approvedStatuses, null),
                 'ditolak' => $this->getInclusiveCount($rejectedStatuses, null),
             ],
-            'global_level_distribution' => [
-                'Universitas' => StudentAchievement::where('level', 'Universitas')->count(),
-                'Nasional' => StudentAchievement::where('level', 'Nasional')->count(),
-                'Internasional' => StudentAchievement::where('level', 'Internasional')->count(),
-            ],
+            'global_level_distribution' => \App\Models\AchievementLevel::active()->ordered()->get()->mapWithKeys(fn($l) => [
+                $l->name => StudentAchievement::where('level', $l->name)->count()
+            ])->toArray(),
             'global_category_distribution' => \DB::table('student_achievements')
                 ->join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
                 ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
@@ -101,8 +112,10 @@ class DashboardController extends Controller
             // Two-stage validation stats
             'university_pending' => StudentAchievement::universityPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
         ];
+    }
 
-        // Recent Achievements (last 10)
+    protected function getRecentAchievementsForDashboard($periodId)
+    {
         // Note: If no achievements in selected period, show latest without period filter
         $recentAchievements = StudentAchievement::with(['student', 'achievement.category'])
             ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
@@ -118,6 +131,11 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        return $recentAchievements;
+    }
+
+    protected function getDashboardQueues($periodId): array
+    {
         // University Pending Queue (top 5 oldest) - Use selected period
         $universityPending = StudentAchievement::with(['student', 'achievement.category', 'facultyValidator'])
             ->universityPending()
@@ -144,17 +162,23 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Recent Validations (last 10)
-        $recentValidations = ValidationLog::with(['studentAchievement.student', 'validator'])
+        return compact('universityPending', 'resubmissionQueue', 'urgentPending');
+    }
+
+    protected function getRecentValidationsForDashboard($periodId)
+    {
+        return ValidationLog::with(['studentAchievement.student', 'validator'])
             ->when($periodId, function ($q) use ($periodId) {
                 $q->whereHas('studentAchievement', fn($sq) => $sq->where('academic_period_id', $periodId));
             })
             ->latest('validated_at')
             ->take(10)
             ->get();
+    }
 
-        // Quick Stats by Status (including new statuses)
-        $statusStats = [
+    protected function getQuickStatusStats($periodId, array $pendingStatuses, array $approvedStatuses, array $rejectedStatuses): array
+    {
+        return [
             'menunggu' => $this->getInclusiveCount($pendingStatuses, $periodId),
             'disetujui' => $this->getInclusiveCount($approvedStatuses, $periodId),
             'ditolak' => $this->getInclusiveCount($rejectedStatuses, $periodId),
@@ -164,153 +188,6 @@ class DashboardController extends Controller
             'faculty_approved' => StudentAchievement::facultyApproved()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
             'university_approved' => StudentAchievement::universityApproved()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
         ];
-
-        // Monitoring Statistics
-        $statistics = $this->getApprovalStatistics($periodId);
-        $monthlyTrend = $this->getMonthlyTrend(6, $periodId);
-        $levelDistribution = $this->getLevelDistribution($periodId);
-        $topPerformers = $this->getTopPerformers($periodId);
-        $facultyComparison = $this->getFacultyComparison($periodId);
-        $categoryDistribution = $this->getCategoryDistribution($periodId);
-        $topProgramStudies = $this->getProgramStudyRanking($periodId);
-
-        // Context-aware anomalies - Use the selected period for Kualitas Data and Antrean Terlama
-        // This ensures data shown is relevant to the currently viewed period
-        $alertContext = $this->resolveAlertContext($selectedPeriod);
-
-        if ($periodId) {
-            // Use selected period for anomaly detection
-            $anomalies = $this->getContextAwareAnomalies($alertContext, (int) $periodId);
-            $globalBreakdown = [];
-        } else {
-            // Global view or no period selected - use global context
-            $anomalies = $this->getContextAwareAnomalies('global', null);
-            $globalBreakdown = $this->getGlobalAnomalyBreakdown();
-        }
-
-        // systemActivities removed – Log Aktivitas Sistem panel has been removed
-        $masterData = $this->getMasterDataSummary();
-
-        // Total unique students with at least one approved achievement (all periods)
-        $totalDistinctStudents = StudentAchievement::whereIn('validation_status', $approvedStatuses)
-            ->distinct('student_id')
-            ->count('student_id');
-
-        // Top 5 students by approved achievement count (all periods) for global leaderboard
-        $topStudentsGlobal = Student::whereHas('achievements', function ($q) use ($approvedStatuses) {
-            $q->whereIn('validation_status', $approvedStatuses);
-        })
-            ->withCount([
-                'achievements as approved_count' => function ($q) use ($approvedStatuses) {
-                    $q->whereIn('validation_status', $approvedStatuses);
-                }
-            ])
-            ->orderByDesc('approved_count')
-            ->limit(5)
-            ->get();
-
-        // Specific data for Archived View
-        $archivedStats = null;
-        if ($isInactivePeriod) {
-            $totalFaculties = \DB::table('students')->distinct()->count('faculty') ?: 1;
-            $activeFaculties = \DB::table('student_achievements')
-                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-                ->where('student_achievements.academic_period_id', $periodId)
-                ->distinct()
-                ->count('students.faculty');
-
-            $facultyStudentCounts = \DB::table('students')
-                ->selectRaw('faculty, COUNT(*) as student_count')
-                ->groupBy('faculty')
-                ->get()
-                ->keyBy('faculty');
-
-            $ratioData = $facultyComparison->map(function ($f) use ($facultyStudentCounts) {
-                $studentCount = $facultyStudentCounts[$f->full_name]->student_count ?? 1;
-                return (object) [
-                    'faculty' => $f->faculty,
-                    'full_name' => $f->full_name,
-                    'ratio' => round(($f->total / $studentCount) * 100, 2)
-                ];
-            })->sortByDesc('ratio')->values();
-
-            // For archived periods: pending items are treated as 'Dibatalkan (Expired)'
-            $expiredCount = $this->getInclusiveCount($pendingStatuses, $periodId);
-
-            // Previous period comparison (n-1)
-            $previousPeriod = AcademicPeriod::where('start_date', '<', $selectedPeriod->start_date)
-                ->orderBy('start_date', 'desc')
-                ->first();
-            $previousPeriodTotal = 0;
-            $periodGrowth = null;
-            if ($previousPeriod) {
-                $previousPeriodTotal = StudentAchievement::where('academic_period_id', $previousPeriod->id)->count();
-                $currentTotal = $stats['achievements'];
-                if ($previousPeriodTotal > 0) {
-                    $periodGrowth = round((($currentTotal - $previousPeriodTotal) / $previousPeriodTotal) * 100, 1);
-                } elseif ($currentTotal > 0) {
-                    $periodGrowth = 100.0; // from 0 to something = 100% growth
-                }
-            }
-
-            $archivedStats = [
-                'total_faculties' => $totalFaculties,
-                'active_faculties' => $activeFaculties,
-                'faculty_ratios' => $ratioData,
-                'expired_count' => $expiredCount,
-                'previous_period' => $previousPeriod,
-                'previous_period_total' => $previousPeriodTotal,
-                'period_growth' => $periodGrowth,
-            ];
-        }
-
-        // Specific data for Active View
-        $activeStats = null;
-        if ($isActivePeriod) {
-            $dailyTrend = $this->getDailyValidationTrend($periodId);
-            $facultyBacklog = $this->getFacultyBacklog($periodId);
-            $criticalQueue = $this->getCriticalQueue($periodId);
-
-            $activeStats = [
-                'daily_trend' => $dailyTrend,
-                'faculty_backlog' => $facultyBacklog,
-                'critical_queue' => $criticalQueue,
-            ];
-        }
-
-        return view('admin.dashboard', compact(
-            'stats',
-            'recentAchievements',
-            'universityPending',
-            'resubmissionQueue',
-            'urgentPending',
-            'recentValidations',
-            'statusStats',
-            'activePeriod',
-            'periods',
-            'selectedPeriod',
-            'periodComparison',
-            'globalTrend',
-            'statistics',
-            'monthlyTrend',
-            'levelDistribution',
-            'topPerformers',
-            'facultyComparison',
-            'categoryDistribution',
-            'topProgramStudies',
-            'anomalies',
-            'alertContext',
-            'globalBreakdown',
-
-            'isActivePeriod',
-            'isInactivePeriod',
-            'isGlobal',
-            'masterData',
-            'archivedStats',
-            'activeStats',
-            'totalDistinctStudents',
-            'topStudentsGlobal'
-        ));
     }
 
     protected function getInclusiveCount(array $statuses, $pId = null): int
@@ -402,6 +279,137 @@ class DashboardController extends Controller
         ];
     }
 
+    protected function resolveDashboardContext(): array
+    {
+        $activePeriod = AcademicPeriod::where('is_active', true)->first();
+        $periodId = request()->input('period');
+        $selectedPeriod = null;
+
+        if ($periodId === null || $periodId === '') {
+            if ($activePeriod) {
+                $periodId = $activePeriod->id;
+                $selectedPeriod = $activePeriod;
+            } else {
+                $periodId = null;
+            }
+        } elseif ($periodId === 'all') {
+            $periodId = null;
+        } else {
+            $selectedPeriod = AcademicPeriod::find($periodId);
+        }
+
+        return compact('periodId', 'selectedPeriod');
+    }
+
+    protected function getDashboardMonitoringData($periodId, array $approvedStatuses): array
+    {
+        return [
+            'statistics' => $this->getApprovalStatistics($periodId),
+            'monthlyTrend' => $this->getMonthlyTrend(6, $periodId),
+            'levelDistribution' => $this->getLevelDistribution($periodId),
+            'topPerformers' => $this->getTopPerformers($periodId),
+            'facultyComparison' => $this->getFacultyComparison($periodId),
+            'categoryDistribution' => $this->getCategoryDistribution($periodId),
+            'topProgramStudies' => $this->getProgramStudyRanking($periodId),
+        ];
+    }
+
+    protected function getGlobalLeaderboardData(array $approvedStatuses): array
+    {
+        return [
+            'totalDistinctStudents' => StudentAchievement::whereIn('validation_status', $approvedStatuses)
+                ->distinct('student_id')
+                ->count('student_id'),
+            'topStudentsGlobal' => Student::whereHas('achievements', function ($q) use ($approvedStatuses) {
+                $q->whereIn('validation_status', $approvedStatuses);
+            })
+                ->withCount([
+                    'achievements as approved_count' => function ($q) use ($approvedStatuses) {
+                        $q->whereIn('validation_status', $approvedStatuses);
+                    }
+                ])
+                ->orderByDesc('approved_count')
+                ->limit(5)
+                ->get()
+        ];
+    }
+
+    protected function getDashboardAnomalyData($periodId, $alertContext): array
+    {
+        if ($periodId) {
+            return [
+                'anomalies' => $this->getContextAwareAnomalies($alertContext, (int) $periodId),
+                'globalBreakdown' => []
+            ];
+        }
+
+        return [
+            'anomalies' => $this->getContextAwareAnomalies('global', null),
+            'globalBreakdown' => $this->getGlobalAnomalyBreakdown()
+        ];
+    }
+
+    protected function getArchivedDashboardStats($periodId, $selectedPeriod, $stats, array $pendingStatuses): array
+    {
+        $totalFaculties = \DB::table('students')->distinct()->count('faculty') ?: 1;
+        $activeFaculties = \DB::table('student_achievements')
+            ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+            ->where('student_achievements.academic_period_id', $periodId)
+            ->distinct()
+            ->count('students.faculty');
+
+        $facultyStudentCounts = \DB::table('students')
+            ->selectRaw('faculty, COUNT(*) as student_count')
+            ->groupBy('faculty')
+            ->get()
+            ->keyBy('faculty');
+
+        $facultyComparison = $this->getFacultyComparison($periodId);
+        $ratioData = $facultyComparison->map(function ($f) use ($facultyStudentCounts) {
+            $studentCount = $facultyStudentCounts[$f->full_name]->student_count ?? 1;
+            return (object) [
+                'faculty' => $f->faculty,
+                'full_name' => $f->full_name,
+                'ratio' => round(($f->total / $studentCount) * 100, 2)
+            ];
+        })->sortByDesc('ratio')->values();
+
+        $previousPeriod = AcademicPeriod::where('start_date', '<', $selectedPeriod->start_date)
+            ->orderBy('start_date', 'desc')
+            ->first();
+        
+        $previousPeriodTotal = 0;
+        $periodGrowth = null;
+        if ($previousPeriod) {
+            $previousPeriodTotal = StudentAchievement::where('academic_period_id', $previousPeriod->id)->count();
+            $currentTotal = $stats['achievements'];
+            if ($previousPeriodTotal > 0) {
+                $periodGrowth = round((($currentTotal - $previousPeriodTotal) / $previousPeriodTotal) * 100, 1);
+            } elseif ($currentTotal > 0) {
+                $periodGrowth = 100.0;
+            }
+        }
+
+        return [
+            'total_faculties' => $totalFaculties,
+            'active_faculties' => $activeFaculties,
+            'faculty_ratios' => $ratioData,
+            'expired_count' => $this->getInclusiveCount($pendingStatuses, $periodId),
+            'previous_period' => $previousPeriod,
+            'previous_period_total' => $previousPeriodTotal,
+            'period_growth' => $periodGrowth,
+        ];
+    }
+
+    protected function getActiveDashboardStats($periodId): array
+    {
+        return [
+            'daily_trend' => $this->getDailyValidationTrend($periodId),
+            'faculty_backlog' => $this->getFacultyBacklog($periodId),
+            'critical_queue' => $this->getCriticalQueue($periodId),
+        ];
+    }
+
     protected function getMonthlyTrend($months = 6, $periodId = null)
     {
         // If specific period is selected, use period's date range
@@ -466,16 +474,19 @@ class DashboardController extends Controller
 
     protected function getLevelDistribution($periodId = null)
     {
-        $query = StudentAchievement::selectRaw('level, COUNT(*) as count')
+        $levels = \App\Models\AchievementLevel::active()->ordered()->get();
+        
+        $counts = StudentAchievement::selectRaw('level, COUNT(*) as count')
             ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
             ->groupBy('level')
             ->pluck('count', 'level');
 
-        return [
-            'Internasional' => $query->get('Internasional', 0),
-            'Nasional' => $query->get('Nasional', 0),
-            'Universitas' => $query->get('Universitas', 0),
-        ];
+        $result = [];
+        foreach ($levels as $level) {
+            $result[$level->name] = $counts->get($level->name, 0);
+        }
+
+        return $result;
     }
 
     protected function getTopPerformers($periodId = null, $limit = 10)
@@ -758,9 +769,20 @@ class DashboardController extends Controller
 
     protected function getMasterDataSummary()
     {
+        $hierarchy = $this->sigapApiService->getHierarchicalStructure();
+        $facultiesCount = count($hierarchy);
+        $prodisCount = 0;
+
+        foreach ($hierarchy as $faculty) {
+            foreach ($faculty['departments'] ?? [] as $dept) {
+                $prodisCount += count($dept['study_programs'] ?? []);
+            }
+        }
+
         return [
-            'faculties_count' => \DB::table('students')->distinct()->count('faculty'),
-            'prodis_count' => \DB::table('students')->distinct()->count('program_study'),
+            'faculties_count' => $facultiesCount ?: \DB::table('students')->distinct()->count('faculty'),
+            'prodis_count' => $prodisCount ?: \DB::table('students')->distinct()->count('program_study'),
+            'achievements_master_count' => Achievement::count(),
             'validators_count' => User::where('role', 'Operator')->where('is_active', true)->count(),
             'operators_count' => User::where('role', 'Admin')->where('is_active', true)->count(),
             'sync_status' => [

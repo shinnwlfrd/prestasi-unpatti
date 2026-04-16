@@ -240,13 +240,13 @@
                         if (data.success) {
                             window.location.href = data.redirect_url;
                         } else {
-                            alert('Gagal beralih role: ' + (data.error || 'Unknown error'));
+                            showToast('error', 'Gagal beralih role: ' + (data.error || 'Unknown error'));
                             this.loading = false;
                             this.selectedRoleId = null;
                         }
                     } catch (error) {
                         console.error('Error switching role:', error);
-                        alert('Terjadi kesalahan saat beralih role');
+                        showToast('error', 'Terjadi kesalahan saat beralih role');
                         this.loading = false;
                         this.selectedRoleId = null;
                     }
@@ -254,6 +254,7 @@
             }
         }
     </script>
+    <x-toast-notification />
 </body>
 
 </html>

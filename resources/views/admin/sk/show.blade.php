@@ -182,7 +182,7 @@
                     @if($sk->assignments->count() === 0)
                         <form action="{{ route('admin.sk.destroy', $sk) }}" 
                               method="POST" 
-                              onsubmit="return confirm('Yakin ingin menghapus SK ini?')"
+                              @submit.prevent="window.showConfirm('Yakin ingin menghapus SK ini?', () => $el.submit())"
                               class="w-full">
                             @csrf
                             @method('DELETE')

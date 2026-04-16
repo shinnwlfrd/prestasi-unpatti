@@ -110,7 +110,7 @@
                             Edit
                         </button>
                         <form action="{{ route('admin.categories.destroy', $category) }}" method="POST"
-                            onsubmit="return confirm('Yakin ingin menghapus kategori ini?')" class="flex-1">
+                            @submit.prevent="window.showConfirm('Yakin ingin menghapus kategori ini?', () => $el.submit())" class="flex-1">
                             @csrf
                             @method('DELETE')
                             <button type="submit"

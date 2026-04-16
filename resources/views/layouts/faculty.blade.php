@@ -270,14 +270,6 @@
 
             <!-- Page Content -->
             <div class="flex-1 w-full p-4 md:p-6 lg:p-8">
-                @foreach(['success', 'error', 'warning', 'info'] as $msg)
-                    @if(session($msg))
-                        <div
-                            class="mb-6 p-4 rounded-xl border {{ $msg === 'success' ? 'bg-green-50 border-green-200 text-green-800' : ($msg === 'error' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-blue-50 border-blue-200 text-blue-800') }}">
-                            {{ session($msg) }}
-                        </div>
-                    @endif
-                @endforeach
                 @yield('content')
             </div>
         </main>

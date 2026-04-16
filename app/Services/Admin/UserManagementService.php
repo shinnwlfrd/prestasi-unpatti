@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class UserManagementService
 {
@@ -16,7 +17,7 @@ class UserManagementService
 
     public function createUser(array $data): User
     {
-        \Illuminate\Support\Facades\DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
             // Check if user already exists (including soft-deleted)
@@ -27,13 +28,13 @@ class UserManagementService
                 if ($existingUser->trashed()) {
                     $existingUser->restore();
                     $existingUser->update(['is_active' => true]);
-                    \Illuminate\Support\Facades\Log::info('Restored soft-deleted user for role addition', [
+                    Log::info('Restored soft-deleted user for role addition', [
                         'email' => $data['email'],
                     ]);
                 }
 
                 // User exists - add new role to existing user
-                \Illuminate\Support\Facades\Log::info('Adding role to existing user', [
+                Log::info('Adding role to existing user', [
                     'email' => $data['email'],
                     'new_role' => $data['role'],
                     'faculty' => $data['faculty'] ?? null
@@ -94,7 +95,7 @@ class UserManagementService
                     'activated_at' => now(),
                 ]);
 
-                \Illuminate\Support\Facades\DB::commit();
+                DB::commit();
                 return $existingUser;
             }
 
@@ -103,7 +104,7 @@ class UserManagementService
 
             if ($student) {
                 // Create user from student data
-                \Illuminate\Support\Facades\Log::info('Creating user from student', [
+                Log::info('Creating user from student', [
                     'email' => $data['email'],
                     'student_id' => $student->student_id,
                     'role' => $data['role']
@@ -181,12 +182,12 @@ class UserManagementService
                 'activated_at' => now(),
             ]);
 
-            \Illuminate\Support\Facades\DB::commit();
+            DB::commit();
             return $user;
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\DB::rollBack();
-            \Illuminate\Support\Facades\Log::error('Error creating user', [
+            DB::rollBack();
+            Log::error('Error creating user', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

@@ -17,7 +17,7 @@
         $activePeriod = $activePeriod ?? null;
         $statistics = $statistics ?? ['total' => 0, 'pending' => 0, 'approved' => 0, 'approval_rate' => 0, 'avg_time_to_approve' => 0];
         $monthlyTrend = $monthlyTrend ?? collect();
-        $levelDistribution = $levelDistribution ?? ['Internasional' => 0, 'Nasional' => 0, 'Universitas' => 0];
+        $levelDistribution = $levelDistribution ?? [];
         $facultyComparison = $facultyComparison ?? collect();
         $categoryDistribution = $categoryDistribution ?? collect();
         $anomalies = $anomalies ?? ['duplicates' => ['count' => 0], 'missing_documents' => ['count' => 0], 'sla_breach' => ['count' => 0], 'abandoned_drafts' => ['count' => 0]];
@@ -29,6 +29,7 @@
             'prodis_count' => 0,
             'validators_count' => 0,
             'operators_count' => 0,
+            'achievements_master_count' => 0,
             'sync_status' => ['status' => 'Unknown', 'last_sync' => '-', 'percentage' => 0]
         ];
 
@@ -220,7 +221,6 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ringkasan Data Global</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Agregasi data dari seluruh periode akademik</p>
                     </div>
                 </div>
             @endif
@@ -321,17 +321,22 @@
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             @php 
                                 $total = array_sum($levelDistribution ?? []);
-                                $nasRatio = $total > 0 ? round((($levelDistribution['Nasional'] ?? 0) / $total) * 100) : 0;
-                                $interRatio = $total > 0 ? round((($levelDistribution['Internasional'] ?? 0) / $total) * 100) : 0;
+                                $displayLevels = $achievementLevels->take(2);
                             @endphp
-                            <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3 border border-purple-100 dark:border-purple-800/30">
-                                <p class="text-xl font-black text-purple-600 dark:text-purple-400">{{ (int)$nasRatio }}%</p>
-                                <p class="text-[8px] font-black text-gray-500 uppercase tracking-tighter mt-1">Nasional</p>
-                            </div>
-                            <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-3 border border-indigo-100 dark:border-indigo-800/30">
-                                <p class="text-xl font-black text-indigo-600 dark:text-indigo-400">{{ (int)$interRatio }}%</p>
-                                <p class="text-[8px] font-black text-gray-500 uppercase tracking-tighter mt-1">Inter</p>
-                            </div>
+                            @foreach($displayLevels as $l)
+                                <div class="rounded-xl p-3 border" style="background-color: {{ $l->color }}15; border-color: {{ $l->color }}30;">
+                                    @php 
+                                        $ratio = $total > 0 ? round((($levelDistribution[$l->name] ?? 0) / $total) * 100) : 0;
+                                    @endphp
+                                    <p class="text-xl font-black" style="color: {{ $l->color }};">{{ (int)$ratio }}%</p>
+                                    <p class="text-[8px] font-black text-gray-500 uppercase tracking-tighter mt-1">{{ $l->name }}</p>
+                                </div>
+                            @endforeach
+                            @if($displayLevels->isEmpty())
+                                <div class="col-span-2 py-4 text-center">
+                                    <p class="text-[10px] text-gray-400 italic">Level master data belum diisi</p>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="mt-auto">
@@ -1583,8 +1588,6 @@
                                     class="sm:col-span-2 lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="mb-6">
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Status Prestasi Global</h3>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Distribusi status dari seluruh periode tercatat
-                                        </p>
                                     </div>
                                     <div class="h-64 relative">
                                         <canvas id="globalStatusChart"></canvas>
@@ -1616,30 +1619,23 @@
                                     class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="mb-6">
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Tingkat Prestasi</h3>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Tingkat capaian prestasi semua periode</p>
                                     </div>
                                     <div class="h-64 relative">
                                         <canvas id="globalLevelChart"></canvas>
                                     </div>
-                                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                        <div class="text-center">
-                                            <p class="text-[10px] text-gray-500 uppercase font-bold">Universitas</p>
-                                            <p class="text-sm font-bold text-blue-600">
-                                                {{ number_format($stats['global_level_distribution']['Universitas']) }}
-                                            </p>
-                                        </div>
-                                        <div class="text-center">
-                                            <p class="text-[10px] text-gray-500 uppercase font-bold">Nasional</p>
-                                            <p class="text-sm font-bold text-purple-600">
-                                                {{ number_format($stats['global_level_distribution']['Nasional']) }}
-                                            </p>
-                                        </div>
-                                        <div class="text-center">
-                                            <p class="text-[10px] text-gray-500 uppercase font-bold">Internasional</p>
-                                            <p class="text-sm font-bold text-indigo-600">
-                                                {{ number_format($stats['global_level_distribution']['Internasional']) }}
-                                            </p>
-                                        </div>
+                                    <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        @forelse($achievementLevels as $l)
+                                            <div class="text-center">
+                                                <p class="text-[10px] text-gray-500 uppercase font-bold">{{ $l->name }}</p>
+                                                <p class="text-sm font-bold" style="color: {{ $l->color ?? '#3b82f6' }}">
+                                                    {{ number_format($stats['global_level_distribution'][$l->name] ?? 0) }}
+                                                </p>
+                                            </div>
+                                        @empty
+                                            <div class="col-span-3 text-center py-2">
+                                                <p class="text-xs text-gray-400 italic">Level master data belum diisi</p>
+                                            </div>
+                                        @endforelse
                                     </div>
                                 </div>
 
@@ -1648,7 +1644,6 @@
                                     class="sm:col-span-2 lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="mb-6">
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Distribusi Kategori Prestasi</h3>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Pembagian kategori prestasi semua periode</p>
                                     </div>
                                     <div class="h-64 relative">
                                         <canvas id="globalCategoryChart"></canvas>
@@ -1683,7 +1678,6 @@
                                             </svg>
                                             Top Mahasiswa Berprestasi
                                         </h3>
-                                        <p class="text-[10px] text-gray-500 mt-1">Peringkat berdasarkan jumlah prestasi disetujui sepanjang masa</p>
                                     </div>
 
                                     <div class="space-y-4 flex-1">
@@ -1730,7 +1724,6 @@
                                     class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="mb-4">
                                         <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Prestasi per Fakultas</h3>
-                                        <p class="text-[10px] text-gray-500 mt-0.5">Total akumulasi prestasi per unit</p>
                                     </div>
 
                                     <div class="h-64 relative">
@@ -1747,7 +1740,6 @@
                                     class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm flex flex-col">
                                     <div class="mb-5">
                                         <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Top Program Studi</h3>
-                                        <p class="text-[10px] text-gray-500 mt-0.5">Peringkat berdasarkan total prestasi</p>
                                     </div>
 
                                     <div class="space-y-4 flex-1">
@@ -1812,7 +1804,6 @@
                                     <div class="flex items-center justify-between mb-6">
                                         <div>
                                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Tren Prestasi Multi-Periode</h3>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Perkembangan total prestasi lintas semester</p>
                                         </div>
                                         <div class="flex items-center gap-4">
                                             <span class="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
@@ -1834,7 +1825,6 @@
                                 <div class="lg:col-span-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-5 lg:p-6 shadow-sm">
                                     <div class="mb-6">
                                         <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Kualitas Data</h3>
-                                        <p class="text-[10px] text-gray-500 mt-1">Audit anomali dan keaslian data</p>
                                     </div>
 
                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
@@ -1931,8 +1921,6 @@
                                                 </svg>
                                                 Ringkasan Master Data
                                             </h3>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Status entitas pendukung sistem aplikasi
-                                            </p>
                                         </div>
                                         <div
                                             class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full border border-green-200 dark:border-green-800 flex items-center gap-2">
@@ -1941,7 +1929,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 relative z-10">
+                                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 relative z-10">
                                         <!-- Faculty Count -->
                                         <div
                                             class="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
@@ -1995,6 +1983,25 @@
                                                     Operator Fakultas</p>
                                                 <p class="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white leading-tight">
                                                     {{ $masterData['validators_count'] + $masterData['operators_count'] }}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Master Achievements -->
+                                        <div
+                                            class="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
+                                            <div
+                                                class="p-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg group-hover:scale-110 transition-transform">
+                                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-widest">
+                                                    Capaian Master</p>
+                                                <p class="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white leading-tight">
+                                                    {{ $masterData['achievements_master_count'] }}
                                                 </p>
                                             </div>
                                         </div>
@@ -2152,10 +2159,10 @@
                                         new Chart(document.getElementById('archivedLevelChart'), {
                                             type: 'doughnut',
                                             data: {
-                                                labels: ['Universitas', 'Nasional', 'Internasional'],
+                                                labels: @json($achievementLevels->pluck('name')),
                                                 datasets: [{
-                                                    data: [archLevelData.Universitas, archLevelData.Nasional, archLevelData.Internasional],
-                                                    backgroundColor: ['#3b82f6', '#8b5cf6', '#6366f1'],
+                                                    data: Object.values(archLevelData),
+                                                    backgroundColor: @json($achievementLevels->pluck('color')),
                                                     borderWidth: 2,
                                                     borderColor: isDark ? '#1f2937' : '#ffffff',
                                                 }]
@@ -2287,10 +2294,10 @@
                                         new Chart(document.getElementById('activeLevelChart'), {
                                             type: 'doughnut',
                                             data: {
-                                                labels: ['Universitas', 'Nasional', 'Internasional'],
+                                                labels: @json($achievementLevels->pluck('name')),
                                                 datasets: [{
-                                                    data: [actLevelData.Universitas, actLevelData.Nasional, actLevelData.Internasional],
-                                                    backgroundColor: ['#3b82f6', '#8b5cf6', '#6366f1'],
+                                                    data: Object.values(actLevelData),
+                                                    backgroundColor: @json($achievementLevels->pluck('color')),
                                                     borderWidth: 2,
                                                     borderColor: isDark ? '#1f2937' : '#ffffff',
                                                 }]
@@ -2422,10 +2429,10 @@
                                         new Chart(globalLevelEl, {
                                             type: 'doughnut',
                                             data: {
-                                                labels: ['Universitas', 'Nasional', 'Internasional'],
+                                                labels: @json($achievementLevels->pluck('name')),
                                                 datasets: [{
-                                                    data: [globalLevelData.Universitas, globalLevelData.Nasional, globalLevelData.Internasional],
-                                                    backgroundColor: ['#3b82f6', '#8b5cf6', '#6366f1'],
+                                                    data: Object.values(globalLevelData),
+                                                    backgroundColor: @json($achievementLevels->pluck('color')),
                                                     borderWidth: 2,
                                                     borderColor: isDark ? '#1f2937' : '#ffffff',
                                                     hoverOffset: 12
@@ -2942,9 +2949,7 @@
         }
 
         function deleteRecord(recordId) {
-            if (!confirm('Apakah Anda yakin ingin menghapus data prestasi ini? Tindakan ini tidak dapat dibatalkan.')) {
-                return;
-            }
+            window.showConfirm('Apakah Anda yakin ingin menghapus data prestasi ini? Tindakan ini tidak dapat dibatalkan.', () => {
 
             // Show loading state
             const deleteButtons = document.querySelectorAll(`button[onclick="deleteRecord(${recordId})"]`);
@@ -2996,6 +3001,7 @@
                     btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Hapus';
                 });
             });
+            }, 'danger', 'Hapus Data Prestasi');
         }
 
         function showNotification(type, message) {

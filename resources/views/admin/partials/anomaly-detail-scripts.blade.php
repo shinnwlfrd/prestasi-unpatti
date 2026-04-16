@@ -312,9 +312,7 @@ JavaScript for Anomaly Detail Modals
             const toDelete = allIds.filter(id => id !== keepId);
             if (!toDelete.length) return;
 
-            if (!confirm(`Apakah Anda yakin ingin menghapus ${toDelete.length} record duplikat dan hanya menyisakan data utama (#${keepId})?`)) {
-                return;
-            }
+            window.showConfirm(`Apakah Anda yakin ingin menghapus ${toDelete.length} record duplikat dan hanya menyisakan data utama (#${keepId})?`, () => {
 
             // Using sequential deletion to avoid race conditions or use a batch API if available
             // For now, call deleteRecord for each
@@ -354,6 +352,7 @@ JavaScript for Anomaly Detail Modals
             };
 
             processNext();
+            }, 'danger', 'Bersihkan Duplikat');
         };
 
         window.closeDuplikasiModal = function () {

@@ -76,7 +76,7 @@
                                     <option value="">Semua Fakultas</option>
                                     @foreach($sigapFaculties as $faculty)
                                         <option value="{{ $faculty['id'] }}" {{ $selectedFaculty == $faculty['id'] ? 'selected' : '' }}>
-                                            {{ $faculty['nama_en'] }}
+                                            {{ $faculty['nama'] }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -89,7 +89,7 @@
                                     <option value="">Semua Jurusan</option>
                                     @foreach($sigapDepartments as $department)
                                         <option value="{{ $department['id'] }}" {{ $selectedDepartment == $department['id'] ? 'selected' : '' }}>
-                                            {{ $department['nama_en'] }}
+                                            {{ $department['nama'] }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -102,7 +102,7 @@
                                     <option value="">Semua Program Studi</option>
                                     @foreach($sigapStudyPrograms as $program)
                                         <option value="{{ $program['id'] }}" {{ $selectedStudyProgram == $program['id'] ? 'selected' : '' }}>
-                                            {{ $program['nama_en'] }}
+                                            {{ $program['nama'] }}
                                         </option>
                                     @endforeach
                                 </select>

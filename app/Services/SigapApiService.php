@@ -239,7 +239,9 @@ class SigapApiService
             $map = [];
             foreach ($flatUnits as $unit) {
                 if (isset($unit['id'])) {
-                    $map[$unit['id']] = $unit['nama_en'] ?? $unit['nama'] ?? 'N/A';
+                    $rawName = $unit['nama'] ?? $unit['nama_en'] ?? 'N/A';
+
+                    $map[$unit['id']] = trim(str_ireplace(['Jurusan', 'Program Studi'], '', $rawName));
                 }
             }
 
@@ -257,24 +259,28 @@ class SigapApiService
             $flatUnits = $this->flattenUnits($allUnits);
             $collection = collect($flatUnits);
 
+            $cleanName = function ($name) {
+                return $name ? trim(str_ireplace(['Jurusan', 'Program Studi'], '', $name)) : null;
+            };
+
             // Get faculties
             $faculties = $collection->filter(function ($item) {
                 return strtolower($item['jenis_unit'] ?? '') === 'fakultas';
-            })->map(function ($faculty) use ($collection) {
+            })->map(function ($faculty) use ($collection, $cleanName) {
                 // Get departments under this faculty
                 $departments = $collection->filter(function ($item) use ($faculty) {
                     return strtolower($item['jenis_unit'] ?? '') === 'jurusan'
                         && ($item['parent_id'] ?? null) == $faculty['id'];
-                })->map(function ($department) use ($collection) {
+                })->map(function ($department) use ($collection, $cleanName) {
                     // Get study programs under this department
                     $studyPrograms = $collection->filter(function ($item) use ($department) {
                         return strtolower($item['jenis_unit'] ?? '') === 'program studi'
                             && ($item['parent_id'] ?? null) == $department['id'];
-                    })->map(function ($item) {
+                    })->map(function ($item) use ($collection, $cleanName) {
                         return [
                             'id' => $item['id'] ?? null,
                             'kode' => $item['kode'] ?? null,
-                            'nama' => $item['nama'] ?? null,
+                            'nama' => $cleanName($item['nama']) ?? null,
                             'nama_en' => $item['nama_en'] ?? null,
                             'jenis_unit' => $item['jenis_unit'] ?? null,
                         ];
@@ -283,7 +289,7 @@ class SigapApiService
                     return [
                         'id' => $department['id'] ?? null,
                         'kode' => $department['kode'] ?? null,
-                        'nama' => $department['nama'] ?? null,
+                        'nama' => $cleanName($department['nama']) ?? null,
                         'nama_en' => $department['nama_en'] ?? null,
                         'jenis_unit' => $department['jenis_unit'] ?? null,
                         'study_programs' => $studyPrograms,
@@ -293,12 +299,23 @@ class SigapApiService
                 return [
                     'id' => $faculty['id'] ?? null,
                     'kode' => $faculty['kode'] ?? null,
-                    'nama' => $faculty['nama'] ?? null,
+                    'nama' => $cleanName($faculty['nama']) ?? null,
                     'nama_en' => $faculty['nama_en'] ?? null,
                     'jenis_unit' => $faculty['jenis_unit'] ?? null,
                     'departments' => $departments,
                 ];
             })->values()->all();
+
+            if (empty($faculties)) {
+                $fallbackPath = database_path('seeders/data/sigap_hierarchy.json');
+                if (file_exists($fallbackPath)) {
+                    $jsonFaculties = json_decode(file_get_contents($fallbackPath), true);
+                    if (!empty($jsonFaculties)) {
+                        Log::info('SIGAP API - Using Fallback JSON for Hierarchical Structure');
+                        return $jsonFaculties;
+                    }
+                }
+            }
 
             Log::info('SIGAP API - Hierarchical Structure Retrieved', [
                 'faculties_count' => count($faculties)

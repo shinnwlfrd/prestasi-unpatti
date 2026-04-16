@@ -1,206 +1,259 @@
-<!-- Toast Notification Component -->
-<div x-data="toastManager()" 
-     @notify.window="show($event.detail)"
-     class="fixed top-4 right-4 z-[9999] space-y-3 pointer-events-none">
-    
+<!-- Center-Expand Toast Notification Component -->
+<div x-data="toastManager()" @notify.window="show($event.detail)"
+    class="fixed top-6 left-0 right-0 z-[9999] flex flex-col items-center gap-3 pointer-events-none">
+
     <template x-for="(toast, index) in toasts" :key="toast.id">
-        <div x-show="toast.visible"
-             x-transition:enter="transform transition ease-out duration-300"
-             x-transition:enter-start="translate-x-full opacity-0"
-             x-transition:enter-end="translate-x-0 opacity-100"
-             x-transition:leave="transform transition ease-in duration-200"
-             x-transition:leave-start="translate-x-0 opacity-100"
-             x-transition:leave-end="translate-x-full opacity-0"
-             class="pointer-events-auto w-96 max-w-full">
-            
-            <div class="rounded-xl shadow-2xl border overflow-hidden"
-                 :class="{
-                     'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700': toast.type === 'info',
-                     'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800': toast.type === 'success',
-                     'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800': toast.type === 'error',
-                     'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800': toast.type === 'warning'
-                 }">
-                
-                <!-- Progress Bar -->
-                <div class="h-1 bg-gray-200 dark:bg-gray-700">
-                    <div class="h-full transition-all duration-100 ease-linear"
-                         :class="{
-                             'bg-blue-500': toast.type === 'info',
-                             'bg-green-500': toast.type === 'success',
-                             'bg-red-500': toast.type === 'error',
-                             'bg-amber-500': toast.type === 'warning'
-                         }"
-                         :style="`width: ${toast.progress}%`"></div>
+        <div class="pointer-events-auto" x-show="toast.phase !== 'hidden'"
+            x-transition:leave="transition ease-in duration-500"
+            x-transition:leave-start="opacity-100 transform scale-100"
+            x-transition:leave-end="opacity-0 transform scale-50">
+
+            <div class="relative flex items-center overflow-hidden rounded-2xl shadow-2xl border backdrop-blur-md"
+                :class="{
+                     'bg-green-50/95 dark:bg-green-950/90 border-green-200/60 dark:border-green-800/60 shadow-green-500/10': toast.type === 'success',
+                     'bg-red-50/95 dark:bg-red-950/90 border-red-200/60 dark:border-red-800/60 shadow-red-500/10': toast.type === 'error',
+                     'bg-amber-50/95 dark:bg-amber-950/90 border-amber-200/60 dark:border-amber-800/60 shadow-amber-500/10': toast.type === 'warning',
+                     'bg-blue-50/95 dark:bg-blue-950/90 border-blue-200/60 dark:border-blue-800/60 shadow-blue-500/10': toast.type === 'info'
+                 }" :style="['expand', 'visible', 'collapse'].includes(toast.phase) 
+                            ? 'max-width: 480px; height: 56px;' 
+                            : 'max-width: 56px; height: 56px;'"
+                style="transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), max-width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;">
+                <!-- Icon Circle -->
+                <div class="flex-shrink-0 flex items-center justify-center transition-all duration-500 ease-out"
+                    :class="toast.phase === 'icon' || toast.phase === 'closing' ? 'w-14 h-14' : 'w-14 h-14 ml-0'"
+                    :style="toast.phase === 'icon' || toast.phase === 'closing' 
+                         ? 'transform: scale(1); opacity: 1;' 
+                         : 'transform: scale(1); opacity: 1;'">
+
+                    <!-- Success Icon -->
+                    <template x-if="toast.type === 'success'">
+                        <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center"
+                            :class="toast.showIcon ? 'animate-icon-pop' : 'scale-0'">
+                            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"
+                                    :class="toast.showIcon ? 'animate-check-draw' : ''"
+                                    style="stroke-dasharray: 24; stroke-dashoffset: 24;" />
+                            </svg>
+                        </div>
+                    </template>
+
+                    <!-- Error Icon -->
+                    <template x-if="toast.type === 'error'">
+                        <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center"
+                            :class="toast.showIcon ? 'animate-icon-pop' : 'scale-0'">
+                            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                    </template>
+
+                    <!-- Warning Icon -->
+                    <template x-if="toast.type === 'warning'">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center"
+                            :class="toast.showIcon ? 'animate-icon-pop' : 'scale-0'">
+                            <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                    </template>
+
+                    <!-- Info Icon -->
+                    <template x-if="toast.type === 'info'">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center"
+                            :class="toast.showIcon ? 'animate-icon-pop' : 'scale-0'">
+                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </template>
                 </div>
-                
-                <div class="p-4 flex items-start gap-3">
-                    <!-- Icon -->
-                    <div class="flex-shrink-0">
-                        <template x-if="toast.type === 'success'">
-                            <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </div>
-                        </template>
-                        
-                        <template x-if="toast.type === 'error'">
-                            <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </div>
-                        </template>
-                        
-                        <template x-if="toast.type === 'warning'">
-                            <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                            </div>
-                        </template>
-                        
-                        <template x-if="toast.type === 'info'">
-                            <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                        </template>
+
+                <!-- Message Content (appears during expand phase) -->
+                <div class="overflow-hidden transition-all duration-500 ease-out" :style="['expand','visible'].includes(toast.phase)
+                            ? 'max-width: 420px; opacity: 1; padding: 12px 20px 12px 0;'
+                            : toast.phase === 'collapse'
+                                ? 'max-width: 0px; opacity: 0; padding: 0;'
+                                : 'max-width: 0px; opacity: 0; padding: 0;'">
+                    <div class="whitespace-normal pr-2 min-w-[160px] max-w-[340px]">
+                        <p class="text-sm font-bold leading-tight" :class="{
+                               'text-green-800 dark:text-green-200': toast.type === 'success',
+                               'text-red-800 dark:text-red-200': toast.type === 'error',
+                               'text-amber-800 dark:text-amber-200': toast.type === 'warning',
+                               'text-blue-800 dark:text-blue-200': toast.type === 'info'
+                           }" x-text="toast.title"></p>
+                        <p class="text-xs mt-0.5 leading-tight" :class="{
+                               'text-green-700/80 dark:text-green-300/80': toast.type === 'success',
+                               'text-red-700/80 dark:text-red-300/80': toast.type === 'error',
+                               'text-amber-700/80 dark:text-amber-300/80': toast.type === 'warning',
+                               'text-blue-700/80 dark:text-blue-300/80': toast.type === 'info'
+                           }" x-text="toast.message" x-show="toast.message"></p>
                     </div>
-                    
-                    <!-- Content -->
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold"
-                           :class="{
-                               'text-gray-900 dark:text-white': toast.type === 'info',
-                               'text-green-800 dark:text-green-300': toast.type === 'success',
-                               'text-red-800 dark:text-red-300': toast.type === 'error',
-                               'text-amber-800 dark:text-amber-300': toast.type === 'warning'
-                           }"
-                           x-text="toast.title"></p>
-                        <p class="mt-1 text-sm"
-                           :class="{
-                               'text-gray-600 dark:text-gray-400': toast.type === 'info',
-                               'text-green-700 dark:text-green-400': toast.type === 'success',
-                               'text-red-700 dark:text-red-400': toast.type === 'error',
-                               'text-amber-700 dark:text-amber-400': toast.type === 'warning'
-                           }"
-                           x-text="toast.message"></p>
-                    </div>
-                    
-                    <!-- Close Button -->
-                    <button @click="remove(toast.id)" 
-                            class="flex-shrink-0 rounded-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            :class="{
-                                'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300': toast.type === 'info',
-                                'text-green-400 hover:text-green-600 dark:hover:text-green-300': toast.type === 'success',
-                                'text-red-400 hover:text-red-600 dark:hover:text-red-300': toast.type === 'error',
-                                'text-amber-400 hover:text-amber-600 dark:hover:text-amber-300': toast.type === 'warning'
-                            }">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
                 </div>
             </div>
         </div>
     </template>
 </div>
 
-<script>
-function toastManager() {
-    return {
-        toasts: [],
-        nextId: 1,
-        
-        show(data) {
-            const id = this.nextId++;
-            const toast = {
-                id: id,
-                type: data.type || 'info',
-                title: data.title || this.getDefaultTitle(data.type),
-                message: data.message || '',
-                visible: false,
-                progress: 100,
-                duration: data.duration || 5000
-            };
-            
-            this.toasts.push(toast);
-            
-            // Show with slight delay for animation
-            setTimeout(() => {
-                const index = this.toasts.findIndex(t => t.id === id);
-                if (index !== -1) {
-                    this.toasts[index].visible = true;
-                }
-            }, 10);
-            
-            // Start progress bar
-            this.startProgress(id, toast.duration);
-            
-            // Auto remove
-            setTimeout(() => {
-                this.remove(id);
-            }, toast.duration);
-        },
-        
-        startProgress(id, duration) {
-            const interval = 50; // Update every 50ms
-            const steps = duration / interval;
-            let currentStep = 0;
-            
-            const timer = setInterval(() => {
-                currentStep++;
-                const index = this.toasts.findIndex(t => t.id === id);
-                
-                if (index === -1) {
-                    clearInterval(timer);
-                    return;
-                }
-                
-                this.toasts[index].progress = 100 - (currentStep / steps * 100);
-                
-                if (currentStep >= steps) {
-                    clearInterval(timer);
-                }
-            }, interval);
-        },
-        
-        remove(id) {
-            const index = this.toasts.findIndex(t => t.id === id);
-            if (index !== -1) {
-                this.toasts[index].visible = false;
-                setTimeout(() => {
-                    this.toasts = this.toasts.filter(t => t.id !== id);
-                }, 300);
-            }
-        },
-        
-        getDefaultTitle(type) {
-            const titles = {
-                success: 'Berhasil!',
-                error: 'Terjadi Kesalahan!',
-                warning: 'Peringatan!',
-                info: 'Informasi'
-            };
-            return titles[type] || 'Notifikasi';
+<style>
+    @keyframes iconPop {
+        0% {
+            transform: scale(0) rotate(-45deg);
+            opacity: 0;
+        }
+
+        50% {
+            transform: scale(1.2) rotate(0deg);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
         }
     }
-}
 
-// Helper function to show toast from anywhere
-window.showToast = function(type, message, title = null, duration = 5000) {
-    // Support both string message and object format
-    const detail = typeof message === 'object' ? message : {
-        type: type,
-        message: message,
-        title: title,
-        duration: duration
+    @keyframes checkDraw {
+        0% {
+            stroke-dashoffset: 24;
+        }
+
+        100% {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    .animate-icon-pop {
+        animation: iconPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .animate-check-draw {
+        animation: checkDraw 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards;
+    }
+</style>
+
+<script>
+    function toastManager() {
+        return {
+            toasts: [],
+            nextId: 1,
+
+            show(data) {
+                const id = this.nextId++;
+                const toast = {
+                    id: id,
+                    type: data.type || 'info',
+                    title: data.title || this.getDefaultTitle(data.type || 'info'),
+                    message: data.message || '',
+                    phase: 'hidden',
+                    showIcon: false,
+                    duration: data.duration || 3000
+                };
+
+                this.toasts.push(toast);
+
+                // Phase 1: Show icon (scale up from center)
+                setTimeout(() => {
+                    const idx = this.toasts.findIndex(t => t.id === id);
+                    if (idx !== -1) {
+                        this.toasts[idx].phase = 'icon';
+                        this.toasts[idx].showIcon = true;
+                    }
+                }, 10);
+
+                // Phase 2: Expand to show message
+                setTimeout(() => {
+                    const idx = this.toasts.findIndex(t => t.id === id);
+                    if (idx !== -1) {
+                        this.toasts[idx].phase = 'expand';
+                    }
+                }, 500);
+
+                // Phase 3: Mark as fully visible
+                setTimeout(() => {
+                    const idx = this.toasts.findIndex(t => t.id === id);
+                    if (idx !== -1) {
+                        this.toasts[idx].phase = 'visible';
+                    }
+                }, 1000);
+
+                // Phase 4: Collapse (Shrink back to icon FIRST)
+                setTimeout(() => {
+                    const idx = this.toasts.findIndex(t => t.id === id);
+                    if (idx !== -1) {
+                        this.toasts[idx].phase = 'collapse';
+                    }
+                }, toast.duration + 1000);
+
+                // Phase 5: Fade out dan hapus element (Memicu x-transition Alpine.js)
+                setTimeout(() => {
+                    const idx = this.toasts.findIndex(t => t.id === id);
+                    if (idx !== -1) {
+                        this.toasts[idx].phase = 'closing';
+                    }
+                }, toast.duration + 1400);
+
+                setTimeout(() => {
+                    const idx = this.toasts.findIndex(t => t.id === id);
+                    if (idx !== -1) {
+                        this.toasts[idx].phase = 'hidden';
+                    }
+
+                    setTimeout(() => {
+                        this.toasts = this.toasts.filter(t => t.id !== id);
+                    }, 500);
+                }, toast.duration + 1800);
+            },
+
+            remove(id) {
+                const idx = this.toasts.findIndex(t => t.id === id);
+                if (idx !== -1) {
+                    // 1. Mulai animasi melipat teks
+                    this.toasts[idx].phase = 'closing';
+
+                    // 2. Tunggu 400ms sampai teks terlipat, lalu mulai animasi menghilang
+                    setTimeout(() => {
+                        const currentIdx = this.toasts.findIndex(t => t.id === id);
+                        if (currentIdx !== -1) {
+                            this.toasts[currentIdx].phase = 'hidden';
+
+                            // 3. Hapus bersih setelah animasi selesai
+                            setTimeout(() => {
+                                this.toasts = this.toasts.filter(t => t.id !== id);
+                            }, 500);
+                        }
+                    }, 600);
+                }
+            },
+
+            getDefaultTitle(type) {
+                const titles = {
+                    success: 'Berhasil!',
+                    error: 'Gagal!',
+                    warning: 'Peringatan!',
+                    info: 'Informasi'
+                };
+                return titles[type] || 'Notifikasi';
+            }
+        }
+    }
+
+    // Global helper — backward-compatible with existing showToast calls
+    window.showToast = function (type, message, title = null, duration = 3000) {
+        const detail = typeof message === 'object' ? message : {
+            type: type,
+            message: message,
+            title: title,
+            duration: duration
+        };
+
+        window.dispatchEvent(new CustomEvent('notify', {
+            detail: detail
+        }));
     };
-    
-    window.dispatchEvent(new CustomEvent('notify', {
-        detail: detail
-    }));
-};
 </script>

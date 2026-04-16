@@ -176,7 +176,7 @@ function verifyDocument(documentId, action) {
     if (action === 'reject' || action === 'revision') {
         notes = prompt(action === 'reject' ? 'Alasan penolakan:' : 'Catatan revisi yang diperlukan:');
         if (!notes) {
-            alert('Catatan wajib diisi untuk ' + (action === 'reject' ? 'penolakan' : 'permintaan revisi'));
+            showToast('warning', 'Catatan wajib diisi untuk ' + (action === 'reject' ? 'penolakan' : 'permintaan revisi'));
             return;
         }
     }
@@ -195,12 +195,12 @@ function verifyDocument(documentId, action) {
         if (data.success) {
             location.reload();
         } else {
-            alert(data.error || 'Gagal memproses verifikasi');
+            showToast('error', data.error || 'Gagal memproses verifikasi');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Terjadi kesalahan');
+        showToast('error', 'Terjadi kesalahan');
     });
 }
 </script>

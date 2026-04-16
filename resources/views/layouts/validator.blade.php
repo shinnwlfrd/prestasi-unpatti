@@ -446,6 +446,7 @@
 
     <!-- Toast Notifications -->
     <x-toast-notification />
+    <x-confirm-modal />
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

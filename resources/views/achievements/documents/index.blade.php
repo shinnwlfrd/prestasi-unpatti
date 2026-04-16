@@ -432,7 +432,7 @@
                     const remainingSlots = this.maxFiles - this.existingSupportingDocsCount - this.files.length;
                     
                     if (newFiles.length > remainingSlots) {
-                        alert(`Batas maksimal 2 dokumen pendukung. Sisa slot: ${remainingSlots}`);
+                        showToast('warning', `Batas maksimal 2 dokumen pendukung. Sisa slot: ${remainingSlots}`);
                         newFiles = newFiles.slice(0, remainingSlots);
                     }
 
@@ -460,7 +460,7 @@
                 validateFile(file) {
                     const maxSize = 10 * 1024 * 1024; // 10MB
                     if (file.size > maxSize) {
-                        alert(`File ${file.name} terlalu besar (Maks 10MB)`);
+                        showToast('warning', `File ${file.name} terlalu besar (Maks 10MB)`);
                         return false;
                     }
                     return true;
@@ -525,13 +525,13 @@
                             window.location.reload();
                         } else {
                             const data = JSON.parse(xhr.responseText);
-                            alert(data.message || 'Gagal mengunggah dokumen');
+                            showToast('error', data.message || 'Gagal mengunggah dokumen');
                             this.uploading = false;
                         }
                     };
 
                     xhr.onerror = () => {
-                        alert('Terjadi kesalahan jaringan');
+                        showToast('error', 'Terjadi kesalahan jaringan');
                         this.uploading = false;
                     };
 
@@ -541,7 +541,7 @@
         }
 
         function deleteDocument(id) {
-            if (confirm('Yakin ingin menghapus dokumen ini?')) {
+            window.showConfirm('Yakin ingin menghapus dokumen ini?', () => {
                 fetch(`/documents/${id}`, {
                     method: 'DELETE',
                     headers: {
@@ -552,9 +552,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) window.location.reload();
-                    else alert(data.error || 'Gagal menghapus dokumen');
+                    else showToast('error', data.error || 'Gagal menghapus dokumen');
                 });
-            }
+            });
         }
 
         function replaceDocument(id, input) {
@@ -572,7 +572,7 @@
                 .then(data => {
                     if (data.success) window.location.reload();
                     else {
-                        alert(data.error || 'Gagal mengganti dokumen');
+                        showToast('error', data.error || 'Gagal mengganti dokumen');
                         input.value = '';
                     }
                 });
@@ -594,7 +594,7 @@
                 .then(data => {
                     if (data.success) window.location.reload();
                     else {
-                        alert(data.error || 'Gagal mengganti sertifikat');
+                        showToast('error', data.error || 'Gagal mengganti sertifikat');
                         input.value = '';
                     }
                 });
@@ -602,7 +602,7 @@
         }
 
         function submitDocument(id) {
-            if (confirm('Kirim dokumen ini untuk verifikasi?')) {
+            window.showConfirm('Kirim dokumen ini untuk verifikasi?', () => {
                 fetch(`/documents/${id}/submit`, {
                     method: 'POST',
                     headers: {
@@ -613,9 +613,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) window.location.reload();
-                    else alert(data.error || 'Gagal mengirim dokumen');
+                    else showToast('error', data.error || 'Gagal mengirim dokumen');
                 });
-            }
+            }, 'success', 'Konfirmasi Kirim');
         }
 
         function revertDocument(id) {
@@ -633,7 +633,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) window.location.reload();
-                    else alert(data.error || 'Gagal mengembalikan status');
+                    else showToast('error', data.error || 'Gagal mengembalikan status');
                 });
             }
         }
@@ -652,7 +652,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) alert('Catatan ditambahkan');
+                    if (data.success) showToast('success', 'Catatan ditambahkan');
                 });
             }
         }

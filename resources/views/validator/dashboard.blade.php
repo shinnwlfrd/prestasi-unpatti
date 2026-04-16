@@ -1434,7 +1434,7 @@
                             this.slaBreachTotal = data.total;
                         } catch (error) {
                             console.error('Error loading SLA breach details:', error);
-                            alert('Gagal memuat detail pelanggaran SLA');
+                            showToast('error', 'Gagal memuat detail pelanggaran SLA');
                         } finally {
                             this.slaBreachLoading = false;
                         }
@@ -1469,7 +1469,7 @@
                             this.eventParticipants = data.participants;
                         } catch (error) {
                             console.error('Error loading participants:', error);
-                            alert('Gagal memuat rincian peserta');
+                            showToast('error', 'Gagal memuat rincian peserta');
                         } finally {
                             this.eventLoading = false;
                         }
@@ -1524,7 +1524,7 @@
                             this.achievement = data;
                         } catch (error) {
                             console.error('Error loading achievement:', error);
-                            alert('Gagal memuat data prestasi: ' + error.message);
+                            showToast('error', 'Gagal memuat data prestasi: ' + error.message);
                             this.closeModal();
                         } finally {
                             this.loading = false;

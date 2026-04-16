@@ -111,7 +111,7 @@
                                             @if($u->id !== auth()->id() && $userRoles->count() > 1 && (auth()->user()->isSuperAdmin() || (!in_array($userRole->role, ['super_admin', 'admin']))))
                                                 <form action="{{ route('admin.users.delete-role', ['user' => $u, 'roleId' => $userRole->id]) }}"
                                                     method="POST"
-                                                    onsubmit="return confirm('Hapus role ini?')">
+                                                    @submit.prevent="window.showConfirm('Hapus role ini?', () => $el.submit())">
                                                     @csrf @method('DELETE')
                                                     <button type="submit"
                                                         class="text-red-600 dark:text-red-400 text-xs">
@@ -156,7 +156,7 @@
                             @elseif(auth()->user()->isSuperAdmin() || (!$u->isAdmin() && !$u->isSuperAdmin()))
                                 <form action="{{ route('admin.users.delete', $u) }}"
                                     method="POST"
-                                    onsubmit="return confirm('Hapus user ini?')">
+                                    @submit.prevent="window.showConfirm('Hapus user ini?', () => $el.submit())">
                                     @csrf @method('DELETE')
                                     <button type="submit"
                                         class="text-red-600 dark:text-red-400 text-sm font-medium">
@@ -275,7 +275,7 @@
                                                         <form
                                                             action="{{ route('admin.users.delete-role', ['user' => $u, 'roleId' => $userRole->id]) }}"
                                                             method="POST"
-                                                            onsubmit="return confirm('Hapus role {{ $userRole->getRoleDisplayName() }} dari {{ $u->name }}?')"
+                                                            @submit.prevent="window.showConfirm('Hapus role {{ $userRole->getRoleDisplayName() }} dari {{ $u->name }}?', () => $el.submit())"
                                                             class="inline">
                                                             @csrf @method('DELETE')
                                                             <button type="submit"
@@ -317,7 +317,7 @@
                                             <span class="text-gray-400 text-sm font-medium">Akun Saya</span>
                                         @elseif(auth()->user()->isSuperAdmin() || (!$u->isAdmin() && !$u->isSuperAdmin()))
                                             <form action="{{ route('admin.users.delete', $u) }}" method="POST"
-                                                onsubmit="return confirm('Hapus user {{ $u->name }}?\n\nPeringatan: Semua role user ini akan dihapus!')"
+                                                @submit.prevent="window.showConfirm('Hapus user {{ $u->name }}?\n\nPeringatan: Semua role user ini akan dihapus!', () => $el.submit())"
                                                 class="inline">
                                                 @csrf @method('DELETE')
                                                 <button type="submit"

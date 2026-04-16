@@ -145,7 +145,7 @@ class StudentController extends Controller
             }
         }
         
-        return collect($faculties)->map(fn($f) => $f['nama_en'] ?? $f['nama'])->unique()->sort()->values();
+        return collect($faculties)->map(fn($f) => $f['nama'] ?? $f['nama_en'])->unique()->sort()->values();
     }
 
     private function getHierarchyData($level, $facultyId, $departmentId = null, $facultyName = null, $departmentName = null)
@@ -173,13 +173,13 @@ class StudentController extends Controller
         }
 
         foreach ($structure as $faculty) {
-            $fName = $faculty['nama_en'] ?? $faculty['nama'];
+            $fName = $faculty['nama'] ?? $faculty['nama_en'];
             if (!$fName) continue;
             
             $facultyToDept[$fName] = [];
             
             foreach ($faculty['departments'] ?? [] as $dept) {
-                $dName = $dept['nama_en'] ?? $dept['nama'];
+                $dName = $dept['nama'] ?? $dept['nama_en'];
                 if (!$dName) continue;
                 
                 // Skip departments that don't match for department-level users
@@ -200,7 +200,7 @@ class StudentController extends Controller
                 }
                 
                 foreach ($dept['study_programs'] ?? [] as $prodi) {
-                    $pName = $prodi['nama_en'] ?? $prodi['nama'];
+                    $pName = $prodi['nama'] ?? $prodi['nama_en'];
                     if (!$pName) continue;
                     
                     $deptToProdi[$dName][] = $pName;

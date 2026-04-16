@@ -423,7 +423,7 @@
                             this.achievements = data.achievements || [];
                         } catch (error) {
                             console.error('Error loading achievements:', error);
-                            alert('Gagal memuat data prestasi');
+                            showToast('error', 'Gagal memuat data prestasi');
                         } finally {
                             this.loading = false;
                         }
@@ -465,42 +465,40 @@
 
                     async submitAssignment() {
                         if (this.selectedAchievements.length === 0) {
-                            alert('Pilih minimal 1 prestasi');
+                            showToast('warning', 'Pilih minimal 1 prestasi');
                             return;
                         }
 
-                        if (!confirm(`Assign SK ke ${this.selectedAchievements.length} prestasi dan approve semuanya?`)) {
-                            return;
-                        }
+                        window.showConfirm(`Assign SK ke ${this.selectedAchievements.length} prestasi dan approve semuanya?`, async () => {
+                            this.submitting = true;
 
-                        this.submitting = true;
+                            try {
+                                const formData = new FormData();
+                                formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+                                this.selectedAchievements.forEach(id => {
+                                    formData.append('achievement_ids[]', id);
+                                });
+                                if (this.notes) {
+                                    formData.append('notes', this.notes);
+                                }
 
-                        try {
-                            const formData = new FormData();
-                            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-                            this.selectedAchievements.forEach(id => {
-                                formData.append('achievement_ids[]', id);
-                            });
-                            if (this.notes) {
-                                formData.append('notes', this.notes);
+                                const response = await fetch(`/validator/sk/${this.selectedSk.id}/process-assignment`, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+
+                                if (response.ok) {
+                                    window.location.reload();
+                                } else {
+                                    showToast('error', 'Gagal memproses assignment');
+                                }
+                            } catch (error) {
+                                console.error('Error submitting assignment:', error);
+                                showToast('error', 'Terjadi kesalahan saat memproses assignment');
+                            } finally {
+                                this.submitting = false;
                             }
-
-                            const response = await fetch(`/validator/sk/${this.selectedSk.id}/process-assignment`, {
-                                method: 'POST',
-                                body: formData
-                            });
-
-                            if (response.ok) {
-                                window.location.reload();
-                            } else {
-                                alert('Gagal memproses assignment');
-                            }
-                        } catch (error) {
-                            console.error('Error submitting assignment:', error);
-                            alert('Terjadi kesalahan saat memproses assignment');
-                        } finally {
-                            this.submitting = false;
-                        }
+                        }, 'success', 'Konfirmasi Assign SK');
                     },
 
                     formatDate(dateString) {

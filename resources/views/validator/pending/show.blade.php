@@ -570,7 +570,7 @@
                 const action = document.getElementById('validation-action').value;
                 if (!action) {
                     e.preventDefault();
-                    alert('Harap pilih keputusan verifikasi!');
+                    showToast('warning', 'Harap pilih keputusan verifikasi!');
                     return;
                 }
 
@@ -578,13 +578,13 @@
                     const reason = document.getElementById('rejection-textarea').value.trim();
                     if (!reason) {
                         e.preventDefault();
-                        alert('Alasan penolakan wajib diisi!');
+                        showToast('warning', 'Alasan penolakan wajib diisi!');
                     }
                 } else if (action === 'request_revision') {
                     const reason = document.getElementById('revision-textarea').value.trim();
                     if (!reason) {
                         e.preventDefault();
-                        alert('Alasan revisi wajib diisi!');
+                        showToast('warning', 'Alasan revisi wajib diisi!');
                     }
                 }
             });
