@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Application Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Variables moved from env() direct usage to prevent config:cache errors.
+    |
+    */
+
+    'subfolder' => env('APP_SUBFOLDER'),
+    
+    'portal_url' => env('PORTAL_URL', 'http://127.0.0.1:8000/portal'),
+
 ];

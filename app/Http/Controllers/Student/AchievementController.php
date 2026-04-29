@@ -148,32 +148,7 @@ class AchievementController extends Controller
             // Validate reason if provided
             $reason = $request->input('reason', 'Mahasiswa mengajukan review ulang');
 
-            // Store old status for logging
-            $oldStatus = $achievement->validation_status;
-
-            // Update achievement
-            $achievement->update([
-                'validation_status' => StudentAchievement::STATUS_SUBMITTED,
-                'is_resubmission' => true,
-                'resubmission_count' => ($achievement->resubmission_count ?? 0) + 1,
-                'last_resubmitted_at' => now(),
-                'resubmission_reason' => $reason,
-                'current_stage' => StudentAchievement::STAGE_FACULTY,
-                'faculty_validator_id' => null,
-                'faculty_validated_at' => null,
-                'faculty_notes' => null,
-            ]);
-
-            // Create validation log
-            ValidationLog::create([
-                'sa_id' => $achievement->sa_id,
-                'validator_id' => null,
-                'old_status' => $oldStatus,
-                'new_status' => StudentAchievement::STATUS_SUBMITTED,
-                'notes' => "Review ulang ke-{$achievement->resubmission_count}: {$reason}",
-                'validation_type' => 'resubmission',
-                'validated_at' => now(),
-            ]);
+            $this->achievementService->requestReview($achievement, $reason);
 
             return redirect()->route('student.dashboard')
                 ->with('success', 'Review ulang berhasil diajukan! Prestasi Anda akan divalidasi kembali oleh validator.');
@@ -219,19 +194,7 @@ class AchievementController extends Controller
                     ->with('error', 'Hanya prestasi yang ditolak yang dapat dihapus.');
             }
 
-            // Soft delete the achievement
-            $achievement->delete();
-
-            // Create validation log for tracking
-            ValidationLog::create([
-                'sa_id' => $achievement->sa_id,
-                'validator_id' => null,
-                'old_status' => $achievement->validation_status,
-                'new_status' => 'deleted',
-                'notes' => 'Prestasi dihapus oleh mahasiswa',
-                'validation_type' => 'deletion',
-                'validated_at' => now(),
-            ]);
+            $this->achievementService->deleteAchievement($achievement);
 
             return redirect()->route('student.dashboard')
                 ->with('success', 'Prestasi berhasil dihapus. Riwayat tetap tercatat untuk admin.');

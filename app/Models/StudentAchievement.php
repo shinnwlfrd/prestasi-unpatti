@@ -84,19 +84,59 @@ class StudentAchievement extends Model
     const STAGE_COMPLETED = 'completed';
 
     const LEVEL_UNIVERSITAS = 'Universitas';
-
     const LEVEL_NASIONAL = 'Nasional';
-
     const LEVEL_INTERNASIONAL = 'Internasional';
 
     // SK Waiver reasons
     const SK_WAIVER_TINGKAT_UNIVERSITAS = 'tingkat_universitas';
-
     const SK_WAIVER_SK_DALAM_PROSES = 'sk_dalam_proses';
-
     const SK_WAIVER_DOKUMEN_ALTERNATIF = 'dokumen_alternatif';
-
     const SK_WAIVER_LAINNYA = 'lainnya';
+
+    /**
+     * Get grouped statuses for filtering and reporting
+     */
+    public static function getStatusGroups(): array
+    {
+        return [
+            'approved' => [
+                self::STATUS_APPROVED,
+                self::STATUS_FACULTY_APPROVED,
+                self::STATUS_UNIVERSITY_APPROVED,
+                'appeal_approved'
+            ],
+            'pending' => [
+                self::STATUS_PENDING,
+                'submitted',
+                self::STATUS_SUBMITTED,
+                self::STATUS_FACULTY_REVIEW,
+                self::STATUS_UNIVERSITY_REVIEW,
+                'appeal_submitted'
+            ],
+            'rejected' => [
+                self::STATUS_REJECTED,
+                self::STATUS_FACULTY_REJECTED,
+                self::STATUS_UNIVERSITY_REJECTED,
+                'appeal_rejected',
+                self::STATUS_FACULTY_REVISION
+            ],
+            'draft' => [self::STATUS_DRAFT],
+        ];
+    }
+
+    /**
+     * Get status groups for AchievementRepository filtering
+     */
+    public static function getRepositoryStatusGroups(): array
+    {
+        return [
+            'pending_verification' => ['submitted', self::STATUS_SUBMITTED, self::STATUS_FACULTY_REVIEW, self::STATUS_PENDING],
+            'processing_university' => [self::STATUS_FACULTY_APPROVED, self::STATUS_UNIVERSITY_REVIEW],
+            'approved' => [self::STATUS_UNIVERSITY_APPROVED, self::STATUS_APPROVED, 'appeal_approved'],
+            'revision' => [self::STATUS_FACULTY_REVISION, self::STATUS_NEED_REVISION],
+            'rejected' => [self::STATUS_FACULTY_REJECTED, self::STATUS_UNIVERSITY_REJECTED, self::STATUS_REJECTED, 'appeal_rejected'],
+        ];
+    }
 
     public static function getSkWaiverReasons(): array
     {

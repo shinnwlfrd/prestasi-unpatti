@@ -7,23 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Sistem Prestasi UNPATTI</title>
     @include('partials.pwa-meta')
-    <!-- Tailwind CSS CDN - For development only. Consider installing via npm for production -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    animation: {
-                        'gradient': 'gradient 8s ease infinite',
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-soft': 'pulseSoft 3s infinite',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Assets via Vite -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Alpine.js -->
+
     <style>
         [x-cloak] {
             display: none !important;

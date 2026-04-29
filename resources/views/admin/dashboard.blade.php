@@ -2143,7 +2143,7 @@
                     @endif
 
                         <!-- Unit Distribution Modal will be loaded dynamically via JavaScript below -->
-                            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
                             <script>
                                 document.addEventListener('DOMContentLoaded', function () {
                                     const isDark = document.documentElement.classList.contains('dark');

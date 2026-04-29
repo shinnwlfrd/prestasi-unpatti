@@ -31,4 +31,10 @@ interface StudentRepositoryInterface
     public function averageGpa(): float;
 
     public function getFaculties();
+
+    public function countWithFilters(array $filters): int;
+
+    public function getFacultiesWithFilters(array $filters): Collection;
+
+    public function averageGpaWithFilters(array $filters): float;
 }

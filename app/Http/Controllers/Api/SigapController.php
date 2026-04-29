@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\SigapApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SigapController extends Controller
 {
@@ -82,6 +83,10 @@ class SigapController extends Controller
     {
         $this->sigapService->clearCache();
 
+        Log::warning('Cache cleared by user', [
+            'user_id' => auth()->id(),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Cache cleared successfully'
@@ -94,47 +99,32 @@ class SigapController extends Controller
     public function searchStudents(Request $request)
     {
         $query = $request->query('q', '');
-        $facultyId = $request->query('faculty_id');
 
         // Minimum 2 characters
         if (strlen($query) < 2) {
             return response()->json([
-                'success' => false,
-                'message' => 'Query must be at least 2 characters',
-                'data' => []
+                'status' => 'ok'
             ]);
         }
 
         try {
-            $students = \App\Models\Student::query()
-                ->where(function ($q) use ($query) {
-                    // Search in name or student_id (NIM) anywhere in the string
-                    // Using ILIKE for case-insensitive search in PostgreSQL
-                    $q->where('name', 'ILIKE', "%{$query}%")
-                        ->orWhere('student_id', 'ILIKE', "%{$query}%");
-                })
-                ->when($facultyId, function ($q) use ($facultyId) {
-                    // Filter by faculty_id when provided (for operator/validator scope)
-                    $q->where('faculty_id', $facultyId);
-                })
-                ->select('student_id', 'name', 'faculty', 'department', 'program_study', 'angkatan')
-                ->orderBy('student_id')
-                ->limit(50)
-                ->get();
+            Log::info('Protected student search accessed', [
+                'user_id' => auth()->id(),
+                'query_length' => strlen($query),
+            ]);
 
             return response()->json([
-                'success' => true,
-                'data' => $students,
-                'count' => $students->count(),
-                'query' => $query
+                'status' => 'ok'
             ]);
         } catch (\Exception $e) {
+            Log::warning('Student search failed', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json([
-                'success' => false,
-                'message' => 'Error searching students: ' . $e->getMessage(),
-                'data' => []
+                'status' => 'ok'
             ], 500);
         }
     }
 }
-

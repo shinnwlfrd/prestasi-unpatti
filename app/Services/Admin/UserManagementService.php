@@ -243,6 +243,179 @@ class UserManagementService
         return $this->userRepo->getValidators();
     }
 
+    public function deleteRole(User $user, int $roleId, int $authUserId, bool $isSuperAdmin): array
+    {
+        // Prevent deleting own role
+        if ($user->id === $authUserId) {
+            throw new \Exception('Anda tidak dapat menghapus role sendiri.');
+        }
+
+        // Check if user has more than one role
+        $userRoles = $user->activeRoles;
+        if ($userRoles->count() <= 1) {
+            throw new \Exception('User harus memiliki minimal 1 role. Tidak dapat menghapus role terakhir.');
+        }
+
+        // Find and delete the role
+        $role = \App\Models\UserRole::where('id', $roleId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$role) {
+            throw new \Exception('Role tidak ditemukan.');
+        }
+
+        // Prevent non-superadmin from deleting superadmin/admin role
+        if (in_array($role->role, ['super_admin', 'admin']) && !$isSuperAdmin) {
+            $roleLabel = $role->role === 'super_admin' ? 'Super Admin' : 'Admin';
+            throw new \Exception("Hanya Super Admin yang dapat menghapus role {$roleLabel}.");
+        }
+
+        $roleName = $role->getRoleDisplayName();
+        $role->delete();
+
+        // Sync legacy User.role column with remaining primary role
+        $remainingPrimaryRole = $user->getPrimaryRole();
+        if ($remainingPrimaryRole) {
+            $legacyRoleMapping = [
+                'super_admin' => 'Admin',
+                'admin' => 'Admin',
+                'operator' => 'Operator',
+                'pimpinan' => 'Pimpinan',
+                'mahasiswa' => 'Student',
+            ];
+            $user->update([
+                'role' => $legacyRoleMapping[$remainingPrimaryRole->role] ?? ucfirst($remainingPrimaryRole->role),
+                'faculty' => $remainingPrimaryRole->faculty_name,
+            ]);
+        }
+
+        return ['success' => true, 'roleName' => $roleName, 'userName' => $user->name];
+    }
+
+    public function createSsoUser(array $data, ?User $softDeletedUser = null): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $faculty = null;
+            $department = null;
+            $programStudy = null;
+
+            $facultyId = $data['faculty_id'] ?? null;
+            $departmentId = $data['department_id'] ?? null;
+            $programStudyId = $data['program_study_id'] ?? null;
+
+            if ($data['role'] === 'Operator') {
+                $faculty = $data['validator_faculty'] ?? null;
+            } elseif ($data['role'] === 'Pimpinan') {
+                $pimpinanLevel = $data['pimpinan_level'];
+                if (in_array($pimpinanLevel, ['faculty', 'department', 'program_study'])) {
+                    $faculty = $data['pimpinan_faculty'] ?? null;
+                }
+                if (in_array($pimpinanLevel, ['department', 'program_study'])) {
+                    $department = $data['pimpinan_department'] ?? null;
+                }
+                if ($pimpinanLevel === 'program_study') {
+                    $programStudy = $data['pimpinan_program_study'] ?? null;
+                }
+            }
+
+            // If soft-deleted user exists, restore and update instead of creating new
+            if ($softDeletedUser) {
+                $softDeletedUser->restore();
+                $softDeletedUser->update([
+                    'name' => $data['name'],
+                    'role' => $data['role'],
+                    'faculty' => $faculty,
+                    'provider' => 'unpatti_sso',
+                    'is_active' => true,
+                    'deleted_at' => null,
+                ]);
+                $user = $softDeletedUser;
+
+                // Remove old roles and create fresh ones
+                \App\Models\UserRole::where('user_id', $user->id)->forceDelete();
+
+                Log::info('Restored soft-deleted user', [
+                    'email' => $data['email'],
+                    'new_role' => $data['role'],
+                ]);
+            } else {
+                // Create user with temporary data
+                // Profile will be updated from SSO on first login
+                $user = User::create([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => Hash::make(\Illuminate\Support\Str::random(32)), // Random password, will use SSO
+                    'role' => $data['role'],
+                    'faculty' => $faculty,
+                    'provider' => 'unpatti_sso', // Mark as SSO user
+                    'is_active' => true,
+                ]);
+            }
+
+            // Create user role based on role type
+            if ($data['role'] === 'Admin') {
+                \App\Models\UserRole::create([
+                    'user_id' => $user->id,
+                    'role' => 'admin',
+                    'level' => 'university',
+                    'is_active' => true,
+                ]);
+            } elseif ($data['role'] === 'Operator') {
+                \App\Models\UserRole::create([
+                    'user_id' => $user->id,
+                    'role' => 'operator',
+                    'level' => ($faculty && $faculty !== 'Semua Fakultas') ? 'faculty' : 'university', 
+                    'faculty_name' => $faculty,
+                    'is_active' => true,
+                ]);
+            } elseif ($data['role'] === 'Pimpinan') {
+                $pimpinanLevel = $data['pimpinan_level'];
+                // Map level to position
+                $positionMap = [
+                    'university' => 'rektor',
+                    'faculty' => 'dekan',
+                    'department' => 'ketua_jurusan',
+                    'program_study' => 'kaprodi',
+                    'graduate_program' => 'direktur_pps',
+                ];
+                $position = $positionMap[$pimpinanLevel] ?? 'rektor';
+
+                \App\Models\UserRole::create([
+                    'user_id' => $user->id,
+                    'role' => 'pimpinan',
+                    'level' => $pimpinanLevel,
+                    'faculty_name' => $faculty,
+                    'faculty_id' => $facultyId,
+                    'department_name' => $department,
+                    'department_id' => $departmentId,
+                    'program_study_name' => $programStudy,
+                    'program_study_id' => $programStudyId,
+                    'position' => $position,
+                    'is_active' => true,
+                ]);
+            }
+
+            DB::commit();
+
+            return [
+                'success' => true, 
+                'user' => $user, 
+                'was_restored' => $softDeletedUser !== null
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating new user', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'data' => $data
+            ]);
+            throw $e;
+        }
+    }
+
     public function getUsers(int $perPage = 15, ?string $search = null)
     {
         $query = User::with('activeRoles');

@@ -16,75 +16,30 @@ class StudentController extends Controller
 
     public function index(IndexStudentRequest $request)
     {
-        $user = auth()->user();
-        $currentRole = $user->getCurrentRole();
         $filters = $request->validated();
-
-        // Scope data based on current role if not super admin
-        if (!$user->isSuperAdmin()) {
-            if ($currentRole && $currentRole->level !== 'university') {
-                if ($currentRole->faculty_id) {
-                    $filters['faculty_id'] = $currentRole->faculty_id;
-                    $request->merge(['faculty_id' => $currentRole->faculty_id]);
-                }
-                if ($currentRole->department_id) {
-                    $filters['department_id'] = $currentRole->department_id;
-                    $request->merge(['department_id' => $currentRole->department_id]);
-                }
-                if ($currentRole->program_study_id) {
-                    $filters['program_study_id'] = $currentRole->program_study_id;
-                    $request->merge(['program_study_id' => $currentRole->program_study_id]);
-                }
-            }
-        }
-
+        
         $students = $this->studentService->getFilteredStudents($filters, 15);
         $faculties = $this->studentService->getFaculties();
         $stats = $this->studentService->getStatistics();
-        
-        // Get dynamic angkatan list from actual student data
-        $angkatanList = Student::select('angkatan')
-            ->distinct()
-            ->whereNotNull('angkatan')
-            ->orderBy('angkatan', 'desc')
-            ->pluck('angkatan');
+        $angkatanList = $this->studentService->getAngkatanList();
         
         // Get SIGAP data for cascade filter
-        $sigapService = app(\App\Services\SigapApiService::class);
+        $sigapData = $this->studentService->getSigapCascadeData($filters);
         
-        // Only show faculty selection if user is Super Admin or University-level
-        $sigapFaculties = collect();
-        if ($user->isSuperAdmin() || ($currentRole && $currentRole->level === 'university')) {
-            $sigapFaculties = collect($sigapService->getFaculties());
-        }
-        
-        // Get departments based on selected faculty or scoped faculty
-        $sigapDepartments = collect();
-        $targetFacultyId = $filters['faculty_id'] ?? $request->faculty_id;
-        
-        if ($targetFacultyId) {
-            $sigapDepartments = collect($sigapService->getDepartments($targetFacultyId));
-        }
-        
-        // Get study programs based on selected department or scoped department
-        $sigapStudyPrograms = collect();
-        $targetDepartmentId = $filters['department_id'] ?? $request->department_id;
-        
-        if ($targetDepartmentId) {
-            $sigapStudyPrograms = collect($sigapService->getStudyPrograms($targetDepartmentId));
-        }
+        $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
 
         return view('admin.students.index', [
             'students' => $students,
             'faculties' => $faculties,
             'facultyCount' => $stats['faculty_count'],
             'angkatanList' => $angkatanList,
-            'sigapFaculties' => $sigapFaculties,
-            'sigapDepartments' => $sigapDepartments,
-            'sigapStudyPrograms' => $sigapStudyPrograms,
-            'selectedFaculty' => $targetFacultyId,
-            'selectedDepartment' => $targetDepartmentId,
-            'selectedStudyProgram' => $filters['program_study_id'] ?? $request->program_study_id,
+            'sigapFaculties' => $sigapData['faculties'],
+            'sigapDepartments' => $sigapData['departments'],
+            'sigapStudyPrograms' => $sigapData['study_programs'],
+            'selectedFaculty' => $filters['faculty_id'] ?? null,
+            'selectedDepartment' => $filters['department_id'] ?? null,
+            'selectedStudyProgram' => $filters['program_study_id'] ?? null,
             'isFacultyScoped' => ($currentRole && $currentRole->level !== 'university' && $currentRole->faculty_id),
             'currentRole' => $currentRole
         ]);

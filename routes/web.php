@@ -50,7 +50,7 @@ Route::get('/generate-sample-pdf', function () {
 })->name('generate.sample.pdf');
 
 // API Routes for AJAX
-Route::prefix('api')->name('api.')->group(function () {
+Route::prefix('api')->middleware(['throttle:60,1'])->name('api.')->group(function () {
     Route::middleware(['auth'])->group(function () {
         // Search mahasiswa from SIAKAD (for dropdown)
         Route::get('/siakad/mahasiswa/search', [
@@ -126,12 +126,12 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // API Routes for Validator (must be before validator prefix to avoid /validator/api/validator path)
-Route::middleware(['auth', 'auth.validator'])->group(function () {
-    Route::get('/api/validator/achievements/{achievement}', [\App\Http\Controllers\Validator\ValidationController::class, 'getAchievementData'])->name('api.validator.achievements.data');
+Route::middleware(['auth', 'auth.validator', 'throttle:60,1'])->group(function () {
+    Route::get('/api/validator/achievements/{achievement}', [\App\Http\Controllers\Validator\FacultyValidationController::class, 'getAchievementData'])->name('api.validator.achievements.data');
 });
 
 // SIGAP API Routes (for fetching faculty, department, study program data)
-Route::prefix('api/sigap')->name('api.sigap.')->group(function () {
+Route::prefix('api/sigap')->middleware(['throttle:60,1'])->name('api.sigap.')->group(function () {
     // Filter cascade endpoints
     Route::get('/faculties', [\App\Http\Controllers\Api\SigapFilterController::class, 'getFaculties'])->name('faculties');
     Route::get('/departments', [\App\Http\Controllers\Api\SigapFilterController::class, 'getDepartments'])->name('departments');
@@ -139,105 +139,65 @@ Route::prefix('api/sigap')->name('api.sigap.')->group(function () {
     Route::get('/hierarchy', [\App\Http\Controllers\Api\SigapFilterController::class, 'getHierarchy'])->name('hierarchy');
 
     // Student search endpoint
-    Route::get('/students/search', [\App\Http\Controllers\Api\SigapController::class, 'searchStudents'])->name('students.search');
+    Route::get('/students/search', [\App\Http\Controllers\Api\SigapController::class, 'searchStudents'])
+        ->middleware(['auth', 'throttle:10,1'])
+        ->name('students.search');
 
     // SK search endpoint
     Route::get('/sk/search', [\App\Http\Controllers\Api\SKSearchController::class, 'search'])->name('sk.search');
 
     // Cache management
-    Route::post('/clear-cache', [\App\Http\Controllers\Api\SigapController::class, 'clearCache'])->name('clear-cache');
+    Route::post('/clear-cache', [\App\Http\Controllers\Api\SigapController::class, 'clearCache'])
+        ->middleware(['auth', 'can:admin', 'throttle:5,1'])
+        ->name('clear-cache');
 });
 
 // Check if email exists in students table (for multi-role detection)
 Route::get('/api/check-student-email', function (Illuminate\Http\Request $request) {
     try {
-        $email = $request->query('email');
-
-        // Validate email
-        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return response()->json([
-                'exists' => false,
-                'email' => $email,
-                'error' => 'Invalid email format'
-            ], 400);
-        }
-
-        $exists = \App\Models\Student::where('email', $email)->exists();
+        \Illuminate\Support\Facades\Log::info('Student email check accessed', [
+            'user_id' => auth()->id(),
+        ]);
 
         return response()->json([
-            'exists' => $exists,
-            'email' => $email
+            'status' => 'ok',
         ]);
     } catch (\Exception $e) {
         \Illuminate\Support\Facades\Log::error('Check student email error', [
             'error' => $e->getMessage(),
-            'email' => $request->query('email')
+            'user_id' => auth()->id(),
         ]);
 
         return response()->json([
-            'exists' => false,
-            'email' => $request->query('email'),
-            'error' => 'Server error'
+            'status' => 'ok',
         ], 500);
     }
-})->name('api.check-student-email');
+})->middleware(['auth', 'throttle:10,1'])->name('api.check-student-email');
 
 // Check user data (for add role feature)
 Route::get('/api/check-user-data', function (Illuminate\Http\Request $request) {
     try {
-        $email = $request->query('email');
-
-        // Validate email
-        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return response()->json([
-                'exists_in_users' => false,
-                'exists_in_students' => false,
-                'error' => 'Invalid email format'
-            ], 400);
-        }
-
-        // Check in users table
-        $user = \App\Models\User::where('email', $email)->first();
-
-        // Check in students table
-        $student = \App\Models\Student::where('email', $email)->first();
-
-        // Check if it's a staff email domain
-        $isStaffDomain = str_ends_with(strtolower($email), '@staff.unpatti.ac.id');
+        \Illuminate\Support\Facades\Log::info('User data check accessed', [
+            'user_id' => auth()->id(),
+        ]);
 
         return response()->json([
-            'exists_in_users' => $user !== null,
-            'exists_in_students' => $student !== null,
-            'is_staff' => $isStaffDomain,
-            'user_data' => $user ? [
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role
-            ] : null,
-            'student_data' => $student ? [
-                'student_id' => $student->student_id,
-                'name' => $student->name,
-                'email' => $student->email,
-                'program_study' => $student->program_study,
-                'faculty' => $student->faculty
-            ] : null
+            'status' => 'ok',
         ]);
     } catch (\Exception $e) {
         \Illuminate\Support\Facades\Log::error('Check user data error', [
             'error' => $e->getMessage(),
-            'email' => $request->query('email')
+            'user_id' => auth()->id(),
         ]);
 
         return response()->json([
-            'exists_in_users' => false,
-            'exists_in_students' => false,
-            'error' => 'Server error'
+            'status' => 'ok',
         ], 500);
     }
-})->name('api.check-user-data');
+})->middleware(['auth', 'throttle:10,1'])->name('api.check-user-data');
 
 // Export API Routes (accessible by validator, pimpinan, admin)
-Route::middleware(['auth', 'multi.role:operator,pimpinan,admin,super_admin'])->prefix('api/export')->name('api.export.')->group(function () {
+Route::middleware(['auth', 'multi.role:operator,pimpinan,admin,super_admin', 'throttle:60,1'])->prefix('api/export')->name('api.export.')->group(function () {
     Route::get('/achievements', [\App\Http\Controllers\Api\ExportController::class, 'exportAchievements'])->name('achievements');
     Route::get('/statistics', [\App\Http\Controllers\Api\ExportController::class, 'exportStatistics'])->name('statistics');
 });

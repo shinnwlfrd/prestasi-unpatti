@@ -36,47 +36,71 @@ class StudentManagementService
         return $this->studentRepo->getFaculties();
     }
 
+    public function getAngkatanList()
+    {
+        return \App\Models\Student::select('angkatan')
+            ->distinct()
+            ->whereNotNull('angkatan')
+            ->orderBy('angkatan', 'desc')
+            ->pluck('angkatan');
+    }
+
+    public function getSigapCascadeData($filters)
+    {
+        $sigapService = app(\App\Services\SigapApiService::class);
+        $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
+
+        // Only show faculty selection if user is Super Admin or University-level
+        $sigapFaculties = collect();
+        if ($user->isSuperAdmin() || ($currentRole && $currentRole->level === 'university')) {
+            $sigapFaculties = collect($sigapService->getFaculties());
+        }
+
+        // Get departments based on selected faculty or scoped faculty
+        $sigapDepartments = collect();
+        $targetFacultyId = $filters['faculty_id'] ?? null;
+        if ($targetFacultyId) {
+            $sigapDepartments = collect($sigapService->getDepartments($targetFacultyId));
+        }
+
+        // Get study programs based on selected department or scoped department
+        $sigapStudyPrograms = collect();
+        $targetDepartmentId = $filters['department_id'] ?? null;
+        if ($targetDepartmentId) {
+            $sigapStudyPrograms = collect($sigapService->getStudyPrograms($targetDepartmentId));
+        }
+
+        return [
+            'faculties' => $sigapFaculties,
+            'departments' => $sigapDepartments,
+            'study_programs' => $sigapStudyPrograms,
+        ];
+    }
+
     /**
-     * Apply scope filters based on user role (Pimpinan/Operator)
+     * Apply scope filters based on user role (Pimpinan/Operator/Admin)
      */
     protected function applyScopeFilters(array $filters): array
     {
         $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
 
-        // Super admin can see everything
-        if ($user->isSuperAdmin()) {
+        // Super admin or University level can see everything (filters apply as is)
+        if ($user->isSuperAdmin() || ($currentRole && $currentRole->level === 'university')) {
             return $filters;
         }
 
-        // Pimpinan scope filtering
-        if ($user->isPimpinan()) {
-            $level = session('pimpinan_level');
-            
-            if ($level === 'faculty') {
-                $filters['faculty_id'] = session('pimpinan_faculty_id');
-            } elseif ($level === 'department') {
-                $filters['faculty_id'] = session('pimpinan_faculty_id');
-                $filters['department_id'] = session('pimpinan_department_id');
-            } elseif ($level === 'program_study') {
-                $filters['faculty_id'] = session('pimpinan_faculty_id');
-                $filters['department_id'] = session('pimpinan_department_id');
-                $filters['program_study_id'] = session('pimpinan_program_study_id');
+        // Apply filters from role-based session data
+        if ($currentRole) {
+            if ($currentRole->faculty_id) {
+                $filters['faculty_id'] = $currentRole->faculty_id;
             }
-        }
-
-        // Operator scope filtering
-        if ($user->isOperator()) {
-            $level = session('operator_level');
-            
-            if ($level === 'faculty') {
-                $filters['faculty_id'] = session('operator_faculty_id');
-            } elseif ($level === 'department') {
-                $filters['faculty_id'] = session('operator_faculty_id');
-                $filters['department_id'] = session('operator_department_id');
-            } elseif ($level === 'program_study') {
-                $filters['faculty_id'] = session('operator_faculty_id');
-                $filters['department_id'] = session('operator_department_id');
-                $filters['program_study_id'] = session('operator_program_study_id');
+            if ($currentRole->department_id) {
+                $filters['department_id'] = $currentRole->department_id;
+            }
+            if ($currentRole->program_study_id) {
+                $filters['program_study_id'] = $currentRole->program_study_id;
             }
         }
 

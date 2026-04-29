@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,8 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Prevent lazy loading in non-production environments
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading(! app()->isProduction());
+
+        Gate::define('admin', fn (User $user) => $user->isAdmin() || $user->isSuperAdmin());
+
         // Handle subfolder deployment for URL generation
-        if (env('APP_SUBFOLDER')) {
+        if (config('app.subfolder')) {
             \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
         }
 

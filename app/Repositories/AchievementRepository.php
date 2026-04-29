@@ -66,13 +66,7 @@ class AchievementRepository implements AchievementRepositoryInterface
         if (!empty($filters['status'])) {
             $status = $filters['status'];
             
-            $statusGroups = [
-                'pending_verification' => ['submitted', 'faculty_review', 'Menunggu'],
-                'processing_university' => ['faculty_approved', 'university_review'],
-                'approved' => ['university_approved', 'Disetujui', 'appeal_approved'],
-                'revision' => ['faculty_revision', 'Revisi'],
-                'rejected' => ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'],
-            ];
+            $statusGroups = StudentAchievement::getRepositoryStatusGroups();
 
             if (array_key_exists($status, $statusGroups)) {
                 $query->whereIn('validation_status', $statusGroups[$status]);

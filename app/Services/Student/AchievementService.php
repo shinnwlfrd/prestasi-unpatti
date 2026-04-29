@@ -176,4 +176,46 @@ class AchievementService
 
         return $achievement?->id;
     }
+
+    public function requestReview(StudentAchievement $achievement, string $reason): void
+    {
+        $oldStatus = $achievement->validation_status;
+
+        $achievement->update([
+            'validation_status' => StudentAchievement::STATUS_SUBMITTED,
+            'is_resubmission' => true,
+            'resubmission_count' => ($achievement->resubmission_count ?? 0) + 1,
+            'last_resubmitted_at' => now(),
+            'resubmission_reason' => $reason,
+            'current_stage' => StudentAchievement::STAGE_FACULTY,
+            'faculty_validator_id' => null,
+            'faculty_validated_at' => null,
+            'faculty_notes' => null,
+        ]);
+
+        \App\Models\ValidationLog::create([
+            'sa_id' => $achievement->sa_id,
+            'validator_id' => null,
+            'old_status' => $oldStatus,
+            'new_status' => StudentAchievement::STATUS_SUBMITTED,
+            'notes' => "Review ulang ke-{$achievement->resubmission_count}: {$reason}",
+            'validation_type' => 'resubmission',
+            'validated_at' => now(),
+        ]);
+    }
+
+    public function deleteAchievement(StudentAchievement $achievement): void
+    {
+        $achievement->delete();
+
+        \App\Models\ValidationLog::create([
+            'sa_id' => $achievement->sa_id,
+            'validator_id' => null,
+            'old_status' => $achievement->validation_status,
+            'new_status' => 'deleted',
+            'notes' => 'Prestasi dihapus oleh mahasiswa',
+            'validation_type' => 'deletion',
+            'validated_at' => now(),
+        ]);
+    }
 }

@@ -8,6 +8,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CaptureOriginUrl
 {
+    private function isSafeRedirect(?string $url): bool
+    {
+        return is_string($url) && str_starts_with($url, '/');
+    }
+
     /**
      * Handle an incoming request.
      *
@@ -17,19 +22,10 @@ class CaptureOriginUrl
     {
         // Only capture if not already set in the current session
         if (!$request->session()->has('origin_url')) {
-            // Priority 1: Explicit 'return_to' parameter
-            if ($request->has('return_to')) {
-                $request->session()->put('origin_url', $request->query('return_to'));
-            } 
-            // Priority 2: External Referer
-            elseif ($request->header('referer')) {
-                $referer = $request->header('referer');
-                $host = $request->getHost();
-                
-                // If the referer is from a different host, store it
-                if (!str_contains($referer, $host)) {
-                    $request->session()->put('origin_url', $referer);
-                }
+            $returnTo = $request->query('return_to');
+
+            if ($this->isSafeRedirect($returnTo)) {
+                $request->session()->put('origin_url', $returnTo);
             }
         }
 

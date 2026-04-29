@@ -48,6 +48,25 @@ class AchievementDocument extends Model
         self::TYPE_LINK_PUBLIKASI => 'Link Publikasi',
     ];
 
+    /**
+     * Get document types filtered by user role
+     */
+    public static function getDocumentTypesForRole(string $role): array
+    {
+        if ($role === 'staff') {
+            return collect(self::DOCUMENT_TYPES)
+                ->except([
+                    self::TYPE_SK_RESMI,
+                    self::TYPE_LINK_PUBLIKASI,
+                ])
+                ->toArray();
+        }
+
+        return collect(self::DOCUMENT_TYPES)
+            ->except([self::TYPE_SK_RESMI])
+            ->toArray();
+    }
+
     const CREDIBILITY_SCORES = [
         self::TYPE_SK_RESMI => 30,
         self::TYPE_SERTIFIKAT => 25,
@@ -185,7 +204,7 @@ class AchievementDocument extends Model
 
         $this->status = self::STATUS_APPROVED;
         $this->verified_by = $verifier->id;
-        $this->verified_at = now();
+        $this->verified_at = \Illuminate\Support\Carbon::now();
         $this->revision_notes = $notes;
         $this->save();
 
@@ -202,7 +221,7 @@ class AchievementDocument extends Model
 
         $this->status = self::STATUS_REJECTED;
         $this->verified_by = $verifier->id;
-        $this->verified_at = now();
+        $this->verified_at = \Illuminate\Support\Carbon::now();
         $this->revision_notes = $reason;
         $this->save();
 

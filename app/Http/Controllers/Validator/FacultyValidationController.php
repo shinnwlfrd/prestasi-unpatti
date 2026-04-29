@@ -326,4 +326,69 @@ class FacultyValidationController extends Controller
             return back()->with('error', $e->getMessage());
         }
     }
+
+    /**
+     * Get achievement data for modal view
+     */
+    public function getAchievementData(StudentAchievement $achievement)
+    {
+        $user = auth()->user();
+        $currentRole = $user->getCurrentRole();
+
+        // Get scope from current role or session as fallback
+        $level = $currentRole ? $currentRole->level : (session('operator_level') ?? session('pimpinan_level'));
+        $facultyId = $currentRole ? $currentRole->faculty_id : (session('operator_faculty_id') ?? session('pimpinan_faculty_id') ?: null);
+        $departmentId = $currentRole ? $currentRole->department_id : (session('operator_department_id') ?? session('pimpinan_department_id') ?: null);
+        $programStudyId = $currentRole ? $currentRole->program_study_id : (session('operator_program_study_id') ?? session('pimpinan_program_study_id') ?: null);
+
+        // Access control check
+        if ($level === 'university') {
+            // University level can access all
+        } elseif ($level === 'faculty' && $facultyId && $achievement->student->faculty_id !== $facultyId) {
+            return response()->json(['error' => 'Unauthorized access'], 403);
+        } elseif ($level === 'department' && $departmentId && $achievement->student->department_id !== $departmentId) {
+            return response()->json(['error' => 'Unauthorized access'], 403);
+        } elseif ($level === 'program_study' && $programStudyId && $achievement->student->program_study_id !== $programStudyId) {
+            return response()->json(['error' => 'Unauthorized access'], 403);
+        } elseif (!$level && $user->faculty && $achievement->student->faculty !== $user->faculty) {
+            return response()->json(['error' => 'Unauthorized access'], 403);
+        }
+
+        // Load all necessary relationships
+        $achievement->load([
+            'student',
+            'achievement.category',
+            'documents',
+        ]);
+
+        return response()->json([
+            'sa_id' => $achievement->sa_id,
+            'event_name' => $achievement->event_name,
+            'level' => $achievement->level,
+            'organizer' => $achievement->organizer,
+            'event_date' => $achievement->event_date instanceof \Illuminate\Support\Carbon 
+                ? $achievement->event_date->format('d M Y') 
+                : ($achievement->event_date ? \Illuminate\Support\Carbon::parse($achievement->event_date)->format('d M Y') : null),
+            'description' => $achievement->description,
+            'ranking' => $achievement->ranking,
+            'validation_status' => $achievement->validation_status,
+            'submitted_at' => $achievement->submitted_at instanceof \Illuminate\Support\Carbon 
+                ? $achievement->submitted_at->format('d M Y H:i') 
+                : ($achievement->submitted_at ? \Illuminate\Support\Carbon::parse($achievement->submitted_at)->format('d M Y H:i') : null),
+            'student' => [
+                'name' => $achievement->student?->name ?? 'N/A',
+                'student_id' => $achievement->student_id,
+                'faculty' => $achievement->student?->faculty ?? 'N/A',
+            ],
+            'documents' => $achievement->documents->map(function ($doc) {
+                return [
+                    'id' => $doc->id,
+                    'type_name' => $doc->type_name ?? $doc->document_type,
+                    'file_name' => $doc->file_name,
+                    'file_path' => $doc->file_path,
+                    'status' => $doc->status,
+                ];
+            }),
+        ]);
+    }
 }

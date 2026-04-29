@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
+    private const DEFAULT_REDIRECT_PATH = '/dashboard';
+
     protected AuthService $authService;
 
     public function __construct(AuthService $authService)
@@ -18,11 +21,10 @@ class LoginController extends Controller
 
     public function showLoginForm(Request $request)
     {
-        // Capture origin URL if provided via query param or referer (if external)
-        if ($request->has('return_to')) {
-            session(['origin_url' => $request->query('return_to')]);
-        } elseif ($request->header('referer') && !str_contains($request->header('referer'), $request->getHost())) {
-            session(['origin_url' => $request->header('referer')]);
+        $returnTo = $request->query('return_to');
+
+        if ($this->isSafeRedirect($returnTo)) {
+            session(['origin_url' => $returnTo]);
         }
 
         return view('auth.login');
@@ -30,6 +32,8 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $userId = Auth::id();
+
         if (session('auth_role') === 'student') {
             $request->session()->forget(['auth_role', 'student_id']);
         } else {
@@ -42,12 +46,25 @@ class LoginController extends Controller
             Auth::logout();
         }
 
-        $redirectUrl = $request->input('logout_redirect') ?? $request->session()->get('origin_url') ?? env('PORTAL_URL', 'http://127.0.0.1:8000/portal');
-        
+        $requestedRedirect = $request->input('logout_redirect') ?? $request->session()->get('origin_url');
+        $redirectUrl = $this->isSafeRedirect($requestedRedirect)
+            ? $requestedRedirect
+            : self::DEFAULT_REDIRECT_PATH;
+
+        Log::info('User logout redirect resolved', [
+            'user_id' => $userId,
+            'redirect' => $redirectUrl,
+        ]);
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect($redirectUrl);
+    }
+
+    private function isSafeRedirect(?string $url): bool
+    {
+        return is_string($url) && str_starts_with($url, '/');
     }
 
     /**
