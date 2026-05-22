@@ -1,7 +1,34 @@
 <?php
 
+use App\Http\Controllers\Admin\AcademicPeriodController;
+use App\Http\Controllers\Admin\AchievementCategoryController;
+use App\Http\Controllers\Admin\AchievementLevelController;
+use App\Http\Controllers\Admin\AdminAchievementController;
+use App\Http\Controllers\Admin\ConfigAuditLogController;
+use App\Http\Controllers\Admin\NotificationDeliveryLogController;
+use App\Http\Controllers\Admin\UniversityValidationController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ValidationLogController;
+use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\SiakadMahasiswaController;
+use App\Http\Controllers\Api\SigapController;
+use App\Http\Controllers\Api\SigapFilterController;
+use App\Http\Controllers\Api\SKSearchController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DocumentUploadController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleSwitchController;
+use App\Http\Controllers\SSO\AuthController;
+use App\Http\Controllers\Student\AchievementController;
+use App\Http\Controllers\Student\DashboardController;
+use App\Http\Controllers\Validator\FacultyValidationController;
+use App\Http\Controllers\Validator\HistoryController;
+use App\Http\Controllers\Validator\SKDocumentController;
+use App\Http\Controllers\Validator\StudentController;
+use App\Http\Controllers\Validator\SubmitController;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 // Halaman utama: arahkan ke dashboard sesuai role, atau ke login jika belum login
@@ -9,14 +36,35 @@ Route::get('/', function () {
     if (session('auth_role') === 'student') {
         return redirect()->route('student.dashboard');
     } elseif (auth()->check()) {
-        $role = auth()->user()->role;
-        if ($role === 'Admin') {
-            return redirect('/admin');
-        } elseif ($role === 'Operator') {
-            return redirect()->route('validator.dashboard');
-        } elseif ($role === 'Pimpinan') {
-            return redirect()->route('pimpinan.dashboard');
+        $user = auth()->user();
+        $activeRoleType = request()->session()->get('active_role_type');
+
+        if (! $activeRoleType) {
+            $activeRoles = $user->activeRoles()->get();
+
+            if ($activeRoles->count() > 1) {
+                return redirect()->route('role.switch.page');
+            }
+
+            $activeRoleType = $activeRoles->first()?->role;
         }
+
+        if ($activeRoleType) {
+            return match ($activeRoleType) {
+                'super_admin', 'admin' => redirect('/admin'),
+                'operator' => redirect()->route('validator.dashboard'),
+                'pimpinan' => redirect()->route('pimpinan.dashboard'),
+                'mahasiswa' => redirect()->route('student.dashboard'),
+                default => redirect()->route('login'),
+            };
+        }
+
+        return match ($user->role) {
+            'Admin' => redirect('/admin'),
+            'Operator' => redirect()->route('validator.dashboard'),
+            'Pimpinan' => redirect()->route('pimpinan.dashboard'),
+            default => redirect()->route('login'),
+        };
     }
 
     return redirect()->route('login');
@@ -30,21 +78,21 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Role Switch Routes (for multi-role users)
 Route::middleware(['auth.any'])->group(function () {
-    Route::get('/switch-role', [\App\Http\Controllers\RoleSwitchController::class, 'showSwitchPage'])->name('role.switch.page');
-    Route::get('/api/available-roles', [\App\Http\Controllers\RoleSwitchController::class, 'getAvailableRoles'])->name('role.available');
-    Route::post('/api/switch-role', [\App\Http\Controllers\RoleSwitchController::class, 'switchRole'])->name('role.switch');
+    Route::get('/switch-role', [RoleSwitchController::class, 'showSwitchPage'])->name('role.switch.page');
+    Route::get('/api/available-roles', [RoleSwitchController::class, 'getAvailableRoles'])->name('role.available');
+    Route::post('/api/switch-role', [RoleSwitchController::class, 'switchRole'])->name('role.switch');
 });
 
 // SSO Routes (Unpatti SSO Integration)
 Route::prefix('sso')->name('sso.')->group(function () {
-    Route::get('/redirect', [\App\Http\Controllers\SSO\AuthController::class, 'redirect'])->name('redirect');
-    Route::get('/callback', [\App\Http\Controllers\SSO\AuthController::class, 'callback'])->name('callback');
-    Route::post('/logout', [\App\Http\Controllers\SSO\AuthController::class, 'logout'])->name('logout');
+    Route::get('/redirect', [AuthController::class, 'redirect'])->name('redirect');
+    Route::get('/callback', [AuthController::class, 'callback'])->name('callback');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
 // Generate sample PDF (for development/testing)
 Route::get('/generate-sample-pdf', function () {
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.seeder-documents');
+    $pdf = Pdf::loadView('pdf.seeder-documents');
 
     return $pdf->download('prestasi_mahasiswa_dokumen_sample.pdf');
 })->name('generate.sample.pdf');
@@ -54,14 +102,14 @@ Route::prefix('api')->middleware(['throttle:60,1'])->name('api.')->group(functio
     Route::middleware(['auth'])->group(function () {
         // Search mahasiswa from SIAKAD (for dropdown)
         Route::get('/siakad/mahasiswa/search', [
-            \App\Http\Controllers\Api\SiakadMahasiswaController::class,
-            'search'
+            SiakadMahasiswaController::class,
+            'search',
         ])->name('siakad.mahasiswa.search');
 
         // Get mahasiswa detail by ID
         Route::get('/siakad/mahasiswa/{id}', [
-            \App\Http\Controllers\Api\SiakadMahasiswaController::class,
-            'show'
+            SiakadMahasiswaController::class,
+            'show',
         ])->name('siakad.mahasiswa.show');
     });
 });
@@ -69,21 +117,21 @@ Route::prefix('api')->middleware(['throttle:60,1'])->name('api.')->group(functio
 // Route Mahasiswa (dilindungi oleh middleware khusus)
 Route::middleware(['auth.student'])->group(function () {
     // Dashboard - using new controller
-    Route::get('/dashboard', [\App\Http\Controllers\Student\DashboardController::class, 'index'])->name('student.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('student.dashboard');
 
     // Profile
-    Route::get('/student/profile', [\App\Http\Controllers\ProfileController::class, 'index'])->name('student.profile');
+    Route::get('/student/profile', [ProfileController::class, 'index'])->name('student.profile');
 
     // Submit Achievement - using new controller
-    Route::get('/submit', [\App\Http\Controllers\Student\AchievementController::class, 'create'])->name('student.achievement.create');
-    Route::post('/submit', [\App\Http\Controllers\Student\AchievementController::class, 'store'])->name('student.achievement.store');
+    Route::get('/submit', [AchievementController::class, 'create'])->name('student.achievement.create');
+    Route::post('/submit', [AchievementController::class, 'store'])->name('student.achievement.store');
 
     // Request Review Ulang (menggantikan fitur banding)
-    Route::post('/achievements/{achievement}/request-review', [\App\Http\Controllers\Student\AchievementController::class, 'requestReview'])
+    Route::post('/achievements/{achievement}/request-review', [AchievementController::class, 'requestReview'])
         ->name('student.achievement.request-review');
 
     // Delete Achievement (soft delete for rejected achievements)
-    Route::delete('/achievements/{achievement}', [\App\Http\Controllers\Student\AchievementController::class, 'destroy'])
+    Route::delete('/achievements/{achievement}', [AchievementController::class, 'destroy'])
         ->name('student.achievement.destroy');
 });
 
@@ -111,59 +159,62 @@ Route::middleware(['auth.any'])->group(function () {
         ->name('achievements.documents.submitSingle');
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])
         ->name('achievements.documents.destroy');
+    Route::post('/documents/{document}/verify', [DocumentUploadController::class, 'verify'])
+        ->name('achievements.documents.verify');
 
     // Admin/Validator actions
     Route::post('/documents/{document}/revert', [DocumentUploadController::class, 'revertToPending'])
         ->name('achievements.documents.revert');
     Route::post('/documents/{document}/add-note', [DocumentUploadController::class, 'addNote'])
         ->name('achievements.documents.addNote');
+    Route::post('/validator/documents/{document}/verify', [DocumentUploadController::class, 'verify']);
 });
 
 // Profile - only for regular users (admin/validator)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'index'])->name('profile');
-    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 });
 
 // API Routes for Validator (must be before validator prefix to avoid /validator/api/validator path)
 Route::middleware(['auth', 'auth.validator', 'throttle:60,1'])->group(function () {
-    Route::get('/api/validator/achievements/{achievement}', [\App\Http\Controllers\Validator\FacultyValidationController::class, 'getAchievementData'])->name('api.validator.achievements.data');
+    Route::get('/api/validator/achievements/{achievement}', [FacultyValidationController::class, 'getAchievementData'])->name('api.validator.achievements.data');
 });
 
 // SIGAP API Routes (for fetching faculty, department, study program data)
 Route::prefix('api/sigap')->middleware(['throttle:60,1'])->name('api.sigap.')->group(function () {
     // Filter cascade endpoints
-    Route::get('/faculties', [\App\Http\Controllers\Api\SigapFilterController::class, 'getFaculties'])->name('faculties');
-    Route::get('/departments', [\App\Http\Controllers\Api\SigapFilterController::class, 'getDepartments'])->name('departments');
-    Route::get('/study-programs', [\App\Http\Controllers\Api\SigapFilterController::class, 'getStudyPrograms'])->name('study-programs');
-    Route::get('/hierarchy', [\App\Http\Controllers\Api\SigapFilterController::class, 'getHierarchy'])->name('hierarchy');
+    Route::get('/faculties', [SigapFilterController::class, 'getFaculties'])->name('faculties');
+    Route::get('/departments', [SigapFilterController::class, 'getDepartments'])->name('departments');
+    Route::get('/study-programs', [SigapFilterController::class, 'getStudyPrograms'])->name('study-programs');
+    Route::get('/hierarchy', [SigapFilterController::class, 'getHierarchy'])->name('hierarchy');
 
     // Student search endpoint
-    Route::get('/students/search', [\App\Http\Controllers\Api\SigapController::class, 'searchStudents'])
+    Route::get('/students/search', [SigapController::class, 'searchStudents'])
         ->middleware(['auth', 'throttle:10,1'])
         ->name('students.search');
 
     // SK search endpoint
-    Route::get('/sk/search', [\App\Http\Controllers\Api\SKSearchController::class, 'search'])->name('sk.search');
+    Route::get('/sk/search', [SKSearchController::class, 'search'])->name('sk.search');
 
     // Cache management
-    Route::post('/clear-cache', [\App\Http\Controllers\Api\SigapController::class, 'clearCache'])
+    Route::post('/clear-cache', [SigapController::class, 'clearCache'])
         ->middleware(['auth', 'can:admin', 'throttle:5,1'])
         ->name('clear-cache');
 });
 
 // Check if email exists in students table (for multi-role detection)
-Route::get('/api/check-student-email', function (Illuminate\Http\Request $request) {
+Route::get('/api/check-student-email', function (Request $request) {
     try {
-        \Illuminate\Support\Facades\Log::info('Student email check accessed', [
+        Log::info('Student email check accessed', [
             'user_id' => auth()->id(),
         ]);
 
         return response()->json([
             'status' => 'ok',
         ]);
-    } catch (\Exception $e) {
-        \Illuminate\Support\Facades\Log::error('Check student email error', [
+    } catch (Exception $e) {
+        Log::error('Check student email error', [
             'error' => $e->getMessage(),
             'user_id' => auth()->id(),
         ]);
@@ -175,17 +226,17 @@ Route::get('/api/check-student-email', function (Illuminate\Http\Request $reques
 })->middleware(['auth', 'throttle:10,1'])->name('api.check-student-email');
 
 // Check user data (for add role feature)
-Route::get('/api/check-user-data', function (Illuminate\Http\Request $request) {
+Route::get('/api/check-user-data', function (Request $request) {
     try {
-        \Illuminate\Support\Facades\Log::info('User data check accessed', [
+        Log::info('User data check accessed', [
             'user_id' => auth()->id(),
         ]);
 
         return response()->json([
             'status' => 'ok',
         ]);
-    } catch (\Exception $e) {
-        \Illuminate\Support\Facades\Log::error('Check user data error', [
+    } catch (Exception $e) {
+        Log::error('Check user data error', [
             'error' => $e->getMessage(),
             'user_id' => auth()->id(),
         ]);
@@ -198,8 +249,11 @@ Route::get('/api/check-user-data', function (Illuminate\Http\Request $request) {
 
 // Export API Routes (accessible by validator, pimpinan, admin)
 Route::middleware(['auth', 'multi.role:operator,pimpinan,admin,super_admin', 'throttle:60,1'])->prefix('api/export')->name('api.export.')->group(function () {
-    Route::get('/achievements', [\App\Http\Controllers\Api\ExportController::class, 'exportAchievements'])->name('achievements');
-    Route::get('/statistics', [\App\Http\Controllers\Api\ExportController::class, 'exportStatistics'])->name('statistics');
+    Route::get('/achievements', [ExportController::class, 'exportAchievements'])->name('achievements');
+    Route::get('/recent', [ExportController::class, 'recent'])->name('recent');
+    Route::get('/achievements/{achievementExport}', [ExportController::class, 'show'])->name('show');
+    Route::get('/achievements/{achievementExport}/download', [ExportController::class, 'download'])->name('download');
+    Route::get('/statistics', [ExportController::class, 'exportStatistics'])->name('statistics');
 });
 
 // Validator routes (Validator/Operator Fakultas - same role, different name)
@@ -210,132 +264,145 @@ Route::middleware(['auth', 'multi.role:operator', 'operator.level'])->prefix('va
     })->name('dashboard');
 
     // Dashboard AJAX endpoints
-    Route::get('/api/hierarchical-chart-data', [\App\Http\Controllers\Validator\DashboardController::class, 'getHierarchicalChartData'])->name('api.hierarchical-chart-data');
-    Route::get('/api/event-participants', [\App\Http\Controllers\Validator\DashboardController::class, 'getEventParticipants'])->name('api.event-participants');
-    Route::get('/api/sla-breach-details', [\App\Http\Controllers\Validator\DashboardController::class, 'getSlaBreachDetails'])->name('sla-breach-details');
+    Route::get('/api/hierarchical-chart-data', [App\Http\Controllers\Validator\DashboardController::class, 'getHierarchicalChartData'])->name('api.hierarchical-chart-data');
+    Route::get('/api/event-participants', [App\Http\Controllers\Validator\DashboardController::class, 'getEventParticipants'])->name('api.event-participants');
+    Route::get('/api/sla-breach-details', [App\Http\Controllers\Validator\DashboardController::class, 'getSlaBreachDetails'])->name('sla-breach-details');
 
     // Students
-    Route::get('/students', [\App\Http\Controllers\Validator\StudentController::class, 'index'])->name('students.index');
-    Route::get('/students/{studentId}', [\App\Http\Controllers\Validator\StudentController::class, 'show'])->name('students.show');
-    Route::get('/api/students/search', [\App\Http\Controllers\Validator\StudentController::class, 'search'])->name('students.search');
+    Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+    Route::get('/students/{studentId}', [StudentController::class, 'show'])->name('students.show');
+    Route::get('/api/students/search', [StudentController::class, 'search'])->name('students.search');
 
     // Faculty Validation (INDEX PAGE)
-    Route::get('/pending', [\App\Http\Controllers\Validator\FacultyValidationController::class, 'index'])->name('pending.index');
-    Route::get('/pending/{achievement}', [\App\Http\Controllers\Validator\FacultyValidationController::class, 'show'])->name('pending.show');
-    Route::post('/pending/{achievement}/validate', [\App\Http\Controllers\Validator\FacultyValidationController::class, 'validate'])->name('pending.validate');
-    Route::post('/pending/{achievement}/start-review', [\App\Http\Controllers\Validator\FacultyValidationController::class, 'startReview'])->name('pending.start-review');
+    Route::get('/pending', [FacultyValidationController::class, 'index'])->name('pending.index');
+    Route::get('/pending/{achievement}', [FacultyValidationController::class, 'show'])->name('pending.show');
+    Route::post('/pending/{achievement}/validate', [FacultyValidationController::class, 'validate'])->name('pending.validate');
+    Route::post('/pending/{achievement}/start-review', [FacultyValidationController::class, 'startReview'])->name('pending.start-review');
 
     // History
-    Route::get('/history', [\App\Http\Controllers\Validator\HistoryController::class, 'index'])->name('history');
+    Route::get('/history', [HistoryController::class, 'index'])->name('history');
 
     // Submit Achievement
-    Route::get('/submit', [\App\Http\Controllers\Validator\SubmitController::class, 'create'])->name('submit.form');
-    Route::post('/submit', [\App\Http\Controllers\Validator\SubmitController::class, 'store'])->name('submit.store');
+    Route::get('/submit', [SubmitController::class, 'create'])->name('submit.form');
+    Route::post('/submit', [SubmitController::class, 'store'])->name('submit.store');
 
     // SK Documents
     Route::prefix('sk')->name('sk.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Validator\SKDocumentController::class, 'index'])->name('index');
-        Route::get('/{sk}', [\App\Http\Controllers\Validator\SKDocumentController::class, 'show'])->name('show');
-        Route::get('/{sk}/preview', [\App\Http\Controllers\Validator\SKDocumentController::class, 'preview'])->name('preview');
-        Route::get('/{sk}/achievements', [\App\Http\Controllers\Validator\SKDocumentController::class, 'getAchievements'])->name('achievements');
-        Route::post('/{sk}/process-assignment', [\App\Http\Controllers\Validator\SKDocumentController::class, 'processAssignment'])->name('process-assignment');
+        Route::get('/', [SKDocumentController::class, 'index'])->name('index');
+        Route::get('/{sk}', [SKDocumentController::class, 'show'])->name('show');
+        Route::get('/{sk}/preview', [SKDocumentController::class, 'preview'])->name('preview');
+        Route::get('/{sk}/achievements', [SKDocumentController::class, 'getAchievements'])->name('achievements');
+        Route::post('/{sk}/process-assignment', [SKDocumentController::class, 'processAssignment'])->name('process-assignment');
     });
 });
 
 // Pimpinan routes (Read-only - uses same pages as validator)
 Route::middleware(['auth', 'multi.role:pimpinan', 'pimpinan.level'])->prefix('pimpinan')->name('pimpinan.')->group(function () {
     // Dashboard (Read-only - same as validator)
-    Route::get('/', [\App\Http\Controllers\Validator\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [App\Http\Controllers\Validator\DashboardController::class, 'index'])->name('dashboard');
 
     // Dashboard AJAX endpoints
-    Route::get('/api/hierarchical-chart-data', [\App\Http\Controllers\Validator\DashboardController::class, 'getHierarchicalChartData'])->name('api.hierarchical-chart-data');
-    Route::get('/api/event-participants', [\App\Http\Controllers\Validator\DashboardController::class, 'getEventParticipants'])->name('api.event-participants');
-    Route::get('/api/sla-breach-details', [\App\Http\Controllers\Validator\DashboardController::class, 'getSlaBreachDetails'])->name('sla-breach-details');
+    Route::get('/api/hierarchical-chart-data', [App\Http\Controllers\Validator\DashboardController::class, 'getHierarchicalChartData'])->name('api.hierarchical-chart-data');
+    Route::get('/api/event-participants', [App\Http\Controllers\Validator\DashboardController::class, 'getEventParticipants'])->name('api.event-participants');
+    Route::get('/api/sla-breach-details', [App\Http\Controllers\Validator\DashboardController::class, 'getSlaBreachDetails'])->name('sla-breach-details');
 
     // Students (Read-only - same as validator)
-    Route::get('/students', [\App\Http\Controllers\Validator\StudentController::class, 'index'])->name('students.index');
-    Route::get('/students/{studentId}', [\App\Http\Controllers\Validator\StudentController::class, 'show'])->name('students.show');
+    Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+    Route::get('/students/{studentId}', [StudentController::class, 'show'])->name('students.show');
 
     // Pending/Validation (Read-only - can view but not validate)
-    Route::get('/pending', [\App\Http\Controllers\Validator\FacultyValidationController::class, 'index'])->name('pending.index');
-    Route::get('/pending/{achievement}', [\App\Http\Controllers\Validator\FacultyValidationController::class, 'show'])->name('pending.show');
+    Route::get('/pending', [FacultyValidationController::class, 'index'])->name('pending.index');
+    Route::get('/pending/{achievement}', [FacultyValidationController::class, 'show'])->name('pending.show');
 
     // History (Read-only - same as validator)
-    Route::get('/history', [\App\Http\Controllers\Validator\HistoryController::class, 'index'])->name('history');
+    Route::get('/history', [HistoryController::class, 'index'])->name('history');
 
     // SK Documents (Read-only - same as validator)
     Route::prefix('sk')->name('sk.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Validator\SKDocumentController::class, 'index'])->name('index');
-        Route::get('/{sk}', [\App\Http\Controllers\Validator\SKDocumentController::class, 'show'])->name('show');
-        Route::get('/{sk}/preview', [\App\Http\Controllers\Validator\SKDocumentController::class, 'preview'])->name('preview');
+        Route::get('/', [SKDocumentController::class, 'index'])->name('index');
+        Route::get('/{sk}', [SKDocumentController::class, 'show'])->name('show');
+        Route::get('/{sk}/preview', [SKDocumentController::class, 'preview'])->name('preview');
     });
 });
 
 // Admin routes (accessible by super_admin and admin roles)
 Route::middleware(['auth', 'multi.role:super_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard - using new controller
-    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
     // API for Dashboard Anomalies
-    Route::get('/api/anomalies/{type}', [\App\Http\Controllers\Admin\DashboardController::class, 'getAnomalyDetails'])->name('api.anomalies');
-    Route::delete('/api/achievements/{id}', [\App\Http\Controllers\Admin\DashboardController::class, 'deleteAchievement'])->name('api.achievements.delete');
+    Route::get('/api/anomalies/{type}', [App\Http\Controllers\Admin\DashboardController::class, 'getAnomalyDetails'])->name('api.anomalies');
+    Route::delete('/api/achievements/{id}', [App\Http\Controllers\Admin\DashboardController::class, 'deleteAchievement'])->name('api.achievements.delete');
 
     // API for Unit Distribution
-    Route::get('/api/unit-distribution', [\App\Http\Controllers\Admin\DashboardController::class, 'getUnitDistribution'])->name('api.unit-distribution');
+    Route::get('/api/unit-distribution', [App\Http\Controllers\Admin\DashboardController::class, 'getUnitDistribution'])->name('api.unit-distribution');
+    Route::get('/api/integration-health', [App\Http\Controllers\Admin\DashboardController::class, 'getIntegrationHealth'])->name('api.integration-health');
 
     // University Validation (Two-Stage System)
     Route::prefix('university')->name('university.')->group(function () {
-        Route::get('/pending', [\App\Http\Controllers\Admin\UniversityValidationController::class, 'index'])->name('index');
-        Route::get('/achievements/{achievement}', [\App\Http\Controllers\Admin\UniversityValidationController::class, 'show'])->name('show');
-        Route::post('/achievements/{achievement}/validate', [\App\Http\Controllers\Admin\UniversityValidationController::class, 'validate'])->name('validate');
-        Route::post('/achievements/{achievement}/start-review', [\App\Http\Controllers\Admin\UniversityValidationController::class, 'startReview'])->name('start-review');
-        Route::post('/bulk-assign', [\App\Http\Controllers\Admin\UniversityValidationController::class, 'bulkAssign'])->name('bulk-assign');
+        Route::get('/pending', [UniversityValidationController::class, 'index'])->name('index');
+        Route::get('/achievements/{achievement}', [UniversityValidationController::class, 'show'])->name('show');
+        Route::post('/achievements/{achievement}/validate', [UniversityValidationController::class, 'validate'])->name('validate');
+        Route::post('/achievements/{achievement}/start-review', [UniversityValidationController::class, 'startReview'])->name('start-review');
+        Route::post('/bulk-assign', [UniversityValidationController::class, 'bulkAssign'])->name('bulk-assign');
     });
 
     // Students - using new controller
-    Route::get('/students', [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('students');
-    Route::get('/students/{studentId}', [\App\Http\Controllers\Admin\StudentController::class, 'show'])->name('students.show');
+    Route::get('/students', [App\Http\Controllers\Admin\StudentController::class, 'index'])->name('students');
+    Route::get('/students/{studentId}', [App\Http\Controllers\Admin\StudentController::class, 'show'])->name('students.show');
 
     // Achievements
-    Route::get('/student-achievements', [\App\Http\Controllers\Admin\AchievementController::class, 'index'])->name('student-achievements');
-    Route::get('/student-achievements/{id}', [\App\Http\Controllers\Admin\AchievementController::class, 'show'])->name('student-achievements.show');
+    Route::get('/student-achievements', [App\Http\Controllers\Admin\AchievementController::class, 'index'])->name('student-achievements');
+    Route::get('/student-achievements/{id}', [App\Http\Controllers\Admin\AchievementController::class, 'show'])->name('student-achievements.show');
 
     // Validation Logs - using new controller
-    Route::get('/validation-logs', [\App\Http\Controllers\Admin\ValidationLogController::class, 'index'])->name('validation-logs');
+    Route::get('/validation-logs', [ValidationLogController::class, 'index'])->name('validation-logs');
+
+    // Notification Delivery Logs
+    Route::get('/notification-delivery-logs', [NotificationDeliveryLogController::class, 'index'])
+        ->name('notification-delivery-logs.index');
+    Route::get('/notification-delivery-logs/summary', [NotificationDeliveryLogController::class, 'summary'])
+        ->name('notification-delivery-logs.summary');
+
+    // Config Audit Logs
+    Route::get('/audit-logs', [ConfigAuditLogController::class, 'index'])->name('audit-logs');
 
     // Users - using new controller
-    Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users');
-    Route::post('/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
-    Route::post('/users/create-new', [\App\Http\Controllers\Admin\UserController::class, 'createNewUser'])->name('users.create-new');
-    Route::put('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.delete');
-    Route::delete('/users/{user}/roles/{roleId}', [\App\Http\Controllers\Admin\UserController::class, 'deleteRole'])->name('users.delete-role');
+    Route::get('/users', [UserController::class, 'index'])->name('users');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::post('/users/create-new', [UserController::class, 'createNewUser'])->name('users.create-new');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.delete');
+    Route::delete('/users/{user}/roles/{roleId}', [UserController::class, 'deleteRole'])->name('users.delete-role');
 
     // Submit Achievement (Admin can submit on behalf of student)
-    Route::get('/submit-achievement', [\App\Http\Controllers\Admin\AdminAchievementController::class, 'create'])->name('submit.create');
-    Route::post('/submit-achievement', [\App\Http\Controllers\Admin\AdminAchievementController::class, 'store'])->name('submit.store');
+    Route::get('/submit-achievement', [AdminAchievementController::class, 'create'])->name('submit.create');
+    Route::post('/submit-achievement', [AdminAchievementController::class, 'store'])->name('submit.store');
 
     // Achievement Categories CRUD
-    Route::resource('categories', \App\Http\Controllers\Admin\AchievementCategoryController::class);
+    Route::resource('categories', AchievementCategoryController::class);
 
     // Achievement Levels CRUD
-    Route::resource('levels', \App\Http\Controllers\Admin\AchievementLevelController::class);
+    Route::resource('levels', AchievementLevelController::class);
 
     // Academic Periods CRUD
-    Route::resource('periods', \App\Http\Controllers\Admin\AcademicPeriodController::class);
-    Route::patch('/periods/{period}/activate', [\App\Http\Controllers\Admin\AcademicPeriodController::class, 'activate'])->name('periods.activate');
+    Route::resource('periods', AcademicPeriodController::class);
+    Route::patch('/periods/{period}/activate', [AcademicPeriodController::class, 'activate'])->name('periods.activate');
 
     // SK Document Management
     Route::prefix('sk')->name('sk.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\SKDocumentController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Admin\SKDocumentController::class, 'store'])->name('store');
-        Route::get('/{sk}', [\App\Http\Controllers\Admin\SKDocumentController::class, 'show'])->name('show');
-        Route::delete('/{sk}', [\App\Http\Controllers\Admin\SKDocumentController::class, 'destroy'])->name('destroy');
-        Route::get('/{sk}/achievements', [\App\Http\Controllers\Admin\SKDocumentController::class, 'getAchievements'])->name('achievements');
-        Route::post('/{sk}/process-assignment', [\App\Http\Controllers\Admin\SKDocumentController::class, 'processAssignment'])->name('process-assignment');
-        Route::get('/{sk}/preview', [\App\Http\Controllers\Admin\SKDocumentController::class, 'preview'])->name('preview');
+        Route::get('/', [App\Http\Controllers\Admin\SKDocumentController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Admin\SKDocumentController::class, 'store'])->name('store');
+        Route::get('/{sk}', [App\Http\Controllers\Admin\SKDocumentController::class, 'show'])->name('show');
+        Route::delete('/{sk}', [App\Http\Controllers\Admin\SKDocumentController::class, 'destroy'])->name('destroy');
+        Route::get('/{sk}/achievements', [App\Http\Controllers\Admin\SKDocumentController::class, 'getAchievements'])->name('achievements');
+        Route::post('/{sk}/process-assignment', [App\Http\Controllers\Admin\SKDocumentController::class, 'processAssignment'])->name('process-assignment');
+        Route::get('/{sk}/preview', [App\Http\Controllers\Admin\SKDocumentController::class, 'preview'])->name('preview');
     });
 
     // Export Achievements
-    Route::get('/export/achievements', [\App\Http\Controllers\Admin\ExportController::class, 'exportAchievements'])->name('export.achievements');
+    Route::get('/export/achievements', [App\Http\Controllers\Admin\ExportController::class, 'exportAchievements'])->name('export.achievements');
+    Route::get('/export/recent', [App\Http\Controllers\Admin\ExportController::class, 'recent'])->name('export.recent');
+    Route::get('/export/achievements/{achievementExport}', [App\Http\Controllers\Admin\ExportController::class, 'show'])->name('export.show');
+    Route::get('/export/achievements/{achievementExport}/download', [App\Http\Controllers\Admin\ExportController::class, 'download'])->name('export.download');
 });

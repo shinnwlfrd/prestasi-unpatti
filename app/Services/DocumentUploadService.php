@@ -27,7 +27,7 @@ class DocumentUploadService
 
         $fileName = $this->generateFileName($file);
         $path = $file->storeAs(
-            'achievements/' . $achievement->sa_id,
+            'achievements/'.$achievement->sa_id,
             $fileName,
             'public'
         );
@@ -52,7 +52,7 @@ class DocumentUploadService
         AchievementDocument $document,
         UploadedFile $file
     ): AchievementDocument {
-        if (!$document->canBeEdited()) {
+        if (! $document->canBeEdited()) {
             throw new \InvalidArgumentException('Dokumen tidak dapat diubah karena sudah diverifikasi.');
         }
 
@@ -66,7 +66,7 @@ class DocumentUploadService
         // Upload new file
         $fileName = $this->generateFileName($file);
         $path = $file->storeAs(
-            'achievements/' . $document->sa_id,
+            'achievements/'.$document->sa_id,
             $fileName,
             'public'
         );
@@ -137,7 +137,7 @@ class DocumentUploadService
 
     public function deleteDocument(AchievementDocument $document): bool
     {
-        if (!$document->canBeDeleted()) {
+        if (! $document->canBeDeleted()) {
             throw new \InvalidArgumentException('Dokumen tidak dapat dihapus karena sudah diverifikasi.');
         }
 
@@ -181,7 +181,7 @@ class DocumentUploadService
         // Upload new file
         $fileName = $this->generateFileName($file);
         $path = $file->storeAs(
-            'achievements/' . $achievement->sa_id,
+            'achievements/'.$achievement->sa_id,
             $fileName,
             'public'
         );
@@ -196,30 +196,79 @@ class DocumentUploadService
 
     protected function validateFile(UploadedFile $file): void
     {
+        if (! $file->isValid()) {
+            throw new \InvalidArgumentException('File upload tidak valid atau gagal diunggah.');
+        }
+
         if ($file->getSize() > self::MAX_FILE_SIZE) {
             throw new \InvalidArgumentException(
-                'Ukuran file melebihi batas maksimal ' . (self::MAX_FILE_SIZE / 1024 / 1024) . 'MB'
+                'Ukuran file melebihi batas maksimal '.(self::MAX_FILE_SIZE / 1024 / 1024).'MB'
             );
         }
 
-        if (!in_array($file->getMimeType(), self::ALLOWED_MIMES)) {
+        if (! in_array($file->getMimeType(), self::ALLOWED_MIMES)) {
             throw new \InvalidArgumentException(
-                'Format file tidak didukung. Gunakan: ' . implode(', ', self::ALLOWED_EXTENSIONS)
+                'Format file tidak didukung. Gunakan: '.implode(', ', self::ALLOWED_EXTENSIONS)
             );
         }
 
         $extension = strtolower($file->getClientOriginalExtension());
-        if (!in_array($extension, self::ALLOWED_EXTENSIONS)) {
+        if (! in_array($extension, self::ALLOWED_EXTENSIONS)) {
             throw new \InvalidArgumentException(
-                'Ekstensi file tidak didukung. Gunakan: ' . implode(', ', self::ALLOWED_EXTENSIONS)
+                'Ekstensi file tidak didukung. Gunakan: '.implode(', ', self::ALLOWED_EXTENSIONS)
             );
         }
+
+        $realPath = $file->getRealPath();
+        if (! $realPath || ! is_file($realPath)) {
+            throw new \InvalidArgumentException('File upload tidak valid.');
+        }
+
+        $detectedMime = (new \finfo(FILEINFO_MIME_TYPE))->file($realPath) ?: null;
+        if (! $this->matchesAllowedContent($extension, $realPath, $detectedMime)) {
+            throw new \InvalidArgumentException(
+                'Isi file tidak sesuai dengan format yang diizinkan. Gunakan PDF, JPG, atau PNG yang valid.'
+            );
+        }
+    }
+
+    protected function matchesAllowedContent(string $extension, string $realPath, ?string $detectedMime): bool
+    {
+        return match ($extension) {
+            'pdf' => $this->isValidPdf($realPath, $detectedMime),
+            'jpg', 'jpeg' => $this->isValidImage($realPath, $detectedMime, ['image/jpeg']),
+            'png' => $this->isValidImage($realPath, $detectedMime, ['image/png']),
+            default => false,
+        };
+    }
+
+    protected function isValidPdf(string $realPath, ?string $detectedMime): bool
+    {
+        $handle = fopen($realPath, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+
+        $signature = fread($handle, 5);
+        fclose($handle);
+
+        return $signature === '%PDF-' && in_array($detectedMime, ['application/pdf', 'application/x-pdf'], true);
+    }
+
+    protected function isValidImage(string $realPath, ?string $detectedMime, array $allowedMimes): bool
+    {
+        $imageInfo = @getimagesize($realPath);
+
+        return $imageInfo !== false
+            && isset($imageInfo['mime'])
+            && in_array($imageInfo['mime'], $allowedMimes, true)
+            && in_array($detectedMime, $allowedMimes, true);
     }
 
     protected function generateFileName(UploadedFile $file): string
     {
         $extension = $file->getClientOriginalExtension();
 
-        return Str::uuid() . '.' . $extension;
+        return Str::uuid().'.'.$extension;
     }
 }

@@ -4,29 +4,41 @@ namespace App\Services\Validator;
 
 use App\Models\StudentAchievement;
 use App\Models\User;
+use App\Models\ValidationChecklist;
 use App\Models\ValidationLog;
 use App\Notifications\AchievementStatusChanged;
+use App\Services\DocumentVerificationService;
+use App\Support\AchievementNotificationDispatcher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class FacultyValidationService
 {
+    public function __construct(
+        protected DocumentVerificationService $documentVerificationService
+    ) {}
+
     /**
      * Start review process for an achievement
      */
     public function startReview(StudentAchievement $achievement, User $validator): bool
     {
-        // Validate: must be in submitted status
-        if ($achievement->validation_status !== StudentAchievement::STATUS_SUBMITTED) {
-            throw new \Exception('Prestasi harus dalam status "Diajukan" untuk memulai review.');
-        }
-
-        // Validate: validator must be from same faculty
-        if ($validator->faculty !== $achievement->student->faculty) {
-            throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
-        }
+        $this->ensureValidatorCanAccess($achievement, $validator);
 
         return DB::transaction(function () use ($achievement, $validator) {
+            $achievement = StudentAchievement::where('sa_id', $achievement->sa_id)->lockForUpdate()->first();
+            if (! $achievement) {
+                throw new \Exception('Prestasi tidak ditemukan.');
+            }
+
+            // Validate: must be in submitted status
+            if (! in_array($achievement->validation_status, [
+                StudentAchievement::STATUS_SUBMITTED,
+                StudentAchievement::STATUS_PENDING,
+            ], true)) {
+                throw new \Exception('Prestasi harus dalam status "Diajukan" untuk memulai review.');
+            }
+
             $oldStatus = $achievement->validation_status;
 
             // Update achievement to faculty_review
@@ -46,6 +58,7 @@ class FacultyValidationService
                 'stage_action' => 'start_review',
                 'is_stage_transition' => false,
                 'validated_at' => now(),
+                'metadata' => $this->getAuditMetadata($achievement, $validator),
             ]);
 
             return true;
@@ -55,26 +68,59 @@ class FacultyValidationService
     /**
      * Approve achievement at faculty level
      */
-    public function approve(StudentAchievement $achievement, User $validator, ?string $notes = null): bool
+    public function approve(StudentAchievement $achievement, User $validator, ?string $notes = null, array $checklistData = []): bool
     {
-        // Validate: must be in correct status (support legacy status)
-        $validStatuses = [
-            StudentAchievement::STATUS_SUBMITTED,
-            StudentAchievement::STATUS_FACULTY_REVIEW,
-            StudentAchievement::STATUS_PENDING, // Legacy: 'Menunggu'
-            'Menunggu', // Legacy string
-        ];
-        
-        if (!in_array($achievement->validation_status, $validStatuses)) {
-            throw new \Exception('Status prestasi tidak valid untuk approval fakultas. Status saat ini: ' . $achievement->validation_status);
-        }
+        $this->ensureValidatorCanAccess($achievement, $validator);
 
-        // Validate: validator must be from same faculty (if faculty is set)
-        if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
-            throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
-        }
+        return DB::transaction(function () use ($achievement, $validator, $notes, $checklistData) {
+            $achievement = StudentAchievement::where('sa_id', $achievement->sa_id)->lockForUpdate()->first();
+            if (! $achievement) {
+                throw new \Exception('Prestasi tidak ditemukan.');
+            }
 
-        return DB::transaction(function () use ($achievement, $validator, $notes) {
+            // Validate: must be in correct status
+            $validStatuses = StudentAchievement::getFacultyPendingStatuses();
+
+            if (! in_array($achievement->validation_status, $validStatuses)) {
+                throw new \Exception('Status prestasi tidak valid untuk approval fakultas. Status saat ini: '.$achievement->validation_status);
+            }
+
+            // Document Verification Gate
+            $docCheck = $this->documentVerificationService->canAchievementBeApproved($achievement);
+            if (! $docCheck['can_approve']) {
+                throw new \Exception(implode(' ', $docCheck['errors']));
+            }
+
+            // Process Checklist
+            $checklist = ValidationChecklist::withTrashed()
+                ->where('sa_id', $achievement->sa_id)
+                ->first();
+
+            $formattedChecklist = [
+                'certificate_valid' => (bool) ($checklistData['certificate_valid'] ?? false),
+                'event_date_valid' => (bool) ($checklistData['event_date_valid'] ?? false),
+                'organizer_valid' => (bool) ($checklistData['organizer_valid'] ?? false),
+                'level_appropriate' => (bool) ($checklistData['level_appropriate'] ?? false),
+                'documents_complete' => (bool) ($checklistData['documents_complete'] ?? false),
+            ];
+
+            if ($checklist) {
+                if ($checklist->trashed()) {
+                    $checklist->restore();
+                }
+                $checklist->update(array_merge($formattedChecklist, ['validator_id' => $validator->id]));
+            } else {
+                $checklist = ValidationChecklist::create(array_merge($formattedChecklist, [
+                    'sa_id' => $achievement->sa_id,
+                    'validator_id' => $validator->id,
+                ]));
+            }
+
+            // Check if checklist is complete
+            if (! $checklist->isCompleteFor($achievement)) {
+                throw new \Exception('Checklist validasi belum lengkap untuk kategori/level prestasi ini.');
+            }
+
             $oldStatus = $achievement->validation_status;
 
             // Update achievement
@@ -97,6 +143,7 @@ class FacultyValidationService
                 'stage_action' => 'approve',
                 'is_stage_transition' => true,
                 'validated_at' => now(),
+                'metadata' => $this->getAuditMetadata($achievement, $validator),
             ]);
 
             // Notify student
@@ -114,22 +161,7 @@ class FacultyValidationService
      */
     public function reject(StudentAchievement $achievement, User $validator, string $reason): bool
     {
-        // Validate: must be in correct status (support legacy status)
-        $validStatuses = [
-            StudentAchievement::STATUS_SUBMITTED,
-            StudentAchievement::STATUS_FACULTY_REVIEW,
-            StudentAchievement::STATUS_PENDING, // Legacy: 'Menunggu'
-            'Menunggu', // Legacy string
-        ];
-        
-        if (!in_array($achievement->validation_status, $validStatuses)) {
-            throw new \Exception('Status prestasi tidak valid untuk rejection fakultas. Status saat ini: ' . $achievement->validation_status);
-        }
-
-        // Validate: validator must be from same faculty (if faculty is set)
-        if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
-            throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
-        }
+        $this->ensureValidatorCanAccess($achievement, $validator);
 
         // Validate: reason is required
         if (empty($reason)) {
@@ -137,6 +169,18 @@ class FacultyValidationService
         }
 
         return DB::transaction(function () use ($achievement, $validator, $reason) {
+            $achievement = StudentAchievement::where('sa_id', $achievement->sa_id)->lockForUpdate()->first();
+            if (! $achievement) {
+                throw new \Exception('Prestasi tidak ditemukan.');
+            }
+
+            // Validate: must be in correct status
+            $validStatuses = StudentAchievement::getFacultyPendingStatuses();
+
+            if (! in_array($achievement->validation_status, $validStatuses)) {
+                throw new \Exception('Status prestasi tidak valid untuk rejection fakultas. Status saat ini: '.$achievement->validation_status);
+            }
+
             $oldStatus = $achievement->validation_status;
 
             // Update achievement (FINAL status)
@@ -159,6 +203,7 @@ class FacultyValidationService
                 'stage_action' => 'reject',
                 'is_stage_transition' => true,
                 'validated_at' => now(),
+                'metadata' => $this->getAuditMetadata($achievement, $validator),
             ]);
 
             // Notify student
@@ -173,22 +218,7 @@ class FacultyValidationService
      */
     public function requestRevision(StudentAchievement $achievement, User $validator, string $reason, array $requiredDocuments = []): bool
     {
-        // Validate: must be in correct status (support legacy status)
-        $validStatuses = [
-            StudentAchievement::STATUS_SUBMITTED,
-            StudentAchievement::STATUS_FACULTY_REVIEW,
-            StudentAchievement::STATUS_PENDING, // Legacy: 'Menunggu'
-            'Menunggu', // Legacy string
-        ];
-        
-        if (!in_array($achievement->validation_status, $validStatuses)) {
-            throw new \Exception('Status prestasi tidak valid untuk request revision. Status saat ini: ' . $achievement->validation_status);
-        }
-
-        // Validate: validator must be from same faculty (if faculty is set)
-        if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
-            throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
-        }
+        $this->ensureValidatorCanAccess($achievement, $validator);
 
         // Validate: reason is required
         if (empty($reason)) {
@@ -196,6 +226,18 @@ class FacultyValidationService
         }
 
         return DB::transaction(function () use ($achievement, $validator, $reason, $requiredDocuments) {
+            $achievement = StudentAchievement::where('sa_id', $achievement->sa_id)->lockForUpdate()->first();
+            if (! $achievement) {
+                throw new \Exception('Prestasi tidak ditemukan.');
+            }
+
+            // Validate: must be in correct status
+            $validStatuses = StudentAchievement::getFacultyPendingStatuses();
+
+            if (! in_array($achievement->validation_status, $validStatuses)) {
+                throw new \Exception('Status prestasi tidak valid untuk request revision. Status saat ini: '.$achievement->validation_status);
+            }
+
             $oldStatus = $achievement->validation_status;
 
             // Update achievement
@@ -208,8 +250,11 @@ class FacultyValidationService
             ]);
 
             // Create validation log
-            $metadata = ['required_documents' => $requiredDocuments];
-            
+            $metadata = array_merge(
+                $this->getAuditMetadata($achievement, $validator),
+                ['required_documents' => $requiredDocuments]
+            );
+
             ValidationLog::create([
                 'sa_id' => $achievement->sa_id,
                 'validator_id' => $validator->id,
@@ -243,7 +288,7 @@ class FacultyValidationService
             $query->where('academic_period_id', $periodId);
         }
 
-        $pending = (clone $query)->facultyPending()->count();
+        $pending = (clone $query)->whereIn('validation_status', StudentAchievement::getFacultyPendingStatuses())->count();
         $approvedToday = (clone $query)
             ->where('validation_status', StudentAchievement::STATUS_FACULTY_APPROVED)
             ->where('faculty_validator_id', $validator->id)
@@ -271,19 +316,48 @@ class FacultyValidationService
         ];
     }
 
+    protected function ensureValidatorCanAccess(StudentAchievement $achievement, User $validator): void
+    {
+        $achievement->loadMissing(['student', 'academicPeriod']);
+        $period = $achievement->academicPeriod;
+        if ($period && ! $period->isValidationOpen()) {
+            throw new \Exception('Batas waktu validasi untuk periode ini telah berakhir.');
+        }
+
+        $currentRole = $validator->getCurrentRole();
+
+        $level = $currentRole ? $currentRole->level : (session('operator_level') ?? session('pimpinan_level'));
+        $facultyId = $currentRole ? $currentRole->faculty_id : (session('operator_faculty_id') ?? session('pimpinan_faculty_id'));
+        $departmentId = $currentRole ? $currentRole->department_id : (session('operator_department_id') ?? session('pimpinan_department_id'));
+        $programStudyId = $currentRole ? $currentRole->program_study_id : (session('operator_program_study_id') ?? session('pimpinan_program_study_id'));
+
+        if ($level === 'university') {
+            return;
+        }
+
+        if ($level === 'faculty' && $facultyId && $achievement->student?->faculty_id !== $facultyId) {
+            throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
+        }
+
+        if ($level === 'department' && $departmentId && $achievement->student?->department_id !== $departmentId) {
+            throw new \Exception('Validator hanya dapat memvalidasi prestasi dari jurusan sendiri.');
+        }
+
+        if ($level === 'program_study' && $programStudyId && $achievement->student?->program_study_id !== $programStudyId) {
+            throw new \Exception('Validator hanya dapat memvalidasi prestasi dari prodi sendiri.');
+        }
+
+        if (! $level && $validator->faculty && $achievement->student?->faculty !== $validator->faculty) {
+            throw new \Exception('Validator hanya dapat memvalidasi prestasi dari fakultas sendiri.');
+        }
+    }
+
     /**
      * Notify student about status change
      */
     protected function notifyStudent(StudentAchievement $achievement, string $action): void
     {
-        $student = $achievement->student;
-        if ($student && $student->user) {
-            try {
-                $student->user->notify(new AchievementStatusChanged($achievement, $action));
-            } catch (\Exception $e) {
-                Log::warning('Failed to send notification to student: ' . $e->getMessage());
-            }
-        }
+        AchievementNotificationDispatcher::notifyStudent($achievement, $action);
     }
 
     /**
@@ -293,12 +367,40 @@ class FacultyValidationService
     {
         try {
             $admins = User::where('role', 'Admin')->where('is_active', true)->get();
-            
+
             foreach ($admins as $admin) {
                 $admin->notify(new AchievementStatusChanged($achievement, $action));
             }
         } catch (\Exception $e) {
-            Log::warning('Failed to send notification to admins: ' . $e->getMessage());
+            Log::warning('Failed to send notification to admins: '.$e->getMessage());
         }
+    }
+
+    protected function getAuditMetadata(StudentAchievement $achievement, User $user): array
+    {
+        $currentRole = $user->getCurrentRole();
+        $level = $currentRole ? $currentRole->level : (session('operator_level') ?? session('pimpinan_level') ?? ($user->role === 'Admin' ? 'university' : null));
+        $facultyId = $currentRole ? $currentRole->faculty_id : (session('operator_faculty_id') ?? session('pimpinan_faculty_id'));
+        $departmentId = $currentRole ? $currentRole->department_id : (session('operator_department_id') ?? session('pimpinan_department_id'));
+        $programStudyId = $currentRole ? $currentRole->program_study_id : (session('operator_program_study_id') ?? session('pimpinan_program_study_id'));
+
+        $documentStatuses = $achievement->documents->mapWithKeys(function ($doc) {
+            return [$doc->id => [
+                'type' => $doc->document_type,
+                'status' => $doc->status,
+            ]];
+        })->toArray();
+
+        return [
+            'actor_id' => $user->id,
+            'actor_role' => $currentRole ? $currentRole->role_type : $user->role,
+            'scope' => [
+                'level' => $level,
+                'faculty_id' => $facultyId,
+                'department_id' => $departmentId,
+                'program_study_id' => $programStudyId,
+            ],
+            'document_statuses' => $documentStatuses,
+        ];
     }
 }

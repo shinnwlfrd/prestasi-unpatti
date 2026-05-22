@@ -4,191 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offline - SIMAPRES UNPATTI</title>
-    <meta name="theme-color" content="#4f46e5">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
             min-height: 100vh;
-            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #c7d2fe 100%);
-            color: #1e293b;
-            padding: 1.5rem;
-        }
-
-        .container {
-            text-align: center;
-            max-width: 440px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            border-radius: 1.5rem;
-            padding: 3rem 2rem;
-            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-        }
-
-        .icon-wrapper {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            border-radius: 1.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: pulse 2.5s ease-in-out infinite;
+            background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+            color: #1e293b;
         }
-
-        .icon-wrapper svg {
-            width: 40px;
-            height: 40px;
-            color: white;
+        .card {
+            max-width: 480px;
+            margin: 24px;
+            padding: 32px;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+            text-align: center;
         }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.3); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-weight: 600;
+            margin-bottom: 16px;
         }
-
         h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1e1b4b;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.02em;
+            margin: 0 0 12px;
+            font-size: 28px;
         }
-
         p {
-            color: #64748b;
+            margin: 0 0 12px;
             line-height: 1.6;
-            font-size: 0.95rem;
-            margin-bottom: 2rem;
-        }
-
-        .brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #6366f1;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-bottom: 1.5rem;
-        }
-
-        .brand-dot {
-            width: 6px;
-            height: 6px;
-            background: #6366f1;
-            border-radius: 50%;
-        }
-
-        button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.875rem 2rem;
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            color: white;
-            border: none;
-            border-radius: 0.875rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .tips {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e2e8f0;
-            text-align: left;
-        }
-
-        .tips-title {
-            font-size: 0.8rem;
-            font-weight: 600;
             color: #475569;
-            margin-bottom: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
-
-        .tips ul {
-            list-style: none;
-            padding: 0;
+        button {
+            margin-top: 16px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
         }
-
-        .tips li {
-            font-size: 0.85rem;
-            color: #64748b;
-            padding: 0.375rem 0;
-            padding-left: 1.25rem;
-            position: relative;
-        }
-
-        .tips li::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: #6366f1;
-            font-weight: bold;
+        button:hover {
+            background: #1d4ed8;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="brand">
-            <div class="brand-dot"></div>
-            SIMAPRES UNPATTI
-        </div>
-
-        <div class="icon-wrapper">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M18.364 5.636a9 9 0 010 12.728m-2.829-2.829a5 5 0 000-7.07m-4.243.707a3 3 0 00-.293 4.243M12 12h.01" />
-            </svg>
-        </div>
-
-        <h1>Anda Sedang Offline</h1>
-        <p>Koneksi internet tidak tersedia saat ini. Periksa koneksi Wi-Fi atau data seluler Anda, lalu coba lagi.</p>
-
-        <button onclick="window.location.reload()">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Coba Lagi
-        </button>
-
-        <div class="tips">
-            <p class="tips-title">Tips Koneksi</p>
-            <ul>
-                <li>Periksa pengaturan Wi-Fi atau data seluler</li>
-                <li>Coba buka halaman lain untuk memastikan koneksi</li>
-                <li>Restart router jika menggunakan Wi-Fi</li>
-            </ul>
-        </div>
+    <div class="card">
+        <div class="badge">Mode Offline</div>
+        <h1>Koneksi sedang tidak tersedia</h1>
+        <p>Beberapa halaman SIMAPRES masih dapat dibuka dari cache, tetapi aksi yang memerlukan server mungkin belum bisa diproses.</p>
+        <p>Silakan periksa koneksi Anda lalu coba lagi. Form yang mendukung pemulihan offline akan tetap tersimpan di browser.</p>
+        <button onclick="window.location.reload()">Coba lagi</button>
     </div>
 </body>
 </html>

@@ -3,8 +3,8 @@
 namespace App\Policies;
 
 use App\Models\AchievementDocument;
+use App\Models\StudentAchievement;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class AchievementDocumentPolicy
 {
@@ -13,20 +13,24 @@ class AchievementDocumentPolicy
      */
     public function view(User $user, AchievementDocument $document): bool
     {
+        $achievement = $document->studentAchievement;
+        if (! $achievement) {
+            return false;
+        }
+
         // Admin can always view
         if ($user->isSuperAdmin()) {
             return true;
         }
 
         // Student can view their own document
-        if (session('auth_role') === 'student' && $document->achievement->student_id === session('student_id')) {
+        if (session('auth_role') === 'student' && $achievement->student_id === session('student_id')) {
             return true;
         }
 
         // Operator can view if it belongs to their faculty scope
         if ($user->isOperator()) {
             $level = session('operator_level');
-            $achievement = $document->achievement;
             $student = $achievement->student;
 
             if ($level === 'university') {
@@ -36,7 +40,7 @@ class AchievementDocumentPolicy
             if ($level === 'faculty' && $student->faculty_id == session('operator_faculty_id')) {
                 return true;
             }
-            
+
             // Add department/prodi level check if needed
         }
 
@@ -48,11 +52,17 @@ class AchievementDocumentPolicy
      */
     public function update(User $user, AchievementDocument $document): bool
     {
+        $achievement = $document->studentAchievement;
+        if (! $achievement) {
+            return false;
+        }
+
         // Only the student owner can update/replace the document
         // And only if the achievement is still in 'draft' or 'revision' status
-        if (session('auth_role') === 'student' && $document->achievement->student_id === session('student_id')) {
-            $status = $document->achievement->validation_status;
-            return in_array($status, [\App\Models\StudentAchievement::STATUS_DRAFT, \App\Models\StudentAchievement::STATUS_FACULTY_REVISION]);
+        if (session('auth_role') === 'student' && $achievement->student_id === session('student_id')) {
+            $status = $achievement->validation_status;
+
+            return in_array($status, [StudentAchievement::STATUS_DRAFT, StudentAchievement::STATUS_FACULTY_REVISION]);
         }
 
         return false;
@@ -63,10 +73,16 @@ class AchievementDocumentPolicy
      */
     public function delete(User $user, AchievementDocument $document): bool
     {
+        $achievement = $document->studentAchievement;
+        if (! $achievement) {
+            return false;
+        }
+
         // Similar logic to update
-        if (session('auth_role') === 'student' && $document->achievement->student_id === session('student_id')) {
-            $status = $document->achievement->validation_status;
-            return in_array($status, [\App\Models\StudentAchievement::STATUS_DRAFT, \App\Models\StudentAchievement::STATUS_FACULTY_REVISION]);
+        if (session('auth_role') === 'student' && $achievement->student_id === session('student_id')) {
+            $status = $achievement->validation_status;
+
+            return in_array($status, [StudentAchievement::STATUS_DRAFT, StudentAchievement::STATUS_FACULTY_REVISION]);
         }
 
         return false;

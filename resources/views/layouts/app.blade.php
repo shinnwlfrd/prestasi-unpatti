@@ -68,6 +68,7 @@
 </head>
 
 <body class="bg-gray-50 dark:bg-slate-900 min-h-screen transition-colors duration-300">
+    @include('partials.offline-banner')
 
     @php
         // IMPORTANT: Check auth()->check() FIRST to prevent role confusion
@@ -237,6 +238,7 @@
     <script src="https://instant.page/5.2.0" type="module"
         integrity="sha384-jnZyxPjiipYXnSU0ygqeac2q7CVYMbh84q0uHVRRxEtvFPiQYbXWUorga2aqZJ0z"></script>
     @include('partials.pwa-sw-register')
+    <script src="/js/offline-status.js" defer></script>
 </body>
 
 </html>

@@ -40,4 +40,9 @@ return [
         'api_key' => env('SIAKAD_API_KEY'),
     ],
 
+    'sigap' => [
+        'base_url' => env('SIGAP_API_URL', 'https://api.sigap.unpatti.ac.id'),
+        'timeout' => env('SIGAP_API_TIMEOUT', 15),
+    ],
+
 ];

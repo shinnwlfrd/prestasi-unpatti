@@ -56,6 +56,28 @@
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Batas Pengajuan Mahasiswa (Submission Deadline)</label>
+                            <input type="datetime-local" name="submission_deadline"
+                                value="{{ old('submission_deadline', $period->submission_deadline ? $period->submission_deadline->format('Y-m-d\TH:i') : '') }}"
+                                class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('submission_deadline') border-red-500 @enderror">
+                            @error('submission_deadline')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Batas Validasi Operator (Validation Deadline)</label>
+                            <input type="datetime-local" name="validation_deadline"
+                                value="{{ old('validation_deadline', $period->validation_deadline ? $period->validation_deadline->format('Y-m-d\TH:i') : '') }}"
+                                class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg @error('validation_deadline') border-red-500 @enderror">
+                            @error('validation_deadline')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Deskripsi</label>
                         <textarea name="description" rows="3"

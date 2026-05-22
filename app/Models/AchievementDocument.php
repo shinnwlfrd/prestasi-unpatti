@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class AchievementDocument extends Model
@@ -204,7 +205,7 @@ class AchievementDocument extends Model
 
         $this->status = self::STATUS_APPROVED;
         $this->verified_by = $verifier->id;
-        $this->verified_at = \Illuminate\Support\Carbon::now();
+        $this->verified_at = Carbon::now();
         $this->revision_notes = $notes;
         $this->save();
 
@@ -221,7 +222,7 @@ class AchievementDocument extends Model
 
         $this->status = self::STATUS_REJECTED;
         $this->verified_by = $verifier->id;
-        $this->verified_at = \Illuminate\Support\Carbon::now();
+        $this->verified_at = Carbon::now();
         $this->revision_notes = $reason;
         $this->save();
 
@@ -259,7 +260,7 @@ class AchievementDocument extends Model
         $this->save();
 
         $this->logRevision(
-            'reverted_to_pending',
+            DocumentRevision::ACTION_REVERTED_TO_PENDING,
             "Status dikembalikan dari {$oldStatus} ke pending. ".($reason ?? ''),
             $admin->id
         );
@@ -269,7 +270,7 @@ class AchievementDocument extends Model
 
     public function addNote(User $admin, string $note): bool
     {
-        $this->logRevision('note_added', $note, $admin->id);
+        $this->logRevision(DocumentRevision::ACTION_NOTE_ADDED, $note, $admin->id);
 
         return true;
     }

@@ -24,22 +24,37 @@ class SKDocumentService
             $programStudyId = session('operator_program_study_id') ?? session('pimpinan_program_study_id');
 
             foreach ($achievementIds as $saId) {
-                $achievement = StudentAchievement::with('student')->find($saId);
+                $achievement = StudentAchievement::with(['student', 'academicPeriod'])->find($saId);
 
-                if (!$achievement) continue;
+                if (! $achievement) {
+                    continue;
+                }
+
+                $period = $achievement->academicPeriod;
+                if ($period && ! $period->isValidationOpen()) {
+                    throw new \Exception('Batas waktu validasi untuk periode "'.$period->name.'" telah berakhir.');
+                }
 
                 // Skip if already has SK or not at faculty stage
-                if (!$achievement->isInFacultyStage() && $achievement->validation_status !== 'Menunggu') {
+                if (! in_array($achievement->validation_status, StudentAchievement::getFacultyPendingStatuses(), true)) {
                     continue;
                 }
 
                 // Security check: Ensure validator has access to this student's data
-                if ($level === 'faculty' && $achievement->student->faculty_id !== $facultyId) continue;
-                if ($level === 'department' && $achievement->student->department_id !== $departmentId) continue;
-                if ($level === 'program_study' && $achievement->student->program_study_id !== $programStudyId) continue;
-                
+                if ($level === 'faculty' && $achievement->student->faculty_id !== $facultyId) {
+                    continue;
+                }
+                if ($level === 'department' && $achievement->student->department_id !== $departmentId) {
+                    continue;
+                }
+                if ($level === 'program_study' && $achievement->student->program_study_id !== $programStudyId) {
+                    continue;
+                }
+
                 // For legacy faculty check
-                if (!$level && $achievement->student->faculty !== auth()->user()->faculty) continue;
+                if (! $level && $achievement->student->faculty !== auth()->user()->faculty) {
+                    continue;
+                }
 
                 // Create assignment
                 $sk->assignments()->create([
@@ -56,7 +71,7 @@ class SKDocumentService
                     'validation_status' => StudentAchievement::STATUS_FACULTY_APPROVED,
                     'faculty_validator_id' => $userId,
                     'faculty_validated_at' => $assignedAt,
-                    'faculty_notes' => 'Disetujui via batch assignment SK: ' . $sk->sk_number,
+                    'faculty_notes' => 'Disetujui via batch assignment SK: '.$sk->sk_number,
                     'current_stage' => StudentAchievement::STAGE_UNIVERSITY,
                 ]);
 
@@ -65,7 +80,7 @@ class SKDocumentService
                     'validator_id' => $userId,
                     'old_status' => $oldStatus,
                     'new_status' => StudentAchievement::STATUS_FACULTY_APPROVED,
-                    'notes' => 'Disetujui via batch assignment SK: ' . $sk->sk_number . ($notes ? '. ' . $notes : ''),
+                    'notes' => 'Disetujui via batch assignment SK: '.$sk->sk_number.($notes ? '. '.$notes : ''),
                     'validation_stage' => StudentAchievement::STAGE_FACULTY,
                     'stage_action' => 'batch_approve',
                     'is_stage_transition' => true,

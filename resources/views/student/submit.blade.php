@@ -339,6 +339,10 @@
     </div>
 @endsection
 
+@push('scripts')
+    <script src="/js/student-submit-recovery.js" defer></script>
+@endpush
+
 @push('styles')
     <style>
         [x-cloak] {

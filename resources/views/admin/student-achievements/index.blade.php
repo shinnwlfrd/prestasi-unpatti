@@ -3,6 +3,14 @@
 @section('title', 'Prestasi Mahasiswa')
 
 @section('content')
+    @php
+        $workflowStatusGroups = \App\Models\StudentAchievement::getWorkflowStatusGroups();
+        $facultyApprovedStatuses = [
+            \App\Models\StudentAchievement::STATUS_FACULTY_APPROVED,
+            \App\Models\StudentAchievement::STATUS_UNIVERSITY_REVIEW,
+        ];
+    @endphp
+
     <div class="space-y-6">
         <!-- Quick Stats -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -35,7 +43,7 @@
                     <div>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Disetujui Fakultas</p>
                         <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                            {{ $achievements->whereIn('validation_status', ['faculty_approved', 'university_review'])->count() }}
+                            {{ $achievements->whereIn('validation_status', $facultyApprovedStatuses)->count() }}
                         </p>
                     </div>
                 </div>
@@ -53,7 +61,7 @@
                     <div>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Disetujui Universitas</p>
                         <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-                            {{ $achievements->whereIn('validation_status', ['university_approved', 'Disetujui'])->count() }}
+                            {{ $achievements->whereIn('validation_status', $workflowStatusGroups['approved'])->count() }}
                         </p>
                     </div>
                 </div>
@@ -71,7 +79,7 @@
                     <div>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Pending</p>
                         <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                            {{ $achievements->whereIn('validation_status', ['submitted', 'faculty_review', 'Menunggu'])->count() }}
+                            {{ $achievements->whereIn('validation_status', \App\Models\StudentAchievement::getFacultyPendingStatuses())->count() }}
                         </p>
                     </div>
                 </div>
@@ -89,7 +97,7 @@
                     <div>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Revisi</p>
                         <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                            {{ $achievements->whereIn('validation_status', ['faculty_revision', 'Revisi'])->count() }}</p>
+                            {{ $achievements->whereIn('validation_status', $workflowStatusGroups['revision'])->count() }}</p>
                     </div>
                 </div>
             </div>

@@ -1,10 +1,10 @@
 <?php
-  
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class() extends Migration
 {
     /**
      * Run the migrations.
@@ -16,6 +16,7 @@ return new class extends Migration
 
         // 2. Drop columns from student_achievements
         Schema::table('student_achievements', function (Blueprint $table) {
+            $table->dropIndex(['is_appeal']);
             $table->dropColumn(['is_appeal', 'appeal_reason', 'appealed_at']);
         });
     }
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->boolean('is_appeal')->default(false);
             $table->text('appeal_reason')->nullable();
             $table->timestamp('appealed_at')->nullable();
+            $table->index('is_appeal');
         });
 
         Schema::create('achievement_appeals', function (Blueprint $table) {

@@ -1,15 +1,19 @@
 <?php
 
 namespace App\Services\Admin;
+
 use App\Http\Traits\AnomalyAlertsTrait;
 use App\Models\AcademicPeriod;
 use App\Models\Achievement;
+use App\Models\AchievementCategory;
+use App\Models\AchievementLevel;
+use App\Models\AuthLog;
+use App\Models\IntegrationHealthCheck;
 use App\Models\Student;
 use App\Models\StudentAchievement;
 use App\Models\User;
 use App\Models\ValidationLog;
-use App\Models\AuthLog;
-use App\Services\Admin\StatisticsService;
+use App\Services\SiakadApiService;
 use App\Services\SigapApiService;
 use Carbon\Carbon;
 
@@ -19,106 +23,258 @@ class DashboardService
 
     public function __construct(
         protected StatisticsService $statisticsService,
-        protected SigapApiService $sigapApiService
-    ) {
+        protected SigapApiService $sigapApiService,
+        protected SiakadApiService $siakadApiService
+    ) {}
+
+    public function getIntegrationHealthData(): array
+    {
+        $services = [
+            $this->sigapApiService->getHealthStatus(),
+            $this->siakadApiService->getHealthStatus(),
+        ];
+
+        $overallStatus = collect($services)->contains(fn (array $service) => $service['status'] !== 'up')
+            ? 'degraded'
+            : 'up';
+
+        return [
+            'overall_status' => $overallStatus,
+            'services' => $services,
+            'recent_history' => $this->getRecentIntegrationHealthHistory(),
+            'alert_summary' => $this->getIntegrationAlertSummary($services),
+            'checked_at' => now()->toIso8601String(),
+        ];
+    }
+
+    public function captureIntegrationHealthSnapshot(): array
+    {
+        $payload = $this->getIntegrationHealthData();
+
+        foreach ($payload['services'] as $service) {
+            IntegrationHealthCheck::create([
+                'service' => $service['service'],
+                'status' => $service['status'],
+                'base_url' => $service['base_url'] ?? null,
+                'message' => $service['message'] ?? null,
+                'meta' => $service['meta'] ?? [],
+                'checked_at' => $service['checked_at'] ?? now(),
+            ]);
+        }
+
+        return $payload;
+    }
+
+    public function getRecentIntegrationHealthHistory(int $limitPerService = 3): array
+    {
+        return IntegrationHealthCheck::query()
+            ->orderByDesc('checked_at')
+            ->get()
+            ->groupBy('service')
+            ->map(function ($items) use ($limitPerService) {
+                return $items->take($limitPerService)->map(function (IntegrationHealthCheck $item) {
+                    return [
+                        'status' => $item->status,
+                        'message' => $item->message,
+                        'checked_at' => optional($item->checked_at)?->toIso8601String(),
+                    ];
+                })->values()->all();
+            })
+            ->toArray();
+    }
+
+    public function getIntegrationAlertSummary(array $services, int $historyLimit = 5, int $alertThreshold = 3): array
+    {
+        $historyByService = IntegrationHealthCheck::query()
+            ->orderByDesc('checked_at')
+            ->get()
+            ->groupBy('service');
+
+        $affectedServices = collect($services)->map(function (array $service) use ($historyByService, $historyLimit, $alertThreshold) {
+            $history = collect($historyByService->get($service['service'], []))
+                ->take($historyLimit)
+                ->values();
+
+            $consecutiveFailures = 0;
+            foreach ($history as $item) {
+                if ($item->status !== 'down') {
+                    break;
+                }
+
+                $consecutiveFailures++;
+            }
+
+            $lastFailureAt = optional(
+                $history->first(fn (IntegrationHealthCheck $item) => $item->status === 'down')
+            )?->checked_at?->toIso8601String();
+
+            $lastRecoveredAt = optional(
+                $history->first(fn (IntegrationHealthCheck $item) => $item->status === 'up')
+            )?->checked_at?->toIso8601String();
+
+            $needsAttention = ($service['status'] ?? 'down') !== 'up' || $consecutiveFailures >= $alertThreshold;
+
+            return [
+                'service' => $service['service'],
+                'status' => $service['status'] ?? 'down',
+                'consecutive_failures' => $consecutiveFailures,
+                'last_failure_at' => $lastFailureAt,
+                'last_recovered_at' => $lastRecoveredAt,
+                'needs_attention' => $needsAttention,
+                'attention_level' => $consecutiveFailures >= $alertThreshold ? 'critical' : (($service['status'] ?? 'down') !== 'up' ? 'warning' : 'normal'),
+            ];
+        })->values();
+
+        return [
+            'total_services' => count($services),
+            'up_services' => collect($services)->where('status', 'up')->count(),
+            'down_services' => collect($services)->filter(fn (array $service) => ($service['status'] ?? 'down') !== 'up')->count(),
+            'services_requiring_attention' => $affectedServices->where('needs_attention', true)->count(),
+            'affected_services' => $affectedServices->where('needs_attention', true)->values()->all(),
+        ];
     }
 
     public function getDashboardData($periodId = null)
     {
-        // 1. Resolve logical context (Period, State)
+        // Resolve context first to use the correct period ID in cache key
         $context = $this->resolveDashboardContext($periodId);
-        $periodId = $context['periodId'];
-        $selectedPeriod = $context['selectedPeriod'];
-        $activePeriod = AcademicPeriod::where('is_active', true)->first();
-        $periods = AcademicPeriod::ordered()->get();
-        $globalTrend = $this->getPeriodComparison();
+        $resolvedPeriodId = $context['periodId'] ?? 'all';
+        $version = StudentAchievement::getDashboardCacheVersion();
+        $cacheKey = "admin_dashboard_data_{$resolvedPeriodId}_v{$version}";
 
-        // 2. Resolve view state variables
-        $isGlobal = !$selectedPeriod;
-        $isActivePeriod = $selectedPeriod && $selectedPeriod->is_active;
-        $isInactivePeriod = $selectedPeriod && !$selectedPeriod->is_active;
+        return \Cache::remember($cacheKey, 600, function () use ($periodId) {
+            // 1. Resolve logical context (Period, State)
+            $context = $this->resolveDashboardContext($periodId);
+            $periodId = $context['periodId'];
+            $selectedPeriod = $context['selectedPeriod'];
+            $activePeriod = AcademicPeriod::where('is_active', true)->first();
+            $periods = AcademicPeriod::ordered()->get();
+            $globalTrend = $this->getPeriodComparison();
 
-        // 3. Status groupings
-        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'university_review'];
-        $approvedStatuses = ['Disetujui', 'faculty_approved', 'university_approved'];
-        $rejectedStatuses = ['Ditolak', 'faculty_rejected', 'university_rejected', 'faculty_revision'];
+            // 2. Resolve view state variables
+            $isGlobal = ! $selectedPeriod;
+            $isActivePeriod = $selectedPeriod && $selectedPeriod->is_active;
+            $isInactivePeriod = $selectedPeriod && ! $selectedPeriod->is_active;
 
-        // 4. Gather Core Data
-        $stats = $this->getDashboardSummaryStats($periodId, $pendingStatuses, $approvedStatuses, $rejectedStatuses);
-        $recentAchievements = $this->getRecentAchievementsForDashboard($periodId);
-        $queues = $this->getDashboardQueues($periodId);
-        $recentValidations = $this->getRecentValidationsForDashboard($periodId);
-        $statusStats = $this->getQuickStatusStats($periodId, $pendingStatuses, $approvedStatuses, $rejectedStatuses);
+            // 3. Status groupings
+            $statusGroups = StudentAchievement::getWorkflowStatusGroups();
+            $pendingStatuses = $statusGroups['pending'];
+            $approvedStatuses = $statusGroups['approved'];
+            $rejectedStatuses = $statusGroups['rejected'];
+            $revisionStatuses = $statusGroups['revision'];
 
-        // 5. Gather Monitoring/Leaderboard Data
-        $monitoring = $this->getDashboardMonitoringData($periodId, $approvedStatuses);
-        $globalLeaderboard = $this->getGlobalLeaderboardData($approvedStatuses);
+            // 4. Gather Core Data
+            $stats = $this->getDashboardSummaryStats($periodId, $pendingStatuses, $approvedStatuses, $rejectedStatuses);
+            $recentAchievements = $this->getRecentAchievementsForDashboard($periodId);
+            $queues = $this->getDashboardQueues($periodId);
+            $recentValidations = $this->getRecentValidationsForDashboard($periodId);
+            $statusStats = $this->getQuickStatusStats($periodId, $pendingStatuses, $approvedStatuses, $rejectedStatuses, $revisionStatuses);
 
-        // 6. Context-aware anomalies
-        $alertContext = $this->resolveAlertContext($selectedPeriod);
-        $anomalyData = $this->getDashboardAnomalyData($periodId, $alertContext);
+            // 5. Gather Monitoring/Leaderboard Data
+            $monitoring = $this->getDashboardMonitoringData($periodId, $approvedStatuses);
+            $globalLeaderboard = $this->getGlobalLeaderboardData($approvedStatuses);
 
-        // 7. View-specific data (Active vs Inactive)
-        $viewData = [
-            'archivedStats' => $isInactivePeriod ? $this->getArchivedDashboardStats($periodId, $selectedPeriod, $stats, $pendingStatuses) : null,
-            'activeStats' => $isActivePeriod ? $this->getActiveDashboardStats($periodId) : null,
-            'masterData' => $this->getMasterDataSummary(),
-        ];
+            // 6. Context-aware anomalies
+            $alertContext = $this->resolveAlertContext($selectedPeriod);
+            $anomalyData = $this->getDashboardAnomalyData($periodId, $alertContext);
 
-        $achievementLevels = \App\Models\AchievementLevel::active()->ordered()->get();
-        return array_merge(
-            compact(
-                'stats',
-                'recentAchievements',
-                'recentValidations',
-                'statusStats',
-                'activePeriod',
-                'periods',
-                'selectedPeriod',
-                'globalTrend',
-                'alertContext',
-                'isActivePeriod',
-                'isInactivePeriod',
-                'isGlobal',
-                'achievementLevels'
-            ),
-            $queues,
-            $monitoring,
-            $globalLeaderboard,
-            $anomalyData,
-            $viewData
-        );
+            // 7. View-specific data (Active vs Inactive)
+            $viewData = [
+                'archivedStats' => $isInactivePeriod ? $this->getArchivedDashboardStats($periodId, $selectedPeriod, $stats, $pendingStatuses) : null,
+                'activeStats' => $isActivePeriod ? $this->getActiveDashboardStats($periodId) : null,
+                'masterData' => $this->getMasterDataSummary(),
+            ];
+
+            $achievementLevels = AchievementLevel::active()->ordered()->get();
+
+            return array_merge(
+                compact(
+                    'stats',
+                    'recentAchievements',
+                    'recentValidations',
+                    'statusStats',
+                    'activePeriod',
+                    'periods',
+                    'selectedPeriod',
+                    'globalTrend',
+                    'alertContext',
+                    'isActivePeriod',
+                    'isInactivePeriod',
+                    'isGlobal',
+                    'achievementLevels'
+                ),
+                $queues,
+                $monitoring,
+                $globalLeaderboard,
+                $anomalyData,
+                $viewData
+            );
+        });
     }
-
 
     protected function getDashboardSummaryStats($periodId, array $pendingStatuses, array $approvedStatuses, array $rejectedStatuses): array
     {
+        $hasAggregated = $this->hasAggregatedData();
+
+        if ($hasAggregated) {
+            $achievementsCount = (int) \DB::table('dashboard_aggregations')
+                ->when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))
+                ->sum('total_count');
+
+            $totalAchievementsCount = (int) \DB::table('dashboard_aggregations')->sum('total_count');
+
+            $levelData = \DB::table('dashboard_aggregations')
+                ->selectRaw('level, sum(total_count) as total')
+                ->groupBy('level')
+                ->pluck('total', 'level')
+                ->toArray();
+            $globalLevelDistribution = AchievementLevel::active()->ordered()->get()->mapWithKeys(fn ($l) => [
+                $l->name => (int) ($levelData[$l->name] ?? 0),
+            ])->toArray();
+
+            $globalCategoryDistribution = \DB::table('dashboard_aggregations')
+                ->join('achievement_categories', 'dashboard_aggregations.category_id', '=', 'achievement_categories.id')
+                ->selectRaw('achievement_categories.name as category, SUM(dashboard_aggregations.total_count) as total')
+                ->groupBy('achievement_categories.name')
+                ->get();
+        } else {
+            $achievementsCount = StudentAchievement::when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))->count();
+            $totalAchievementsCount = StudentAchievement::count();
+            $globalLevelDistribution = AchievementLevel::active()->ordered()->get()->mapWithKeys(fn ($l) => [
+                $l->name => StudentAchievement::where('level', $l->name)->count(),
+            ])->toArray();
+            $globalCategoryDistribution = \DB::table('student_achievements')
+                ->join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
+                ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
+                ->selectRaw('achievement_categories.name as category, COUNT(*) as total')
+                ->groupBy('achievement_categories.name')
+                ->get();
+        }
+
+        $univPendingStatuses = [
+            StudentAchievement::STATUS_FACULTY_APPROVED,
+            StudentAchievement::STATUS_UNIVERSITY_REVIEW,
+        ];
+
         return [
             'students' => Student::count(),
-            'achievements' => StudentAchievement::when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
+            'achievements' => $achievementsCount,
             'pending' => $this->getInclusiveCount($pendingStatuses, $periodId),
             'total_pending' => $this->getInclusiveCount($pendingStatuses, null),
             'total_rejected' => $this->getInclusiveCount($rejectedStatuses, $periodId),
             'approved' => $this->getInclusiveCount($approvedStatuses, $periodId),
             'validators' => User::where('role', 'Operator')->where('is_active', true)->count(),
-            'total_achievements' => StudentAchievement::count(),
+            'total_achievements' => $totalAchievementsCount,
             'total_avg_time' => $this->calculateTotalAvgTime($approvedStatuses),
             'global_status_stats' => [
                 'menunggu' => $this->getInclusiveCount($pendingStatuses, null),
                 'disetujui' => $this->getInclusiveCount($approvedStatuses, null),
                 'ditolak' => $this->getInclusiveCount($rejectedStatuses, null),
             ],
-            'global_level_distribution' => \App\Models\AchievementLevel::active()->ordered()->get()->mapWithKeys(fn($l) => [
-                $l->name => StudentAchievement::where('level', $l->name)->count()
-            ])->toArray(),
-            'global_category_distribution' => \DB::table('student_achievements')
-                ->join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
-                ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
-                ->selectRaw('achievement_categories.name as category, COUNT(*) as total')
-                ->groupBy('achievement_categories.name')
-                ->get(),
+            'global_level_distribution' => $globalLevelDistribution,
+            'global_category_distribution' => $globalCategoryDistribution,
             // Two-stage validation stats
-            'university_pending' => StudentAchievement::universityPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
+            'university_pending' => $this->getInclusiveCount($univPendingStatuses, $periodId),
         ];
     }
 
@@ -126,7 +282,7 @@ class DashboardService
     {
         // Note: If no achievements in selected period, show latest without period filter
         $recentAchievements = StudentAchievement::with(['student', 'achievement.category'])
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))
             ->latest()
             ->take(10)
             ->get();
@@ -144,10 +300,12 @@ class DashboardService
 
     protected function getDashboardQueues($periodId): array
     {
+        $statusGroups = StudentAchievement::getWorkflowStatusGroups();
+
         // University Pending Queue (top 5 oldest) - Use selected period
         $universityPending = StudentAchievement::with(['student', 'achievement.category', 'facultyValidator'])
             ->universityPending()
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))
             ->orderBy('faculty_validated_at', 'asc')
             ->take(5)
             ->get();
@@ -155,17 +313,17 @@ class DashboardService
         // Resubmission Queue (top 5 oldest) - replaces appeal queue - Use selected period
         $resubmissionQueue = StudentAchievement::with(['student', 'achievement.category'])
             ->where('is_resubmission', true)
-            ->whereIn('validation_status', ['submitted', 'faculty_review'])
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->whereIn('validation_status', StudentAchievement::getFacultyPendingStatuses())
+            ->when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))
             ->orderBy('last_resubmitted_at', 'asc')
             ->take(5)
             ->get();
 
         // Pending Review (urgent - older than 7 days) - Use selected period
         $urgentPending = StudentAchievement::with(['student', 'achievement.category'])
-            ->where('validation_status', 'Menunggu')
+            ->whereIn('validation_status', $statusGroups['pending'])
             ->where('submitted_at', '<', now()->subDays(7))
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))
             ->orderBy('submitted_at', 'asc')
             ->take(5)
             ->get();
@@ -177,32 +335,53 @@ class DashboardService
     {
         return ValidationLog::with(['studentAchievement.student', 'validator'])
             ->when($periodId, function ($q) use ($periodId) {
-                $q->whereHas('studentAchievement', fn($sq) => $sq->where('academic_period_id', $periodId));
+                $q->whereHas('studentAchievement', fn ($sq) => $sq->where('academic_period_id', $periodId));
             })
             ->latest('validated_at')
             ->take(10)
             ->get();
     }
 
-    protected function getQuickStatusStats($periodId, array $pendingStatuses, array $approvedStatuses, array $rejectedStatuses): array
+    protected function getQuickStatusStats($periodId, array $pendingStatuses, array $approvedStatuses, array $rejectedStatuses, array $revisionStatuses): array
     {
         return [
             'menunggu' => $this->getInclusiveCount($pendingStatuses, $periodId),
             'disetujui' => $this->getInclusiveCount($approvedStatuses, $periodId),
             'ditolak' => $this->getInclusiveCount($rejectedStatuses, $periodId),
-            'revisi' => StudentAchievement::whereIn('validation_status', ['Revisi', 'faculty_revision'])->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
+            'revisi' => $this->getInclusiveCount($revisionStatuses, $periodId),
             // New two-stage statuses
-            'faculty_pending' => StudentAchievement::facultyPending()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
-            'faculty_approved' => StudentAchievement::facultyApproved()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
-            'university_approved' => StudentAchievement::universityApproved()->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))->count(),
+            'faculty_pending' => $this->getInclusiveCount([
+                StudentAchievement::STATUS_SUBMITTED,
+                StudentAchievement::STATUS_FACULTY_REVIEW,
+            ], $periodId),
+            'faculty_approved' => $this->getInclusiveCount([
+                StudentAchievement::STATUS_FACULTY_APPROVED,
+            ], $periodId),
+            'university_approved' => $this->getInclusiveCount([
+                StudentAchievement::STATUS_UNIVERSITY_APPROVED,
+            ], $periodId),
         ];
     }
 
     protected function getInclusiveCount(array $statuses, $pId = null): int
     {
+        if ($this->hasAggregatedData()) {
+            return (int) \DB::table('dashboard_aggregations')
+                ->whereIn('validation_status', $statuses)
+                ->when($pId, fn ($q) => $q->where('academic_period_id', $pId))
+                ->sum('total_count');
+        }
+
         return StudentAchievement::whereIn('validation_status', $statuses)
-            ->when($pId, fn($q) => $q->where('academic_period_id', $pId))
+            ->when($pId, fn ($q) => $q->where('academic_period_id', $pId))
             ->count();
+    }
+
+    protected function statusSqlList(array $statuses): string
+    {
+        return collect($statuses)
+            ->map(fn ($status) => "'".str_replace("'", "''", $status)."'")
+            ->implode(',');
     }
 
     protected function calculateTotalAvgTime(array $approvedStatuses): int
@@ -215,28 +394,55 @@ class DashboardService
         if ($records->isEmpty()) {
             return 0;
         }
-        $totalDays = $records->sum(fn($item) => Carbon::parse($item->created_at)->diffInDays(Carbon::parse($item->updated_at)));
+        $totalDays = $records->sum(fn ($item) => Carbon::parse($item->created_at)->diffInDays(Carbon::parse($item->updated_at)));
+
         return (int) round($totalDays / $records->count());
     }
 
     // Helper methods for monitoring dashboard
     protected function getPeriodComparison()
     {
+        $statusGroups = StudentAchievement::getWorkflowStatusGroups();
+        $approvedStatuses = $statusGroups['approved'];
+        $pendingStatuses = $statusGroups['pending'];
+        $rejectedStatuses = $statusGroups['rejected'];
+
+        if ($this->hasAggregatedData()) {
+            return \DB::table('dashboard_aggregations')
+                ->join('academic_periods', 'dashboard_aggregations.academic_period_id', '=', 'academic_periods.id')
+                ->selectRaw('
+                    academic_periods.name as period,
+                    SUM(total_count) as total,
+                    SUM(CASE WHEN validation_status IN ('.$this->statusSqlList($approvedStatuses).') THEN total_count ELSE 0 END) as approved,
+                    SUM(CASE WHEN validation_status IN ('.$this->statusSqlList($pendingStatuses).') THEN total_count ELSE 0 END) as pending,
+                    SUM(CASE WHEN validation_status IN ('.$this->statusSqlList($rejectedStatuses).') THEN total_count ELSE 0 END) as rejected
+                ')
+                ->groupBy('academic_periods.id', 'academic_periods.name', 'academic_periods.year', 'academic_periods.semester')
+                ->orderBy('academic_periods.year', 'desc')
+                ->orderBy('academic_periods.semester', 'desc')
+                ->get();
+        }
+
+        $approvedStatusesStr = $this->statusSqlList($approvedStatuses);
+        $pendingStatusesStr = $this->statusSqlList($pendingStatuses);
+        $rejectedStatusesStr = $this->statusSqlList($rejectedStatuses);
+
         return \DB::table('student_achievements')
             ->join('academic_periods', 'student_achievements.academic_period_id', '=', 'academic_periods.id')
+            ->whereNull('student_achievements.deleted_at')
             ->selectRaw("
                 academic_periods.name as period,
                 COUNT(*) as total,
                 SUM(CASE 
-                    WHEN validation_status IN ('Disetujui', 'university_approved') THEN 1 
+                    WHEN validation_status IN ($approvedStatusesStr) THEN 1 
                     ELSE 0 
                 END) as approved,
                 SUM(CASE 
-                    WHEN validation_status IN ('Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review') THEN 1 
+                    WHEN validation_status IN ($pendingStatusesStr) THEN 1 
                     ELSE 0 
                 END) as pending,
                 SUM(CASE 
-                    WHEN validation_status IN ('Ditolak', 'faculty_rejected', 'university_rejected') THEN 1 
+                    WHEN validation_status IN ($rejectedStatusesStr) THEN 1 
                     ELSE 0 
                 END) as rejected
             ")
@@ -248,7 +454,9 @@ class DashboardService
 
     protected function getApprovalStatistics($periodId = null)
     {
-        $approvedStatuses = ['Disetujui', 'faculty_approved', 'university_approved', 'appeal_approved'];
+        $statusGroups = StudentAchievement::getWorkflowStatusGroups();
+        $approvedStatuses = $statusGroups['approved'];
+        $pendingStatuses = $statusGroups['pending'];
 
         $query = StudentAchievement::query();
         if ($periodId) {
@@ -257,7 +465,7 @@ class DashboardService
 
         $total = $query->count();
         $approved = (clone $query)->whereIn('validation_status', $approvedStatuses)->count();
-        $pending = (clone $query)->where('validation_status', 'Menunggu')->count();
+        $pending = (clone $query)->whereIn('validation_status', $pendingStatuses)->count();
 
         $approvalRate = $total > 0 ? round(($approved / $total) * 100, 1) : 0;
 
@@ -265,7 +473,7 @@ class DashboardService
         // ONLY for approved achievements in the selected period
         $approvedRecords = StudentAchievement::query()
             ->whereIn('validation_status', $approvedStatuses)
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))
             ->whereNotNull('updated_at')
             ->select('created_at', 'updated_at')
             ->get();
@@ -283,7 +491,7 @@ class DashboardService
             'pending' => $pending,
             'approved' => $approved,
             'approval_rate' => $approvalRate,
-            'avg_time_to_approve' => $avgDays
+            'avg_time_to_approve' => $avgDays,
         ];
     }
 
@@ -333,11 +541,11 @@ class DashboardService
                 ->withCount([
                     'achievements as approved_count' => function ($q) use ($approvedStatuses) {
                         $q->whereIn('validation_status', $approvedStatuses);
-                    }
+                    },
                 ])
                 ->orderByDesc('approved_count')
                 ->limit(5)
-                ->get()
+                ->get(),
         ];
     }
 
@@ -346,13 +554,13 @@ class DashboardService
         if ($periodId) {
             return [
                 'anomalies' => $this->getContextAwareAnomalies($alertContext, (int) $periodId),
-                'globalBreakdown' => []
+                'globalBreakdown' => [],
             ];
         }
 
         return [
             'anomalies' => $this->getContextAwareAnomalies('global', null),
-            'globalBreakdown' => $this->getGlobalAnomalyBreakdown()
+            'globalBreakdown' => $this->getGlobalAnomalyBreakdown(),
         ];
     }
 
@@ -374,10 +582,11 @@ class DashboardService
         $facultyComparison = $this->getFacultyComparison($periodId);
         $ratioData = $facultyComparison->map(function ($f) use ($facultyStudentCounts) {
             $studentCount = $facultyStudentCounts[$f->full_name]->student_count ?? 1;
+
             return (object) [
                 'faculty' => $f->faculty,
                 'full_name' => $f->full_name,
-                'ratio' => round(($f->total / $studentCount) * 100, 2)
+                'ratio' => round(($f->total / $studentCount) * 100, 2),
             ];
         })->sortByDesc('ratio')->values();
 
@@ -419,6 +628,9 @@ class DashboardService
 
     protected function getMonthlyTrend($months = 6, $periodId = null)
     {
+        $approvedStatuses = $this->statusSqlList(StudentAchievement::getWorkflowStatusGroups()['approved']);
+        $isSqlite = \DB::getDriverName() === 'sqlite';
+
         // If specific period is selected, use period's date range
         if ($periodId) {
             $period = AcademicPeriod::find($periodId);
@@ -426,27 +638,40 @@ class DashboardService
                 $startDate = $period->start_date;
                 $endDate = $period->end_date;
 
-                $results = \DB::table('student_achievements')
-                    ->selectRaw("
-                        TO_CHAR(submitted_at, 'Mon YYYY') as month,
-                        COUNT(*) as submitted,
-                        SUM(CASE WHEN validation_status = 'Disetujui' THEN 1 ELSE 0 END) as approved
-                    ")
+                $query = \DB::table('student_achievements')
                     ->where('submitted_at', '>=', $startDate)
                     ->where('submitted_at', '<=', $endDate)
                     ->whereNotNull('submitted_at')
-                    ->where('academic_period_id', $periodId)
-                    ->groupByRaw("TO_CHAR(submitted_at, 'Mon YYYY'), DATE_TRUNC('month', submitted_at)")
-                    ->orderByRaw("DATE_TRUNC('month', submitted_at)")
-                    ->get();
+                    ->where('academic_period_id', $periodId);
+
+                if ($isSqlite) {
+                    $results = $query->selectRaw("
+                        strftime('%m-%Y', submitted_at) as month,
+                        COUNT(*) as submitted,
+                        SUM(CASE WHEN validation_status IN ($approvedStatuses) THEN 1 ELSE 0 END) as approved
+                    ")
+                        ->groupByRaw("strftime('%m-%Y', submitted_at)")
+                        ->orderByRaw("strftime('%Y-%m', submitted_at)")
+                        ->get();
+                } else {
+                    $results = $query->selectRaw("
+                        TO_CHAR(submitted_at, 'Mon YYYY') as month,
+                        COUNT(*) as submitted,
+                        SUM(CASE WHEN validation_status IN ($approvedStatuses) THEN 1 ELSE 0 END) as approved
+                    ")
+                        ->groupByRaw("TO_CHAR(submitted_at, 'Mon YYYY'), DATE_TRUNC('month', submitted_at)")
+                        ->orderByRaw("DATE_TRUNC('month', submitted_at)")
+                        ->get();
+                }
 
                 // If no data, return empty array with proper structure
                 if ($results->isEmpty()) {
                     $monthLabel = ($period && $period->start_date)
                         ? Carbon::parse($period->start_date)->format('M Y')
                         : now()->format('M Y');
+
                     return collect([
-                        (object) ['month' => $monthLabel, 'submitted' => 0, 'approved' => 0]
+                        (object) ['month' => $monthLabel, 'submitted' => 0, 'approved' => 0],
                     ]);
                 }
 
@@ -457,22 +682,34 @@ class DashboardService
         // For "Semua Periode", use last 6 months from now
         $startDate = now()->subMonths($months)->startOfMonth();
 
-        $results = \DB::table('student_achievements')
-            ->selectRaw("
+        $query = \DB::table('student_achievements')
+            ->where('submitted_at', '>=', $startDate)
+            ->whereNotNull('submitted_at');
+
+        if ($isSqlite) {
+            $results = $query->selectRaw("
+                strftime('%m-%Y', submitted_at) as month,
+                COUNT(*) as submitted,
+                SUM(CASE WHEN validation_status IN ($approvedStatuses) THEN 1 ELSE 0 END) as approved
+            ")
+                ->groupByRaw("strftime('%m-%Y', submitted_at)")
+                ->orderByRaw("strftime('%Y-%m', submitted_at)")
+                ->get();
+        } else {
+            $results = $query->selectRaw("
                 TO_CHAR(submitted_at, 'Mon YYYY') as month,
                 COUNT(*) as submitted,
-                SUM(CASE WHEN validation_status = 'Disetujui' THEN 1 ELSE 0 END) as approved
+                SUM(CASE WHEN validation_status IN ($approvedStatuses) THEN 1 ELSE 0 END) as approved
             ")
-            ->where('submitted_at', '>=', $startDate)
-            ->whereNotNull('submitted_at')
-            ->groupByRaw("TO_CHAR(submitted_at, 'Mon YYYY'), DATE_TRUNC('month', submitted_at)")
-            ->orderByRaw("DATE_TRUNC('month', submitted_at)")
-            ->get();
+                ->groupByRaw("TO_CHAR(submitted_at, 'Mon YYYY'), DATE_TRUNC('month', submitted_at)")
+                ->orderByRaw("DATE_TRUNC('month', submitted_at)")
+                ->get();
+        }
 
         // If no data, return empty array with proper structure
         if ($results->isEmpty()) {
             return collect([
-                (object) ['month' => now()->format('M Y'), 'submitted' => 0, 'approved' => 0]
+                (object) ['month' => now()->format('M Y'), 'submitted' => 0, 'approved' => 0],
             ]);
         }
 
@@ -481,10 +718,10 @@ class DashboardService
 
     protected function getLevelDistribution($periodId = null)
     {
-        $levels = \App\Models\AchievementLevel::active()->ordered()->get();
+        $levels = AchievementLevel::active()->ordered()->get();
 
         $counts = StudentAchievement::selectRaw('level, COUNT(*) as count')
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))
             ->groupBy('level')
             ->pluck('count', 'level');
 
@@ -498,19 +735,21 @@ class DashboardService
 
     protected function getTopPerformers($periodId = null, $limit = 10)
     {
-        return Student::whereHas('achievements', function ($q) use ($periodId) {
-            $q->where('validation_status', 'Disetujui');
+        $approvedStatuses = StudentAchievement::getWorkflowStatusGroups()['approved'];
+
+        return Student::whereHas('achievements', function ($q) use ($periodId, $approvedStatuses) {
+            $q->whereIn('validation_status', $approvedStatuses);
             if ($periodId) {
                 $q->where('academic_period_id', $periodId);
             }
         })
             ->withCount([
-                'achievements' => function ($q) use ($periodId) {
-                    $q->where('validation_status', 'Disetujui');
+                'achievements' => function ($q) use ($periodId, $approvedStatuses) {
+                    $q->whereIn('validation_status', $approvedStatuses);
                     if ($periodId) {
                         $q->where('academic_period_id', $periodId);
                     }
-                }
+                },
             ])
             ->orderByDesc('achievements_count')
             ->limit($limit)
@@ -519,6 +758,12 @@ class DashboardService
 
     protected function getFacultyComparison($periodId = null)
     {
+        $statusGroups = StudentAchievement::getWorkflowStatusGroups();
+        $approvedStatuses = $this->statusSqlList($statusGroups['approved']);
+        $pendingStatuses = $this->statusSqlList($statusGroups['pending']);
+        $rejectedStatuses = $this->statusSqlList($statusGroups['rejected']);
+        $revisionStatuses = $this->statusSqlList($statusGroups['revision']);
+
         $facultyMapping = [
             'Fakultas Teknik' => 'FT',
             'Fakultas Hukum' => 'FH',
@@ -531,37 +776,54 @@ class DashboardService
             'Fakultas Pertanian' => 'FP',
         ];
 
-        // Status mapping to simplify the chart
-        // Approved: Disetujui (legacy) OR university_approved OR appeal_approved
-        // Pending: Menunggu (legacy) OR submitted OR faculty_review OR faculty_approved OR university_review OR appeal_submitted
-        // Rejected: Ditolak (legacy) OR faculty_rejected OR university_rejected OR appeal_rejected
-        // Revision: Revisi (legacy) OR faculty_revision
+        if ($this->hasAggregatedData()) {
+            $facultySub = \DB::table('students')
+                ->select('faculty_id', \DB::raw('MAX(faculty) as faculty'))
+                ->whereNotNull('faculty_id')
+                ->groupBy('faculty_id');
 
-        $results = \DB::table('student_achievements')
-            ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-            ->selectRaw("
-                COALESCE(students.faculty, 'N/A') as faculty,
-                COUNT(*) as total,
-                SUM(CASE 
-                    WHEN student_achievements.validation_status IN ('Disetujui', 'university_approved') THEN 1 
-                    ELSE 0 
-                END) as approved,
-                SUM(CASE 
-                    WHEN student_achievements.validation_status IN ('Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review') THEN 1 
-                    ELSE 0 
-                END) as pending,
-                SUM(CASE 
-                    WHEN student_achievements.validation_status IN ('Ditolak', 'faculty_rejected', 'university_rejected') THEN 1 
-                    ELSE 0 
-                END) as rejected,
-                SUM(CASE 
-                    WHEN student_achievements.validation_status IN ('Revisi', 'faculty_revision') THEN 1 
-                    ELSE 0 
-                END) as revision
-            ")
-            ->when($periodId, fn($q) => $q->where('student_achievements.academic_period_id', $periodId))
-            ->groupBy('students.faculty')
-            ->get();
+            $results = \DB::table('dashboard_aggregations as da')
+                ->leftJoinSub($facultySub, 'f', 'da.faculty_id', '=', 'f.faculty_id')
+                ->selectRaw("
+                    COALESCE(f.faculty, 'N/A') as faculty,
+                    SUM(da.total_count) as total,
+                    SUM(CASE WHEN da.validation_status IN ($approvedStatuses) THEN da.total_count ELSE 0 END) as approved,
+                    SUM(CASE WHEN da.validation_status IN ($pendingStatuses) THEN da.total_count ELSE 0 END) as pending,
+                    SUM(CASE WHEN da.validation_status IN ($rejectedStatuses) THEN da.total_count ELSE 0 END) as rejected,
+                    SUM(CASE WHEN da.validation_status IN ($revisionStatuses) THEN da.total_count ELSE 0 END) as revision
+                ")
+                ->when($periodId, fn ($q) => $q->where('da.academic_period_id', $periodId))
+                ->groupBy('f.faculty')
+                ->get();
+        } else {
+            $results = \DB::table('student_achievements')
+                ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+                ->whereNull('student_achievements.deleted_at')
+                ->whereNull('students.deleted_at')
+                ->selectRaw("
+                    COALESCE(students.faculty, 'N/A') as faculty,
+                    COUNT(*) as total,
+                    SUM(CASE 
+                        WHEN student_achievements.validation_status IN ($approvedStatuses) THEN 1 
+                        ELSE 0 
+                    END) as approved,
+                    SUM(CASE 
+                        WHEN student_achievements.validation_status IN ($pendingStatuses) THEN 1 
+                        ELSE 0 
+                    END) as pending,
+                    SUM(CASE 
+                        WHEN student_achievements.validation_status IN ($rejectedStatuses) THEN 1 
+                        ELSE 0 
+                    END) as rejected,
+                    SUM(CASE 
+                        WHEN student_achievements.validation_status IN ($revisionStatuses) THEN 1 
+                        ELSE 0 
+                    END) as revision
+                ")
+                ->when($periodId, fn ($q) => $q->where('student_achievements.academic_period_id', $periodId))
+                ->groupBy('students.faculty')
+                ->get();
+        }
 
         $finalResults = [];
         $foundFaculties = $results->pluck('faculty')->toArray();
@@ -582,7 +844,7 @@ class DashboardService
 
         // 2. Add other faculties not in our mapping
         foreach ($results as $row) {
-            if (!isset($facultyMapping[$row->faculty])) {
+            if (! isset($facultyMapping[$row->faculty])) {
                 $fullName = $row->faculty;
                 // Simple heuristic for short name
                 $shortName = $fullName;
@@ -610,35 +872,54 @@ class DashboardService
         }
 
         // Sort by total for better visualization
-        usort($finalResults, fn($a, $b) => $b->total <=> $a->total);
+        usort($finalResults, fn ($a, $b) => $b->total <=> $a->total);
 
         return collect($finalResults);
     }
 
     protected function getCategoryDistribution($periodId = null)
     {
-        $allCategories = \App\Models\AchievementCategory::where('is_active', true)
+        $approvedStatuses = $this->statusSqlList(StudentAchievement::getWorkflowStatusGroups()['approved']);
+
+        $allCategories = AchievementCategory::where('is_active', true)
             ->orderBy('order')
             ->get();
 
-        $achievementCounts = StudentAchievement::join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
-            ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
-            ->selectRaw("
-                achievement_categories.id as category_id,
-                achievement_categories.name as category,
-                COUNT(*) as total,
-                SUM(CASE WHEN validation_status = 'Disetujui' THEN 1 ELSE 0 END) as approved
-            ")
-            ->when($periodId, function ($query) use ($periodId) {
-                $query->where('student_achievements.academic_period_id', $periodId);
-            })
-            ->groupBy('achievement_categories.id', 'achievement_categories.name')
-            ->get()
-            ->keyBy('category_id');
+        if ($this->hasAggregatedData()) {
+            $achievementCounts = \DB::table('dashboard_aggregations as da')
+                ->join('achievement_categories as ac', 'da.category_id', '=', 'ac.id')
+                ->selectRaw("
+                    ac.id as category_id,
+                    ac.name as category,
+                    SUM(da.total_count) as total,
+                    SUM(CASE WHEN da.validation_status IN ($approvedStatuses) THEN da.total_count ELSE 0 END) as approved
+                ")
+                ->when($periodId, fn ($q) => $q->where('da.academic_period_id', $periodId))
+                ->groupBy('ac.id', 'ac.name')
+                ->get()
+                ->keyBy('category_id');
+        } else {
+            $achievementCounts = StudentAchievement::join('achievements', 'student_achievements.achievement_id', '=', 'achievements.id')
+                ->join('achievement_categories', 'achievements.category_id', '=', 'achievement_categories.id')
+                ->whereNull('student_achievements.deleted_at')
+                ->selectRaw("
+                    achievement_categories.id as category_id,
+                    achievement_categories.name as category,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN validation_status IN ($approvedStatuses) THEN 1 ELSE 0 END) as approved
+                ")
+                ->when($periodId, function ($query) use ($periodId) {
+                    $query->where('student_achievements.academic_period_id', $periodId);
+                })
+                ->groupBy('achievement_categories.id', 'achievement_categories.name')
+                ->get()
+                ->keyBy('category_id');
+        }
 
         // Don't send color from database, let JavaScript handle it with the color palette
         return $allCategories->map(function ($category) use ($achievementCounts) {
             $counts = $achievementCounts->get($category->id);
+
             return (object) [
                 'category' => $category->name,
                 'total' => $counts->total ?? 0,
@@ -649,18 +930,43 @@ class DashboardService
 
     protected function getProgramStudyRanking($periodId = null)
     {
+        $approvedStatuses = $this->statusSqlList(StudentAchievement::getWorkflowStatusGroups()['approved']);
+
+        if ($this->hasAggregatedData()) {
+            $prodiSub = \DB::table('students')
+                ->select('program_study_id', \DB::raw('MAX(program_study) as program_study'), \DB::raw('MAX(faculty) as faculty'))
+                ->whereNotNull('program_study_id')
+                ->groupBy('program_study_id');
+
+            return \DB::table('dashboard_aggregations as da')
+                ->leftJoinSub($prodiSub, 'p', 'da.program_study_id', '=', 'p.program_study_id')
+                ->selectRaw("
+                    COALESCE(p.faculty, 'N/A') as faculty,
+                    COALESCE(p.program_study, 'N/A') as prodi,
+                    SUM(da.total_count) as total,
+                    SUM(CASE WHEN da.validation_status IN ($approvedStatuses) THEN da.total_count ELSE 0 END) as approved
+                ")
+                ->when($periodId, fn ($q) => $q->where('da.academic_period_id', $periodId))
+                ->groupBy('p.faculty', 'p.program_study')
+                ->orderByDesc('total')
+                ->limit(20)
+                ->get();
+        }
+
         return \DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
+            ->whereNull('student_achievements.deleted_at')
+            ->whereNull('students.deleted_at')
             ->selectRaw("
                 COALESCE(students.faculty, 'N/A') as faculty,
                 COALESCE(students.program_study, 'N/A') as prodi,
                 COUNT(*) as total,
                 SUM(CASE 
-                    WHEN validation_status IN ('Disetujui', 'university_approved') THEN 1 
+                    WHEN validation_status IN ($approvedStatuses) THEN 1 
                     ELSE 0 
                 END) as approved
             ")
-            ->when($periodId, fn($q) => $q->where('student_achievements.academic_period_id', $periodId))
+            ->when($periodId, fn ($q) => $q->where('student_achievements.academic_period_id', $periodId))
             ->groupBy('students.faculty', 'students.program_study')
             ->orderByDesc('total')
             ->limit(20)  // PERFORMANCE: Limit to top 20 program studies
@@ -678,13 +984,13 @@ class DashboardService
             ->orderByDesc('created_at')
             ->take($limit)
             ->get()
-            ->map(fn($log) => (object) [
+            ->map(fn ($log) => (object) [
                 'type' => 'auth',
                 'action' => $log->action === AuthLog::ACTION_LOGIN ? 'Login' : 'Logout',
                 'user' => $log->user->name ?? 'System',
-                'description' => $log->action === AuthLog::ACTION_LOGIN ? "Masuk ke sistem via {$log->method}" : "Keluar dari sistem",
+                'description' => $log->action === AuthLog::ACTION_LOGIN ? "Masuk ke sistem via {$log->method}" : 'Keluar dari sistem',
                 'timestamp' => $log->created_at,
-                'color' => 'blue'
+                'color' => 'blue',
             ]);
 
         // 2. Get Validation Logs (Status Changes)
@@ -692,13 +998,13 @@ class DashboardService
             ->orderByDesc('validated_at')
             ->take($limit)
             ->get()
-            ->map(fn($log) => (object) [
+            ->map(fn ($log) => (object) [
                 'type' => 'validation',
                 'action' => 'Validasi',
                 'user' => $log->validator->name ?? 'System',
                 'description' => "Ubah status: {$log->old_status} â†’ {$log->new_status}",
                 'timestamp' => $log->validated_at,
-                'color' => 'emerald'
+                'color' => 'emerald',
             ]);
 
         // 3. Merge and Sort
@@ -713,12 +1019,12 @@ class DashboardService
         $startDate = now()->subDays($days)->startOfDay();
 
         return ValidationLog::query()
-            ->selectRaw("DATE(validated_at) as date, COUNT(*) as count")
+            ->selectRaw('DATE(validated_at) as date, COUNT(*) as count')
             ->when($periodId, function ($q) use ($periodId) {
-                $q->whereHas('studentAchievement', fn($sq) => $sq->where('academic_period_id', $periodId));
+                $q->whereHas('studentAchievement', fn ($sq) => $sq->where('academic_period_id', $periodId));
             })
             ->where('validated_at', '>=', $startDate)
-            ->groupByRaw("DATE(validated_at)")
+            ->groupByRaw('DATE(validated_at)')
             ->orderBy('date', 'asc')
             ->get();
     }
@@ -737,13 +1043,13 @@ class DashboardService
             'Fakultas Pertanian' => 'FP',
         ];
 
-        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review'];
+        $pendingStatuses = StudentAchievement::getWorkflowStatusGroups()['pending'];
 
         $results = \DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
             ->selectRaw("COALESCE(students.faculty, 'N/A') as faculty, COUNT(*) as count")
             ->whereIn('student_achievements.validation_status', $pendingStatuses)
-            ->when($periodId, fn($q) => $q->where('student_achievements.academic_period_id', $periodId))
+            ->when($periodId, fn ($q) => $q->where('student_achievements.academic_period_id', $periodId))
             ->groupBy('students.faculty')
             ->orderByDesc('count')
             ->get();
@@ -751,17 +1057,18 @@ class DashboardService
         // Map to abbreviated English names
         return $results->map(function ($row) use ($facultyMapping) {
             $row->faculty = $facultyMapping[$row->faculty] ?? $row->faculty;
+
             return $row;
         });
     }
 
     protected function getCriticalQueue($periodId = null, $limit = 5)
     {
-        $pendingStatuses = ['Menunggu', 'submitted', 'faculty_review', 'faculty_approved', 'university_review'];
+        $pendingStatuses = StudentAchievement::getWorkflowStatusGroups()['pending'];
 
         $items = StudentAchievement::with(['student', 'achievement.category'])
             ->whereIn('validation_status', $pendingStatuses)
-            ->when($periodId, fn($q) => $q->where('academic_period_id', $periodId))
+            ->when($periodId, fn ($q) => $q->where('academic_period_id', $periodId))
             ->orderBy('created_at', 'asc')
             ->take($limit)
             ->get();
@@ -795,8 +1102,8 @@ class DashboardService
             'sync_status' => [
                 'status' => 'Stable',
                 'last_sync' => now()->subMinutes(rand(5, 60))->format('H:i'),
-                'percentage' => 100
-            ]
+                'percentage' => 100,
+            ],
         ];
     }
 
@@ -809,7 +1116,7 @@ class DashboardService
         if ($periodId && $periodId !== 'all') {
             $period = AcademicPeriod::find($periodId);
             $context = $period ? $this->resolveAlertContext($period) : $contextParam;
-        } elseif ($periodId === 'all' || !$periodId) {
+        } elseif ($periodId === 'all' || ! $periodId) {
             $context = 'global';
         } else {
             $context = $contextParam;
@@ -827,15 +1134,49 @@ class DashboardService
      */
     public function getUnitDistribution($periodId = null)
     {
-        $statusGroups = StudentAchievement::getStatusGroups();
-        
-        $approvedStr = "'" . implode("','", $statusGroups['approved']) . "'";
-        $pendingStr = "'" . implode("','", $statusGroups['pending']) . "'";
-        $rejectedStr = "'" . implode("','", $statusGroups['rejected']) . "'";
+        $statusGroups = StudentAchievement::getWorkflowStatusGroups();
+
+        $approvedStr = $this->statusSqlList($statusGroups['approved']);
+        $pendingStr = $this->statusSqlList($statusGroups['pending']);
+        $rejectedStr = $this->statusSqlList($statusGroups['rejected']);
+
+        if ($this->hasAggregatedData()) {
+            $prodiSub = \DB::table('students')
+                ->select('program_study_id', \DB::raw('MAX(program_study) as program_study'), \DB::raw('MAX(faculty) as faculty'))
+                ->whereNotNull('program_study_id')
+                ->groupBy('program_study_id');
+
+            return \DB::table('dashboard_aggregations as da')
+                ->joinSub($prodiSub, 'p', 'da.program_study_id', '=', 'p.program_study_id')
+                ->when($periodId && $periodId !== 'all', fn ($q) => $q->where('da.academic_period_id', $periodId))
+                ->select(
+                    'p.program_study as prodi',
+                    'p.faculty',
+                    \DB::raw('SUM(da.total_count) as total'),
+                    \DB::raw("SUM(CASE WHEN da.validation_status IN ($approvedStr) THEN da.total_count ELSE 0 END) as approved"),
+                    \DB::raw("SUM(CASE WHEN da.validation_status IN ($pendingStr) THEN da.total_count ELSE 0 END) as pending"),
+                    \DB::raw("SUM(CASE WHEN da.validation_status IN ($rejectedStr) THEN da.total_count ELSE 0 END) as rejected")
+                )
+                ->whereNotNull('p.program_study')
+                ->where('p.program_study', '!=', '')
+                ->groupBy('p.program_study', 'p.faculty')
+                ->orderByDesc('total')
+                ->get()
+                ->map(fn ($item) => [
+                    'prodi' => $item->prodi,
+                    'faculty' => $item->faculty,
+                    'total' => (int) $item->total,
+                    'approved' => (int) $item->approved,
+                    'pending' => (int) $item->pending,
+                    'rejected' => (int) $item->rejected,
+                ]);
+        }
 
         return \DB::table('student_achievements as sa')
             ->join('students as s', 'sa.student_id', '=', 's.student_id')
-            ->when($periodId && $periodId !== 'all', fn($q) => $q->where('sa.academic_period_id', $periodId))
+            ->whereNull('sa.deleted_at')
+            ->whereNull('s.deleted_at')
+            ->when($periodId && $periodId !== 'all', fn ($q) => $q->where('sa.academic_period_id', $periodId))
             ->select(
                 's.program_study as prodi',
                 's.faculty',
@@ -849,7 +1190,7 @@ class DashboardService
             ->groupBy('s.program_study', 's.faculty')
             ->orderByDesc('total')
             ->get()
-            ->map(fn($item) => [
+            ->map(fn ($item) => [
                 'prodi' => $item->prodi,
                 'faculty' => $item->faculty,
                 'total' => (int) $item->total,
@@ -864,7 +1205,7 @@ class DashboardService
      */
     protected function resolveAlertContext($selectedPeriod): string
     {
-        if (!$selectedPeriod) {
+        if (! $selectedPeriod) {
             return 'global';
         }
 
@@ -926,10 +1267,22 @@ class DashboardService
 
         $key = $typeMap[$type] ?? null;
 
-        if (!$key || !isset($anomalies[$key])) {
+        if (! $key || ! isset($anomalies[$key])) {
             return ['count' => 0, 'items' => []];
         }
 
         return $anomalies[$key];
+    }
+
+    /**
+     * Check if dashboard_aggregations table has data.
+     */
+    protected function hasAggregatedData(): bool
+    {
+        try {
+            return \DB::table('dashboard_aggregations')->exists();
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

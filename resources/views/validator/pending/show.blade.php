@@ -265,6 +265,90 @@
                             </select>
                         </div>
 
+                        <!-- Checklist Validasi (for approve) -->
+                        <div id="checklist-field" style="display: none;" class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Checklist Verifikasi Dokumen & Data <span class="text-red-500">*</span>
+                            </label>
+                            <div class="space-y-3 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                @php
+                                    $requiredItems = \App\Models\ValidationChecklist::getRequiredItemsFor($achievement);
+                                    $existingChecklist = $achievement->validationChecklist;
+                                @endphp
+                                
+                                @if(in_array('certificate', $requiredItems))
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="chk-certificate" name="checklist[certificate_valid]" type="checkbox" value="1"
+                                            {{ ($existingChecklist && $existingChecklist->certificate_valid) ? 'checked' : '' }}
+                                            class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded cursor-pointer">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="chk-certificate" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Sertifikat Valid</label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Pastikan nama, predikat, dan keabsahan sertifikat sesuai.</p>
+                                    </div>
+                                </div>
+                                @endif
+
+                                @if(in_array('event_date', $requiredItems))
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="chk-event-date" name="checklist[event_date_valid]" type="checkbox" value="1"
+                                            {{ ($existingChecklist && $existingChecklist->event_date_valid) ? 'checked' : '' }}
+                                            class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded cursor-pointer">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="chk-event-date" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Tanggal Kegiatan Valid</label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Pastikan tanggal pelaksanaan kegiatan berada dalam periode yang benar.</p>
+                                    </div>
+                                </div>
+                                @endif
+
+                                @if(in_array('organizer', $requiredItems))
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="chk-organizer" name="checklist[organizer_valid]" type="checkbox" value="1"
+                                            {{ ($existingChecklist && $existingChecklist->organizer_valid) ? 'checked' : '' }}
+                                            class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded cursor-pointer">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="chk-organizer" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Penyelenggara Valid</label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Penyelenggara kredibel dan terverifikasi untuk tingkat Nasional/Internasional.</p>
+                                    </div>
+                                </div>
+                                @endif
+
+                                @if(in_array('level', $requiredItems))
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="chk-level" name="checklist[level_appropriate]" type="checkbox" value="1"
+                                            {{ ($existingChecklist && $existingChecklist->level_appropriate) ? 'checked' : '' }}
+                                            class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded cursor-pointer">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="chk-level" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Tingkat Sesuai</label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Tingkat prestasi (Nasional/Internasional) telah divalidasi kebenarannya.</p>
+                                    </div>
+                                </div>
+                                @endif
+
+                                @if(in_array('documents', $requiredItems))
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5">
+                                        <input id="chk-documents" name="checklist[documents_complete]" type="checkbox" value="1"
+                                            {{ ($existingChecklist && $existingChecklist->documents_complete) ? 'checked' : '' }}
+                                            class="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded cursor-pointer">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="chk-documents" class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer">Dokumen Lengkap</label>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Seluruh dokumen bukti fisik (minimal 2 jenis untuk non-akademik) lengkap dan disetujui.</p>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Semua checklist di atas wajib dicentang untuk menyetujui prestasi ini.</p>
+                        </div>
+
                         <!-- Notes (for approve) -->
                         <div id="notes-field" class="mb-6">
                             <label
@@ -352,6 +436,11 @@
                             </li>
 
                             @foreach($achievement->validationLogs->sortBy('validated_at') as $log)
+                            @php
+                                $isApprovedLog = \App\Helpers\ValidationStatusHelper::isApproved($log->new_status);
+                                $isRejectedLog = \App\Helpers\ValidationStatusHelper::isRejected($log->new_status);
+                                $logStatusLabel = \App\Helpers\ValidationStatusHelper::getLabel($log->new_status);
+                            @endphp
                             <li>
                                 <div class="relative pb-8">
                                     <span aria-hidden="true"
@@ -360,14 +449,14 @@
                                         <div>
                                             <span
                                                 class="h-8 w-8 rounded-full 
-                                                {{ str_contains($log->new_status, 'Approved') || str_contains($log->new_status, 'Disetujui') ? 'bg-green-100 dark:bg-green-900/30' : 
-                                                   (str_contains($log->new_status, 'Reject') || str_contains($log->new_status, 'Tolak') ? 'bg-red-100 dark:bg-red-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30') }} 
+                                                {{ $isApprovedLog ? 'bg-green-100 dark:bg-green-900/30' : 
+                                                   ($isRejectedLog ? 'bg-red-100 dark:bg-red-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30') }} 
                                                 flex items-center justify-center ring-8 ring-white dark:ring-gray-800">
-                                                @if(str_contains($log->new_status, 'Approved') || str_contains($log->new_status, 'Disetujui'))
+                                                @if($isApprovedLog)
                                                     <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                                     </svg>
-                                                @elseif(str_contains($log->new_status, 'Reject') || str_contains($log->new_status, 'Tolak'))
+                                                @elseif($isRejectedLog)
                                                     <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                                                     </svg>
@@ -380,7 +469,7 @@
                                         </div>
                                         <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                             <div>
-                                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $log->new_status }}</p>
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $logStatusLabel }}</p>
                                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                                     oleh {{ $log->validator?->name ?? 'System' }}
                                                 </p>
@@ -397,7 +486,7 @@
                             </li>
                             @endforeach
 
-                            @if($achievement->validation_status === 'submitted' || $achievement->validation_status === 'Menunggu')
+                            @if(in_array($achievement->validation_status, \App\Models\StudentAchievement::getFacultyPendingStatuses(), true))
                             <li>
                                 <div class="relative">
                                     <div class="relative flex space-x-3">
@@ -536,26 +625,29 @@
             document.getElementById('validation-action')?.addEventListener('change', function() {
                 const action = this.value;
                 const notesField = document.getElementById('notes-field');
+                const checklistField = document.getElementById('checklist-field');
                 const rejectionField = document.getElementById('rejection-field');
                 const revisionField = document.getElementById('revision-field');
-
+ 
                 const notesTextarea = document.getElementById('notes-textarea');
                 const rejectionTextarea = document.getElementById('rejection-textarea');
                 const revisionTextarea = document.getElementById('revision-textarea');
-
+ 
                 // Hide all fields first
                 notesField.style.display = 'none';
+                if (checklistField) checklistField.style.display = 'none';
                 rejectionField.style.display = 'none';
                 revisionField.style.display = 'none';
-
+ 
                 // Remove required from all
                 notesTextarea.required = false;
                 rejectionTextarea.required = false;
                 revisionTextarea.required = false;
-
+ 
                 // Open correct field
                 if (action === 'approve') {
                     notesField.style.display = 'block';
+                    if (checklistField) checklistField.style.display = 'block';
                 } else if (action === 'reject') {
                     rejectionField.style.display = 'block';
                     rejectionTextarea.required = true;
@@ -564,7 +656,7 @@
                     revisionTextarea.required = true;
                 }
             });
-
+ 
             // Form validation
             document.getElementById('validation-form')?.addEventListener('submit', function(e) {
                 const action = document.getElementById('validation-action').value;
@@ -573,8 +665,18 @@
                     showToast('warning', 'Harap pilih keputusan verifikasi!');
                     return;
                 }
-
-                if (action === 'reject') {
+ 
+                if (action === 'approve') {
+                    const checklistField = document.getElementById('checklist-field');
+                    if (checklistField) {
+                        const uncheckedRequired = checklistField.querySelectorAll('input[type="checkbox"]:not(:checked)');
+                        if (uncheckedRequired.length > 0) {
+                            e.preventDefault();
+                            showToast('warning', 'Semua item checklist wajib dicentang untuk menyetujui prestasi ini!');
+                            return;
+                        }
+                    }
+                } else if (action === 'reject') {
                     const reason = document.getElementById('rejection-textarea').value.trim();
                     if (!reason) {
                         e.preventDefault();

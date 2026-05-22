@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Validator;
 
+use App\Models\AchievementLevel;
+use App\Services\DocumentUploadService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SubmitAchievementRequest extends FormRequest
@@ -13,6 +15,8 @@ class SubmitAchievementRequest extends FormRequest
 
     public function rules(): array
     {
+        $maxFileSize = (int) (DocumentUploadService::MAX_FILE_SIZE / 1024);
+
         return [
             // Support both single and multiple students
             'student_id' => 'nullable|exists:students,student_id',
@@ -21,7 +25,7 @@ class SubmitAchievementRequest extends FormRequest
 
             'category_id' => 'required|exists:achievement_categories,id',
             'event_name' => 'required|string|max:255',
-            'level' => 'required|in:' . \App\Models\AchievementLevel::active()->pluck('name')->implode(','),
+            'level' => 'required|in:'.AchievementLevel::active()->pluck('name')->implode(','),
             'organizer' => 'required|string|max:255',
             'event_date' => 'required|date',
             'ranking' => 'nullable|string|max:100',
@@ -29,21 +33,23 @@ class SubmitAchievementRequest extends FormRequest
 
             // Per-student attachments
             'attachments' => 'required|array',
-            'attachments.*.certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'attachments.*.certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:'.$maxFileSize,
             'attachments.*.additional_documents' => 'nullable|array|max:2',
-            'attachments.*.additional_documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'attachments.*.additional_documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:'.$maxFileSize,
 
             'submit_action' => 'required|in:pending,approve',
             'skip_sk' => 'nullable|boolean',
             'sk_id' => 'nullable|exists:sk_documents,id',
             'sk_waiver_reason' => 'nullable|in:tingkat_universitas,sk_dalam_proses,dokumen_alternatif,lainnya',
             'sk_waiver_notes' => 'required_if:sk_waiver_reason,lainnya|nullable|string|max:1000',
-            'alternative_document' => 'required_if:sk_waiver_reason,dokumen_alternatif|nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'alternative_document' => 'required_if:sk_waiver_reason,dokumen_alternatif|nullable|file|mimes:pdf,jpg,jpeg,png|max:'.($maxFileSize * 2), // SK usually larger
         ];
     }
 
     public function messages(): array
     {
+        $maxSizeMB = DocumentUploadService::MAX_FILE_SIZE / 1024 / 1024;
+
         return [
             'student_id.exists' => 'Mahasiswa tidak ditemukan.',
             'student_ids.required' => 'Pilih minimal satu mahasiswa.',
@@ -59,7 +65,7 @@ class SubmitAchievementRequest extends FormRequest
             'event_date.required' => 'Tanggal kegiatan wajib diisi.',
             'certificate.required' => 'Sertifikat wajib diupload.',
             'certificate.mimes' => 'Format sertifikat harus PDF, JPG, JPEG, atau PNG.',
-            'certificate.max' => 'Ukuran sertifikat maksimal 5MB.',
+            'certificate.max' => "Ukuran sertifikat maksimal {$maxSizeMB}MB.",
             'sk_id.required_if' => 'SK Resmi wajib dipilih untuk approve.',
             'sk_id.exists' => 'SK yang dipilih tidak ditemukan.',
             'sk_waiver_reason.required_if' => 'Alasan pengecualian SK wajib dipilih.',
@@ -68,12 +74,8 @@ class SubmitAchievementRequest extends FormRequest
         ];
     }
 
-    /**
-     * Prepare data for validation
-     */
     protected function prepareForValidation()
     {
-        // If student_ids is provided but empty, ensure validation fails
         if ($this->has('student_ids') && empty($this->input('student_ids'))) {
             $this->merge(['student_ids' => null]);
         }

@@ -2,19 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Models\AcademicPeriod;
 use App\Models\Achievement;
 use App\Models\AchievementCategory;
+use App\Models\AchievementDocument;
 use App\Models\AchievementLevel;
-use App\Models\AcademicPeriod;
 use App\Models\Student;
 use App\Models\StudentAchievement;
 use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Illuminate\Support\Facades\Hash;
 
 class ApplicationFlowTest extends TestCase
 {
@@ -49,7 +50,7 @@ class ApplicationFlowTest extends TestCase
     }
 
     #[Test]
-    public function admin_login_redirects_to_admin_dashboard(): void
+    public function authenticated_admin_redirects_to_admin_dashboard(): void
     {
         $user = User::forceCreate([
             'name' => 'Admin Test',
@@ -64,11 +65,7 @@ class ApplicationFlowTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->post('/login', [
-            'email' => 'admin@unpatti.ac.id',
-            'password' => 'password',
-        ]);
-
+        $response = $this->actingAs($user)->get('/');
         $response->assertRedirect('/admin');
     }
 
@@ -148,6 +145,29 @@ class ApplicationFlowTest extends TestCase
             'academic_period_id' => 1,
         ]);
 
+        // Create two approved documents of different types to pass the document gate for non-academic
+        $achievement->documents()->create([
+            'document_type' => AchievementDocument::TYPE_SERTIFIKAT,
+            'file_path' => 'test/cert.pdf',
+            'file_name' => 'cert.pdf',
+            'file_type' => 'application/pdf',
+            'file_size' => 100,
+            'status' => AchievementDocument::STATUS_APPROVED,
+            'verified_by' => $user->id,
+            'verified_at' => now(),
+        ]);
+
+        $achievement->documents()->create([
+            'document_type' => AchievementDocument::TYPE_FOTO_DOKUMENTASI,
+            'file_path' => 'test/photo.jpg',
+            'file_name' => 'photo.jpg',
+            'file_type' => 'image/jpeg',
+            'file_size' => 100,
+            'status' => AchievementDocument::STATUS_APPROVED,
+            'verified_by' => $user->id,
+            'verified_at' => now(),
+        ]);
+
         $response = $this->actingAs($user)
             ->withSession([
                 'active_role_id' => $user->activeRoles()->first()->id,
@@ -158,6 +178,13 @@ class ApplicationFlowTest extends TestCase
             ->post(route('validator.pending.validate', $achievement), [
                 'action' => 'approve',
                 'notes' => 'Disetujui',
+                'checklist' => [
+                    'certificate_valid' => true,
+                    'event_date_valid' => true,
+                    'organizer_valid' => true,
+                    'level_appropriate' => true,
+                    'documents_complete' => true,
+                ],
             ]);
 
         $response->assertRedirect(route('validator.pending.index'));

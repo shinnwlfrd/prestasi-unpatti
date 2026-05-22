@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AchievementLevel;
 use App\Models\SKDocument;
 use App\Models\StudentAchievement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SKDocumentController extends Controller
@@ -15,7 +17,7 @@ class SKDocumentController extends Controller
         $query = SKDocument::with(['creator'])
             ->withCount('assignments');
 
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->has('search') && ! empty($request->search)) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('sk_number', 'like', "%{$search}%")
@@ -149,10 +151,13 @@ class SKDocumentController extends Controller
     public function getAchievements(Request $request, SKDocument $sk)
     {
         $query = StudentAchievement::with(['student', 'achievement.category', 'academicPeriod'])
-            ->where('validation_status', StudentAchievement::STATUS_PENDING)
+            ->whereIn('validation_status', [
+                StudentAchievement::STATUS_FACULTY_APPROVED,
+                StudentAchievement::STATUS_UNIVERSITY_REVIEW,
+            ])
             ->whereDoesntHave('skAssignment');
 
-        if ($request->has('q') && !empty($request->q)) {
+        if ($request->has('q') && ! empty($request->q)) {
             $search = $request->q;
             $query->where(function ($q) use ($search) {
                 $q->where('event_name', 'like', "%{$search}%")
@@ -168,7 +173,7 @@ class SKDocumentController extends Controller
             ->get();
 
         return response()->json([
-            'achievements' => $achievements
+            'achievements' => $achievements,
         ]);
     }
 
@@ -180,44 +185,77 @@ class SKDocumentController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $assignedCount = 0;
-        $assignedAt = now();
+        $assignedCount = DB::transaction(function () use ($validated, $sk) {
+            $assignedCount = 0;
+            $assignedAt = now();
+            $userId = auth()->id();
 
-        foreach ($validated['achievement_ids'] as $saId) {
-            $achievement = StudentAchievement::find($saId);
+            foreach ($validated['achievement_ids'] as $saId) {
+                $achievement = StudentAchievement::with('academicPeriod')->find($saId);
 
-            // Skip if already has SK or not pending
-            if ($achievement->validation_status !== StudentAchievement::STATUS_PENDING) {
-                continue;
+                if (! $achievement || ! $achievement->isInUniversityStage() || $achievement->skAssignment()->exists()) {
+                    continue;
+                }
+
+                $period = $achievement->academicPeriod;
+                if ($period && ! $period->isValidationOpen()) {
+                    throw new \Exception('Batas waktu validasi untuk periode "'.$period->name.'" telah berakhir.');
+                }
+
+                $sk->assignments()->create([
+                    'sa_id' => $saId,
+                    'assigned_by' => $userId,
+                    'assigned_at' => $assignedAt,
+                    'assignment_type' => 'batch',
+                    'notes' => $validated['notes'] ?? null,
+                ]);
+
+                $oldStatus = $achievement->validation_status;
+                $notes = 'Disetujui universitas via batch assignment SK: '.$sk->sk_number;
+                if (! empty($validated['notes'])) {
+                    $notes .= '. '.$validated['notes'];
+                }
+
+                $levelName = $achievement->level;
+                $levelRecord = AchievementLevel::where('name', $levelName)->first();
+                $categoryName = $achievement->achievement?->category?->name;
+
+                $pointsSnapshot = [
+                    'level' => $levelName,
+                    'points' => $levelRecord?->points ?? 0,
+                    'category' => $categoryName,
+                    'level_id' => $levelRecord?->id,
+                    'captured_at' => $assignedAt->toIso8601String(),
+                ];
+
+                $achievement->update([
+                    'validation_status' => StudentAchievement::STATUS_UNIVERSITY_APPROVED,
+                    'current_stage' => StudentAchievement::STAGE_COMPLETED,
+                    'validator_id' => $userId,
+                    'university_validator_id' => $userId,
+                    'university_validated_at' => $assignedAt,
+                    'university_notes' => $notes,
+                    'points_snapshot' => $pointsSnapshot,
+                ]);
+
+                $achievement->validationLogs()->create([
+                    'validator_id' => $userId,
+                    'old_status' => $oldStatus,
+                    'new_status' => StudentAchievement::STATUS_UNIVERSITY_APPROVED,
+                    'notes' => $notes,
+                    'sk_document' => (string) $sk->id,
+                    'validation_type' => 'batch_sk_assignment',
+                    'validation_stage' => StudentAchievement::STAGE_UNIVERSITY,
+                    'stage_action' => 'final_approve',
+                    'is_stage_transition' => true,
+                    'validated_at' => $assignedAt,
+                ]);
+
+                $assignedCount++;
             }
 
-            // Create assignment
-            $sk->assignments()->create([
-                'sa_id' => $saId,
-                'assigned_by' => auth()->id(),
-                'assigned_at' => $assignedAt,
-                'assignment_type' => 'batch',
-                'notes' => $validated['notes'] ?? null,
-            ]);
-
-            // Update achievement status to approved
-            $achievement->update([
-                'validation_status' => StudentAchievement::STATUS_APPROVED,
-                'validator_id' => auth()->id(),
-            ]);
-
-            // Create validation log
-            $achievement->validationLogs()->create([
-                'validator_id' => auth()->id(),
-                'old_status' => StudentAchievement::STATUS_PENDING,
-                'new_status' => StudentAchievement::STATUS_APPROVED,
-                'notes' => 'Disetujui via batch assignment SK: ' . $sk->sk_number,
-                'validation_type' => 'batch_sk_assignment',
-                'validated_at' => $assignedAt,
-            ]);
-
-            $assignedCount++;
-        }
+            return $assignedCount;
+        });
 
         return redirect()->route('admin.sk.show', $sk)
             ->with('success', "SK berhasil di-assign ke {$assignedCount} prestasi");
@@ -226,7 +264,7 @@ class SKDocumentController extends Controller
     public function preview(SKDocument $sk)
     {
         if ($sk->file_path && Storage::disk('public')->exists($sk->file_path)) {
-            return response()->file(storage_path('app/public/' . $sk->file_path));
+            return response()->file(storage_path('app/public/'.$sk->file_path));
         } elseif ($sk->external_link) {
             return redirect($sk->external_link);
         }

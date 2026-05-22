@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\SigapApiService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
@@ -18,6 +20,7 @@ class Student extends Model
 
     protected $fillable = [
         'student_id',
+        'id_mahasiswa',
         'name',
         'faculty',
         'faculty_id',
@@ -57,52 +60,56 @@ class Student extends Model
         return $this->hasMany(StudentAchievement::class, 'student_id', 'student_id');
     }
 
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class, 'email', 'email');
+    }
+
     public function getPhotoUrlAttribute()
     {
         // Priority: foto_url (SIAKAD) > photo (local upload) > default avatar
-        if (!empty($this->attributes['foto_url'])) {
+        if (! empty($this->attributes['foto_url'])) {
             return $this->attributes['foto_url'];
         }
-        
-        if (!empty($this->attributes['photo'])) {
-            return asset('storage/' . $this->attributes['photo']);
+
+        if (! empty($this->attributes['photo'])) {
+            return asset('storage/'.$this->attributes['photo']);
         }
-        
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=3b82f6&color=fff';
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=3b82f6&color=fff';
     }
-    
+
     /**
      * Get SIGAP faculty data
      */
     public function getSigapFacultyAttribute()
     {
-        if (!$this->faculty_id) {
-            return null;
+        if (! $this->faculty_id) {
+            return;
         }
-        
+
         // Cache SIGAP data for 1 hour
         return cache()->remember("sigap_faculty_{$this->faculty_id}", 3600, function () {
             try {
-                $sigapService = app(\App\Services\SigapApiService::class);
+                $sigapService = app(SigapApiService::class);
                 $departments = $sigapService->getDepartments();
-                
+
                 // Find faculty from departments parent
                 foreach ($departments as $dept) {
                     if ($dept['parent_id'] === $this->faculty_id) {
                         return [
                             'id' => $this->faculty_id,
-                            'nama' => $this->faculty
+                            'nama' => $this->faculty,
                         ];
                     }
                 }
             } catch (\Exception $e) {
                 \Log::error('Error getting SIGAP faculty', ['error' => $e->getMessage()]);
             }
-            
-            return null;
+
         });
     }
-    
+
     /**
      * Get faculty name (alias for faculty field)
      */
@@ -110,7 +117,7 @@ class Student extends Model
     {
         return $this->faculty;
     }
-    
+
     /**
      * Get program study name (alias for program_study field)
      */
@@ -118,22 +125,22 @@ class Student extends Model
     {
         return $this->program_study;
     }
-    
+
     /**
      * Get SIGAP program study data
      */
     public function getSigapProgramStudyAttribute()
     {
-        if (!$this->program_study_id) {
-            return null;
+        if (! $this->program_study_id) {
+            return;
         }
-        
+
         // Cache SIGAP data for 1 hour
         return cache()->remember("sigap_prodi_{$this->program_study_id}", 3600, function () {
             try {
-                $sigapService = app(\App\Services\SigapApiService::class);
+                $sigapService = app(SigapApiService::class);
                 $studyPrograms = $sigapService->getStudyPrograms();
-                
+
                 foreach ($studyPrograms as $prodi) {
                     if ($prodi['id'] === $this->program_study_id) {
                         return $prodi;
@@ -142,8 +149,7 @@ class Student extends Model
             } catch (\Exception $e) {
                 \Log::error('Error getting SIGAP program study', ['error' => $e->getMessage()]);
             }
-            
-            return null;
+
         });
     }
 }

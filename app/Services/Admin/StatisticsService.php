@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\AcademicPeriod;
+use App\Models\StudentAchievement;
 use App\Repositories\Contracts\AchievementRepositoryInterface;
 use App\Repositories\Contracts\StudentRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -21,7 +22,7 @@ class StatisticsService
     public function getDashboardStatistics(): array
     {
         $scopeFilters = $this->getScopeFilters();
-        
+
         return [
             'students' => $this->getStudentCount($scopeFilters),
             'achievements' => $this->getAchievementCount($scopeFilters),
@@ -49,7 +50,7 @@ class StatisticsService
         // Pimpinan scope filtering
         if ($user->isPimpinan()) {
             $level = session('pimpinan_level');
-            
+
             if ($level === 'faculty') {
                 $filters['faculty_id'] = session('pimpinan_faculty_id');
             } elseif ($level === 'department') {
@@ -65,7 +66,7 @@ class StatisticsService
         // Operator scope filtering
         if ($user->isOperator()) {
             $level = session('operator_level');
-            
+
             if ($level === 'faculty') {
                 $filters['faculty_id'] = session('operator_faculty_id');
             } elseif ($level === 'department') {
@@ -98,6 +99,7 @@ class StatisticsService
 
         if ($user->isPimpinan()) {
             $level = session('pimpinan_level');
+
             return [
                 'level' => $level,
                 'name' => $this->getScopeName('pimpinan', $level),
@@ -108,6 +110,7 @@ class StatisticsService
 
         if ($user->isOperator()) {
             $level = session('operator_level');
+
             return [
                 'level' => $level,
                 'name' => $this->getScopeName('operator', $level),
@@ -131,11 +134,11 @@ class StatisticsService
         $prefix = $roleType === 'pimpinan' ? 'pimpinan_' : 'operator_';
 
         if ($level === 'faculty') {
-            return session($prefix . 'faculty_name', 'Fakultas');
+            return session($prefix.'faculty_name', 'Fakultas');
         } elseif ($level === 'department') {
-            return session($prefix . 'department_name', 'Jurusan');
+            return session($prefix.'department_name', 'Jurusan');
         } elseif ($level === 'program_study') {
-            return session($prefix . 'program_study_name', 'Program Studi');
+            return session($prefix.'program_study_name', 'Program Studi');
         }
 
         return 'Universitas Pattimura';
@@ -145,15 +148,15 @@ class StatisticsService
     {
         $query = DB::table('students');
 
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->where('faculty_id', $filters['faculty_id']);
         }
 
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('department_id', $filters['department_id']);
         }
 
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->where('program_study_id', $filters['program_study_id']);
         }
 
@@ -166,15 +169,15 @@ class StatisticsService
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
             ->whereNull('student_achievements.deleted_at'); // Include soft-deleted check
 
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->where('students.faculty_id', $filters['faculty_id']);
         }
 
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('students.department_id', $filters['department_id']);
         }
 
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->where('students.program_study_id', $filters['program_study_id']);
         }
 
@@ -185,18 +188,18 @@ class StatisticsService
     {
         $query = DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-            ->where('student_achievements.validation_status', 'Menunggu')
+            ->whereIn('student_achievements.validation_status', StudentAchievement::getWorkflowStatusGroups()['pending'])
             ->whereNull('student_achievements.deleted_at'); // Exclude soft-deleted
 
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->where('students.faculty_id', $filters['faculty_id']);
         }
 
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('students.department_id', $filters['department_id']);
         }
 
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->where('students.program_study_id', $filters['program_study_id']);
         }
 
@@ -207,18 +210,18 @@ class StatisticsService
     {
         $query = DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
-            ->where('student_achievements.validation_status', 'Disetujui')
+            ->whereIn('student_achievements.validation_status', StudentAchievement::getWorkflowStatusGroups()['approved'])
             ->whereNull('student_achievements.deleted_at'); // Exclude soft-deleted
 
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->where('students.faculty_id', $filters['faculty_id']);
         }
 
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('students.department_id', $filters['department_id']);
         }
 
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->where('students.program_study_id', $filters['program_study_id']);
         }
 
@@ -249,6 +252,11 @@ class StatisticsService
     {
         $scopeFilters = $this->getScopeFilters();
         $activePeriod = $periodId ? AcademicPeriod::find($periodId) : AcademicPeriod::where('is_active', true)->first();
+        $decisionGroups = StudentAchievement::getValidationDecisionStatusGroups();
+        $validatedStatuses = array_merge(...array_values($decisionGroups));
+        $approvedStatuses = $this->statusSqlList($decisionGroups['approved']);
+        $rejectedStatuses = $this->statusSqlList($decisionGroups['rejected']);
+        $revisionStatuses = $this->statusSqlList($decisionGroups['revision']);
 
         if (! $activePeriod) {
             return collect();
@@ -271,28 +279,28 @@ class StatisticsService
         $query = DB::table('student_achievements')
             ->join('students', 'student_achievements.student_id', '=', 'students.student_id')
             ->where('student_achievements.academic_period_id', $activePeriod->id)
-            ->whereIn('student_achievements.validation_status', ['Disetujui', 'Ditolak', 'Revisi'])
+            ->whereIn('student_achievements.validation_status', $validatedStatuses)
             ->whereNull('student_achievements.deleted_at'); // Exclude soft-deleted
 
         // Apply scope filters
-        if (!empty($scopeFilters['faculty_id'])) {
+        if (! empty($scopeFilters['faculty_id'])) {
             $query->where('students.faculty_id', $scopeFilters['faculty_id']);
         }
 
-        if (!empty($scopeFilters['department_id'])) {
+        if (! empty($scopeFilters['department_id'])) {
             $query->where('students.department_id', $scopeFilters['department_id']);
         }
 
-        if (!empty($scopeFilters['program_study_id'])) {
+        if (! empty($scopeFilters['program_study_id'])) {
             $query->where('students.program_study_id', $scopeFilters['program_study_id']);
         }
 
         return $query->selectRaw("
                 COALESCE(students.faculty, 'N/A') as faculty,
                 COUNT(*) as total_validated,
-                SUM(CASE WHEN student_achievements.validation_status = 'Disetujui' THEN 1 ELSE 0 END) as approved,
-                SUM(CASE WHEN student_achievements.validation_status = 'Ditolak' THEN 1 ELSE 0 END) as rejected,
-                SUM(CASE WHEN student_achievements.validation_status = 'Revisi' THEN 1 ELSE 0 END) as revision
+                SUM(CASE WHEN student_achievements.validation_status IN ($approvedStatuses) THEN 1 ELSE 0 END) as approved,
+                SUM(CASE WHEN student_achievements.validation_status IN ($rejectedStatuses) THEN 1 ELSE 0 END) as rejected,
+                SUM(CASE WHEN student_achievements.validation_status IN ($revisionStatuses) THEN 1 ELSE 0 END) as revision
             ")
             ->groupBy('students.faculty')
             ->orderByDesc('total_validated')
@@ -308,5 +316,12 @@ class StatisticsService
                     'approval_rate' => $item->total_validated > 0 ? round(($item->approved / $item->total_validated) * 100, 1) : 0,
                 ];
             });
+    }
+
+    protected function statusSqlList(array $statuses): string
+    {
+        return collect($statuses)
+            ->map(fn ($status) => "'".str_replace("'", "''", $status)."'")
+            ->implode(',');
     }
 }

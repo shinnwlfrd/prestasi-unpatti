@@ -101,6 +101,7 @@
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 min-h-screen overflow-x-hidden text-sm md:text-base">
+    @include('partials.offline-banner')
     <div class="min-h-screen">
         @php
             $user = auth()->user();
@@ -430,6 +431,7 @@
     </script>
     @stack('scripts')
     @include('partials.pwa-sw-register')
+    <script src="/js/offline-status.js" defer></script>
 </body>
 
 </html>

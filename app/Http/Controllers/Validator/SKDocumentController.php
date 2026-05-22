@@ -44,31 +44,28 @@ class SKDocumentController extends Controller
 
         // Get pending achievements for AJAX request
         $query = StudentAchievement::with(['student', 'achievement.category', 'academicPeriod'])
-            ->where(function ($q) {
-                $q->facultyPending() // New system: submitted, faculty_review
-                    ->orWhere('validation_status', 'Menunggu'); // Legacy
-            })
+            ->whereIn('validation_status', StudentAchievement::getFacultyPendingStatuses())
             ->whereDoesntHave('skAssignment');
 
         // Apply scope filtering based on active role level
         if ($level === 'faculty' && $facultyId) {
-            $query->whereHas('student', fn($q) => $q->where('faculty_id', $facultyId));
+            $query->whereHas('student', fn ($q) => $q->where('faculty_id', $facultyId));
         } elseif ($level === 'department' && $departmentId) {
-            $query->whereHas('student', fn($q) => $q->where('department_id', $departmentId));
+            $query->whereHas('student', fn ($q) => $q->where('department_id', $departmentId));
         } elseif ($level === 'program_study' && $programStudyId) {
-            $query->whereHas('student', fn($q) => $q->where('program_study_id', $programStudyId));
-        } elseif (!$level) {
+            $query->whereHas('student', fn ($q) => $q->where('program_study_id', $programStudyId));
+        } elseif (! $level) {
             // Fallback to user->faculty string if no session level
             $faculty = $user->faculty;
             if ($faculty) {
-                $query->whereHas('student', fn($q) => $q->where('faculty', $faculty));
+                $query->whereHas('student', fn ($q) => $q->where('faculty', $faculty));
             }
         }
 
         $achievements = $query->orderBy('submitted_at', 'desc')->get();
 
         return response()->json([
-            'achievements' => $achievements
+            'achievements' => $achievements,
         ]);
     }
 
@@ -94,7 +91,7 @@ class SKDocumentController extends Controller
     public function preview(SKDocument $sk)
     {
         if ($sk->file_path && \Storage::disk('public')->exists($sk->file_path)) {
-            return response()->file(storage_path('app/public/' . $sk->file_path));
+            return response()->file(storage_path('app/public/'.$sk->file_path));
         } elseif ($sk->external_link) {
             return redirect($sk->external_link);
         }

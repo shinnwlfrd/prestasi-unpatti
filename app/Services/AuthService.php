@@ -4,16 +4,14 @@ namespace App\Services;
 
 use App\Models\AuthLog;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class AuthService
 {
-
     /**
      * Find user from SSO data (does NOT auto-create)
      * Non-student users must be pre-registered by admin
-     * 
+     *
      * @throws \Exception if user not found
      */
     public function findOrCreateFromSSO(array $ssoData, array $tokens, string $provider = 'siakad'): User
@@ -39,7 +37,7 @@ class AuthService
 
         // 3. User not found — do NOT auto-create
         // Non-student accounts must be created manually by admin
-        throw new \Exception('Akun dengan email ' . $email . ' belum terdaftar di sistem. Hubungi Administrator.');
+        throw new \Exception('Akun dengan email '.$email.' belum terdaftar di sistem. Hubungi Administrator.');
     }
 
     /**
@@ -98,43 +96,6 @@ class AuthService
     }
 
     /**
-     * Create new user from SSO
-     */
-    protected function createSSOUser(
-        string $provider,
-        string $providerId,
-        array $ssoData,
-        array $tokens
-    ): User {
-        $user = User::create([
-            'name' => $ssoData['name'] ?? 'User',
-            'email' => $ssoData['email'],
-            'password' => null, // SSO user has no local password
-            'provider' => $provider,
-            'provider_id' => $providerId,
-            'provider_token' => isset($tokens['access_token']) ? encrypt($tokens['access_token']) : null,
-            'provider_refresh_token' => isset($tokens['refresh_token']) ? encrypt($tokens['refresh_token']) : null,
-            'provider_token_expires_at' => isset($tokens['expires_in'])
-                ? now()->addSeconds($tokens['expires_in'])
-                : null,
-            'provider_data' => $ssoData,
-            'role' => $this->mapRole($ssoData),
-            'primary_auth' => 'sso',
-            'email_verified_at' => now(), // SSO = verified
-            'is_active' => true,
-            'last_login_at' => now(),
-            'last_login_method' => 'sso',
-        ]);
-
-        $this->logAuthActivity($user, 'register', [
-            'method' => 'sso',
-            'provider' => $provider,
-        ]);
-
-        return $user;
-    }
-
-    /**
      * Map role from SIAKAD to application role
      */
     protected function mapRole(array $ssoData): string
@@ -146,7 +107,6 @@ class AuthService
 
         return $mapping[$siakadRole] ?? 'Operator';
     }
-
 
     /**
      * Log authentication activity

@@ -55,8 +55,12 @@
                                 <td class="px-6 py-4">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $period->name }}</div>
                                     @if($period->description)
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ $period->description }}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $period->description }}</div>
                                     @endif
+                                    <div class="text-[11px] text-gray-400 dark:text-gray-500 mt-1.5 space-y-0.5">
+                                        <div>Batas Submit: <span class="text-gray-600 dark:text-gray-300 font-semibold">{{ $period->submission_deadline_label }}</span></div>
+                                        <div>Batas Validasi: <span class="text-gray-600 dark:text-gray-300 font-semibold">{{ $period->validation_deadline_label }}</span></div>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">{{ $period->code }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
@@ -285,6 +289,26 @@
                                 <input type="date" name="end_date" value="{{ old('end_date') }}" required
                                     class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-purple-500 focus:border-purple-500 @error('end_date') border-red-500 @enderror">
                                 @error('end_date')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Batas Pengajuan Mahasiswa (Submission Deadline)</label>
+                                <input type="datetime-local" name="submission_deadline" value="{{ old('submission_deadline') }}"
+                                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-purple-500 focus:border-purple-500 @error('submission_deadline') border-red-500 @enderror">
+                                @error('submission_deadline')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Batas Validasi Operator (Validation Deadline)</label>
+                                <input type="datetime-local" name="validation_deadline" value="{{ old('validation_deadline') }}"
+                                    class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-purple-500 focus:border-purple-500 @error('validation_deadline') border-red-500 @enderror">
+                                @error('validation_deadline')
                                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>

@@ -51,7 +51,7 @@ class AchievementRepository implements AchievementRepositoryInterface
         $query = $this->model->withTrashed()->with(['student', 'achievement.category', 'validator']);
 
         // Search by student name, NIM, or event name
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('event_name', 'like', "%{$search}%")
@@ -63,9 +63,9 @@ class AchievementRepository implements AchievementRepositoryInterface
         }
 
         // Filter by status (Grouped or Literal)
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $status = $filters['status'];
-            
+
             $statusGroups = StudentAchievement::getRepositoryStatusGroups();
 
             if (array_key_exists($status, $statusGroups)) {
@@ -76,39 +76,39 @@ class AchievementRepository implements AchievementRepositoryInterface
         }
 
         // Filter abandoned drafts (drafts older than 30 days)
-        if (!empty($filters['abandoned'])) {
+        if (! empty($filters['abandoned'])) {
             $query->where('validation_status', StudentAchievement::STATUS_DRAFT)
-                  ->where('updated_at', '<', now()->subDays(30));
+                ->where('updated_at', '<', now()->subDays(30));
         }
 
         // Filter by level
-        if (!empty($filters['level'])) {
+        if (! empty($filters['level'])) {
             $query->where('level', $filters['level']);
         }
 
         // Filter by category
-        if (!empty($filters['category'])) {
+        if (! empty($filters['category'])) {
             $query->whereHas('achievement', function ($q) use ($filters) {
                 $q->where('category_id', $filters['category']);
             });
         }
 
         // Filter by SIGAP faculty_id
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->whereHas('student', function ($q) use ($filters) {
                 $q->where('faculty_id', $filters['faculty_id']);
             });
         }
 
         // Filter by SIGAP department_id
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->whereHas('student', function ($q) use ($filters) {
                 $q->where('department_id', $filters['department_id']);
             });
         }
 
         // Filter by SIGAP program_study_id
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->whereHas('student', function ($q) use ($filters) {
                 $q->where('program_study_id', $filters['program_study_id']);
             });
@@ -124,7 +124,11 @@ class AchievementRepository implements AchievementRepositoryInterface
     {
         // Validators should not see soft-deleted achievements
         $query = $this->model->with(['student', 'achievement.category', 'documents'])
-            ->whereIn('validation_status', ['pending', 'Menunggu'])
+            ->whereIn('validation_status', [
+                StudentAchievement::STATUS_PENDING,
+                StudentAchievement::STATUS_SUBMITTED,
+                StudentAchievement::STATUS_FACULTY_REVIEW,
+            ])
             ->whereNull('deleted_at')
             ->orderByDesc('created_at');
 
@@ -161,7 +165,7 @@ class AchievementRepository implements AchievementRepositoryInterface
     {
         // Urgent pending should exclude soft-deleted
         return $this->model->with(['student', 'achievement.category'])
-            ->where('validation_status', 'Menunggu')
+            ->pending()
             ->whereNull('deleted_at')
             ->where('submitted_at', '<', now()->subDays($days))
             ->orderBy('submitted_at', 'asc')
@@ -180,10 +184,10 @@ class AchievementRepository implements AchievementRepositoryInterface
     public function getStatusStatistics(): array
     {
         return [
-            'menunggu' => $this->countByStatus('Menunggu'),
-            'disetujui' => $this->countByStatus('Disetujui'),
-            'ditolak' => $this->countByStatus('Ditolak'),
-            'revisi' => $this->countByStatus('Revisi'),
+            'menunggu' => $this->model->whereNull('deleted_at')->pending()->count(),
+            'disetujui' => $this->model->whereNull('deleted_at')->approved()->count(),
+            'ditolak' => $this->model->whereNull('deleted_at')->rejected()->count(),
+            'revisi' => $this->model->whereNull('deleted_at')->needRevision()->count(),
         ];
     }
 }

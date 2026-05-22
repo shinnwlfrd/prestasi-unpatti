@@ -5,10 +5,55 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class StudentAchievement extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected static function booted()
+    {
+        static::saved(function ($achievement) {
+            static::invalidateDashboardCache();
+            try {
+                DashboardAggregation::rebuild();
+            } catch (\Exception $e) {
+                \Log::error('Failed to rebuild dashboard aggregations on saved: '.$e->getMessage());
+            }
+        });
+
+        static::deleted(function ($achievement) {
+            static::invalidateDashboardCache();
+            try {
+                DashboardAggregation::rebuild();
+            } catch (\Exception $e) {
+                \Log::error('Failed to rebuild dashboard aggregations on deleted: '.$e->getMessage());
+            }
+        });
+    }
+
+    public static function invalidateDashboardCache(): void
+    {
+        try {
+            $key = 'dashboard_cache_version';
+            if (! Cache::has($key)) {
+                Cache::forever($key, 1);
+            } else {
+                Cache::increment($key);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to invalidate dashboard cache: '.$e->getMessage());
+        }
+    }
+
+    public static function getDashboardCacheVersion(): int
+    {
+        try {
+            return (int) Cache::get('dashboard_cache_version', 1);
+        } catch (\Exception $e) {
+            return 1;
+        }
+    }
 
     protected $primaryKey = 'sa_id';
 
@@ -16,6 +61,8 @@ class StudentAchievement extends Model
         'student_id',
         'achievement_id',
         'academic_period_id',
+        'student_snapshot',
+        'points_snapshot',
         'event_name',
         'level',
         'organizer',
@@ -51,6 +98,8 @@ class StudentAchievement extends Model
     protected $casts = [
         'event_date' => 'date',
         'submitted_at' => 'datetime',
+        'student_snapshot' => 'array',
+        'points_snapshot' => 'array',
         'sk_required' => 'boolean',
         'faculty_validated_at' => 'datetime',
         'university_validated_at' => 'datetime',
@@ -61,36 +110,53 @@ class StudentAchievement extends Model
     // Status constants - Two-Stage Validation System
     // Stage 1: Faculty Level
     const STATUS_DRAFT = 'draft';
+
     const STATUS_SUBMITTED = 'submitted';
+
     const STATUS_FACULTY_REVIEW = 'faculty_review';
+
     const STATUS_FACULTY_APPROVED = 'faculty_approved';
+
     const STATUS_FACULTY_REJECTED = 'faculty_rejected';
+
     const STATUS_FACULTY_REVISION = 'faculty_revision';
 
     // Stage 2: University Level
     const STATUS_UNIVERSITY_REVIEW = 'university_review';
+
     const STATUS_UNIVERSITY_APPROVED = 'university_approved';
+
     const STATUS_UNIVERSITY_REJECTED = 'university_rejected';
 
     // Legacy statuses (for backward compatibility during migration)
     const STATUS_PENDING = 'Menunggu';
+
     const STATUS_APPROVED = 'Disetujui';
+
     const STATUS_REJECTED = 'Ditolak';
+
     const STATUS_NEED_REVISION = 'Revisi';
 
     // Validation Stages
     const STAGE_FACULTY = 'faculty';
+
     const STAGE_UNIVERSITY = 'university';
+
     const STAGE_COMPLETED = 'completed';
 
     const LEVEL_UNIVERSITAS = 'Universitas';
+
     const LEVEL_NASIONAL = 'Nasional';
+
     const LEVEL_INTERNASIONAL = 'Internasional';
 
     // SK Waiver reasons
     const SK_WAIVER_TINGKAT_UNIVERSITAS = 'tingkat_universitas';
+
     const SK_WAIVER_SK_DALAM_PROSES = 'sk_dalam_proses';
+
     const SK_WAIVER_DOKUMEN_ALTERNATIF = 'dokumen_alternatif';
+
     const SK_WAIVER_LAINNYA = 'lainnya';
 
     /**
@@ -98,29 +164,68 @@ class StudentAchievement extends Model
      */
     public static function getStatusGroups(): array
     {
+        return self::getWorkflowStatusGroups();
+    }
+
+    public static function getWorkflowStatusGroups(): array
+    {
         return [
             'approved' => [
                 self::STATUS_APPROVED,
-                self::STATUS_FACULTY_APPROVED,
                 self::STATUS_UNIVERSITY_APPROVED,
-                'appeal_approved'
+                'appeal_approved',
             ],
             'pending' => [
                 self::STATUS_PENDING,
-                'submitted',
                 self::STATUS_SUBMITTED,
                 self::STATUS_FACULTY_REVIEW,
+                self::STATUS_FACULTY_APPROVED,
                 self::STATUS_UNIVERSITY_REVIEW,
-                'appeal_submitted'
+                'appeal_submitted',
             ],
             'rejected' => [
                 self::STATUS_REJECTED,
                 self::STATUS_FACULTY_REJECTED,
                 self::STATUS_UNIVERSITY_REJECTED,
                 'appeal_rejected',
-                self::STATUS_FACULTY_REVISION
+            ],
+            'revision' => [
+                self::STATUS_NEED_REVISION,
+                self::STATUS_FACULTY_REVISION,
             ],
             'draft' => [self::STATUS_DRAFT],
+        ];
+    }
+
+    public static function getFacultyPendingStatuses(): array
+    {
+        return [
+            self::STATUS_PENDING,
+            self::STATUS_SUBMITTED,
+            self::STATUS_FACULTY_REVIEW,
+        ];
+    }
+
+    public static function getValidationDecisionStatusGroups(): array
+    {
+        return [
+            'approved' => [
+                self::STATUS_APPROVED,
+                self::STATUS_FACULTY_APPROVED,
+                self::STATUS_UNIVERSITY_APPROVED,
+                'appeal_approved',
+            ],
+            'rejected' => [
+                self::STATUS_REJECTED,
+                self::STATUS_FACULTY_REJECTED,
+                self::STATUS_UNIVERSITY_REJECTED,
+                'appeal_rejected',
+            ],
+            'revision' => [
+                self::STATUS_NEED_REVISION,
+                self::STATUS_FACULTY_REVISION,
+                'revision_requested',
+            ],
         ];
     }
 
@@ -215,7 +320,7 @@ class StudentAchievement extends Model
     public function getStatusBadgeAttribute(): string
     {
         return match ($this->validation_status) {
-                // New statuses
+            // New statuses
             self::STATUS_DRAFT => 'secondary',
             self::STATUS_SUBMITTED => 'info',
             self::STATUS_FACULTY_REVIEW => 'warning',
@@ -225,7 +330,7 @@ class StudentAchievement extends Model
             self::STATUS_UNIVERSITY_REVIEW => 'warning',
             self::STATUS_UNIVERSITY_APPROVED => 'success',
             self::STATUS_UNIVERSITY_REJECTED => 'danger',
-                // Legacy statuses
+            // Legacy statuses
             self::STATUS_PENDING => 'warning',
             self::STATUS_APPROVED => 'success',
             self::STATUS_REJECTED => 'danger',
@@ -237,7 +342,7 @@ class StudentAchievement extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->validation_status) {
-                // New statuses
+            // New statuses
             self::STATUS_DRAFT => 'Draft',
             self::STATUS_SUBMITTED => 'Telah Diajukan',
             self::STATUS_FACULTY_REVIEW => 'Sedang Ditinjau Fakultas',
@@ -247,7 +352,7 @@ class StudentAchievement extends Model
             self::STATUS_UNIVERSITY_REVIEW => 'Sedang Ditinjau Universitas',
             self::STATUS_UNIVERSITY_APPROVED => 'Disetujui oleh Universitas',
             self::STATUS_UNIVERSITY_REJECTED => 'Ditolak oleh Universitas',
-                // Legacy statuses
+            // Legacy statuses
             self::STATUS_PENDING, 'Menunggu' => 'Menunggu Verifikasi',
             self::STATUS_APPROVED, 'Disetujui' => 'Selesai Diverifikasi',
             self::STATUS_REJECTED, 'Ditolak' => 'Ditolak',
@@ -311,22 +416,38 @@ class StudentAchievement extends Model
 
     public function scopePending($query)
     {
-        return $query->where('validation_status', self::STATUS_PENDING);
+        return $query->whereIn('validation_status', [
+            self::STATUS_PENDING,
+            self::STATUS_SUBMITTED,
+            self::STATUS_FACULTY_REVIEW,
+            self::STATUS_FACULTY_APPROVED,
+            self::STATUS_UNIVERSITY_REVIEW,
+        ]);
     }
 
     public function scopeApproved($query)
     {
-        return $query->where('validation_status', self::STATUS_APPROVED);
+        return $query->whereIn('validation_status', [
+            self::STATUS_APPROVED,
+            self::STATUS_UNIVERSITY_APPROVED,
+        ]);
     }
 
     public function scopeRejected($query)
     {
-        return $query->where('validation_status', self::STATUS_REJECTED);
+        return $query->whereIn('validation_status', [
+            self::STATUS_REJECTED,
+            self::STATUS_FACULTY_REJECTED,
+            self::STATUS_UNIVERSITY_REJECTED,
+        ]);
     }
 
     public function scopeNeedRevision($query)
     {
-        return $query->where('validation_status', self::STATUS_NEED_REVISION);
+        return $query->whereIn('validation_status', [
+            self::STATUS_NEED_REVISION,
+            self::STATUS_FACULTY_REVISION,
+        ]);
     }
 
     // New scopes for two-stage validation

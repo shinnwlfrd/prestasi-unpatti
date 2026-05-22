@@ -1,84 +1,95 @@
-const CACHE_NAME = 'simapres-cache-v1';
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `simapres-cache-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
-// File-file yang akan di-cache saat install
 const PRECACHE_URLS = [
-    '/',
-    '/offline.html',
-    '/manifest.json'
+  '/',
+  '/offline.html',
+  '/manifest.json',
+  '/js/offline-status.js',
+  '/js/student-submit-recovery.js',
 ];
 
-// Event: Install - cache file penting
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            console.log('[SW] Pre-caching offline assets');
-            return cache.addAll(PRECACHE_URLS);
-        })
-    );
-    self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+  );
+
+  self.skipWaiting();
 });
 
-// Event: Activate - hapus cache lama
 self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames
-                    .filter((name) => name !== CACHE_NAME)
-                    .map((name) => caches.delete(name))
-            );
-        })
-    );
-    self.clients.claim();
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames
+          .filter((name) => name.startsWith('simapres-cache-') && name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      )
+    )
+  );
+
+  self.clients.claim();
 });
 
-// Event: Fetch - Network First, fallback ke cache
+const shouldBypassCache = (url) => {
+  return (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/sanctum/') ||
+    url.pathname.startsWith('/livewire/') ||
+    url.pathname.startsWith('/storage/') ||
+    url.pathname.startsWith('/login') ||
+    url.pathname.startsWith('/logout') ||
+    url.pathname.startsWith('/sso/')
+  );
+};
+
 self.addEventListener('fetch', (event) => {
-    // Hanya handle GET request
-    if (event.request.method !== 'GET') return;
+  if (event.request.method !== 'GET') {
+    return;
+  }
 
-    const url = new URL(event.request.url);
+  const url = new URL(event.request.url);
 
-    // Jangan cache request API, sanctum, livewire, atau storage
-    if (
-        url.pathname.startsWith('/api/') ||
-        url.pathname.startsWith('/sanctum/') ||
-        url.pathname.startsWith('/livewire/') ||
-        url.pathname.startsWith('/storage/') ||
-        url.pathname.startsWith('/login') ||
-        url.pathname.startsWith('/logout') ||
-        url.pathname.startsWith('/sso/')
-    ) {
-        return;
-    }
+  if (shouldBypassCache(url)) {
+    return;
+  }
 
+  if (event.request.mode === 'navigate') {
     event.respondWith(
-        fetch(event.request)
-            .then((response) => {
-                // Jangan cache response yang bukan 200 OK
-                if (!response || response.status !== 200 || response.type !== 'basic') {
-                    return response;
-                }
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) {
+            return cached;
+          }
 
-                // Clone response dan simpan ke cache
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                    cache.put(event.request, responseClone);
-                });
-                return response;
-            })
-            .catch(() => {
-                // Jika offline, cari di cache
-                return caches.match(event.request).then((cachedResponse) => {
-                    if (cachedResponse) {
-                        return cachedResponse;
-                    }
-                    // Jika halaman navigasi, tampilkan halaman offline
-                    if (event.request.mode === 'navigate') {
-                        return caches.match(OFFLINE_URL);
-                    }
-                });
-            })
+          return caches.match(OFFLINE_URL);
+        })
     );
+
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      const networkFetch = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+
+          return networkResponse;
+        })
+        .catch(() => cachedResponse);
+
+      return cachedResponse || networkFetch;
+    })
+  );
 });

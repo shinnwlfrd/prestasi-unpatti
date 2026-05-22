@@ -12,12 +12,11 @@ class CheckMultiRole
      * Handle an incoming request.
      * Check if user has any of the specified roles
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  ...$roles
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             \Log::warning('CheckMultiRole: User not authenticated', [
                 'url' => $request->fullUrl(),
                 'method' => $request->method(),
@@ -25,25 +24,44 @@ class CheckMultiRole
                 'has_session' => $request->hasSession(),
                 'session_id' => $request->hasSession() ? $request->session()->getId() : null,
             ]);
+
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
         }
 
         $user = auth()->user();
+        $activeRoleType = session('active_role_type');
 
-        // Super admin has access to everything
+        if ($activeRoleType) {
+            if (in_array($activeRoleType, $roles, true)) {
+                return $next($request);
+            }
+
+            \Log::warning('CheckMultiRole: Active role does not match route role', [
+                'url' => $request->fullUrl(),
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'required_roles' => $roles,
+                'session_active_role_type' => $activeRoleType,
+            ]);
+
+            abort(403, 'Role aktif Anda tidak sesuai untuk mengakses halaman ini.');
+        }
+
+        // Super admin without an explicit active context keeps emergency access.
         if ($user->isSuperAdmin()) {
             return $next($request);
         }
 
-        // Check for virtual role in session (for super admin switching roles)
-        $activeRoleType = session('active_role_type');
-        if ($activeRoleType && in_array($activeRoleType, $roles)) {
+        $activeRolesCount = $user->activeRoles()->count();
+        $hasRequiredRole = $user->activeRoles()->whereIn('role', $roles)->exists();
+
+        if ($hasRequiredRole && $activeRolesCount <= 1) {
             return $next($request);
         }
 
-        // Check if user has any of the required roles
-        if ($user->hasAnyRole($roles)) {
-            return $next($request);
+        if ($hasRequiredRole && $activeRolesCount > 1) {
+            return redirect()->route('role.switch.page')
+                ->with('warning', 'Pilih role aktif terlebih dahulu untuk mengakses halaman tersebut.');
         }
 
         // User doesn't have required role - log details for debugging
@@ -57,8 +75,6 @@ class CheckMultiRole
             'session_active_role_type' => $activeRoleType,
         ]);
 
-        return redirect()->route('login')->withErrors([
-            'login' => 'Anda tidak memiliki role yang diperlukan untuk mengakses halaman ini. Role yang diperlukan: ' . implode(', ', $roles),
-        ]);
+        abort(403, 'Anda tidak memiliki role yang diperlukan untuk mengakses halaman ini. Role yang diperlukan: '.implode(', ', $roles));
     }
 }

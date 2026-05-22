@@ -1412,18 +1412,24 @@
 
                                                 @foreach($combinedActivities as $activity)
                                                     @if($activity['type'] === 'validation')
-                                                        @php $log = $activity['data']; @endphp
+                                                        @php
+                                                            $log = $activity['data'];
+                                                            $isApprovedStatus = \App\Helpers\ValidationStatusHelper::isApproved($log->new_status);
+                                                            $isRejectedStatus = \App\Helpers\ValidationStatusHelper::isRejected($log->new_status);
+                                                            $logStatusLabel = \App\Helpers\ValidationStatusHelper::getLabel($log->new_status);
+                                                            $logStatusClass = \App\Helpers\ValidationStatusHelper::getBadgeClass($log->new_status);
+                                                        @endphp
                                                         <div
                                                             class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors">
                                                             <div
-                                                                class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ $log->new_status === 'Disetujui' ? 'bg-green-100 dark:bg-green-900/30' : ($log->new_status === 'Ditolak' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-100 dark:bg-blue-900/30') }}">
-                                                                @if($log->new_status === 'Disetujui')
+                                                                class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ $isApprovedStatus ? 'bg-green-100 dark:bg-green-900/30' : ($isRejectedStatus ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-100 dark:bg-blue-900/30') }}">
+                                                                @if($isApprovedStatus)
                                                                     <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                                                                         <path fill-rule="evenodd"
                                                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                                                             clip-rule="evenodd" />
                                                                     </svg>
-                                                                @elseif($log->new_status === 'Ditolak')
+                                                                @elseif($isRejectedStatus)
                                                                     <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
                                                                         <path fill-rule="evenodd"
                                                                             d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -1444,8 +1450,8 @@
                                                                         Verifikasi
                                                                     </span>
                                                                     <span
-                                                                        class="px-2 py-0.5 rounded-full text-xs font-medium {{ $log->new_status === 'Disetujui' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : ($log->new_status === 'Ditolak' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400') }}">
-                                                                        {{ $log->new_status === 'Disetujui' ? 'Selesai Diverifikasi' : ($log->new_status === 'Ditolak' ? 'Ditolak' : $log->new_status) }}
+                                                                        class="px-2 py-0.5 rounded-full text-xs font-medium {{ $logStatusClass }}">
+                                                                        {{ $logStatusLabel }}
                                                                     </span>
                                                                 </div>
                                                                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate mt-1">
@@ -1457,7 +1463,11 @@
                                                             </div>
                                                         </div>
                                                     @else
-                                                        @php $achievement = $activity['data']; @endphp
+                                                        @php
+                                                            $achievement = $activity['data'];
+                                                            $achievementStatusClass = \App\Helpers\ValidationStatusHelper::getBadgeClass($achievement->validation_status);
+                                                            $achievementStatusLabel = \App\Helpers\ValidationStatusHelper::getLabel($achievement->validation_status);
+                                                        @endphp
                                                         <div
                                                             class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors">
                                                             <div class="flex items-start justify-between gap-3">
@@ -1473,16 +1483,8 @@
                                                                                 class="px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
                                                                                 Pengajuan
                                                                             </span>
-                                                                            @php
-                                                                                $statusColor = match ($achievement->validation_status) {
-                                                                                    'Disetujui' => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                                                                    'Ditolak' => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                                                                    'Revisi' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                                                                                    default => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-                                                                                };
-                                                                            @endphp
-                                                                            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColor }}">
-                                                                                {{ $achievement->validation_status }}
+                                                                            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $achievementStatusClass }}">
+                                                                                {{ $achievementStatusLabel }}
                                                                             </span>
                                                                         </div>
                                                                         <p class="text-sm font-medium text-gray-900 dark:text-white truncate mt-1">
@@ -3240,6 +3242,22 @@
             </div>
         </div>
     </div>
+
+    <x-integration-health-panel
+        title="Status Integrasi Akademik"
+        :health-url="route('admin.api.integration-health')"
+    />
+
+    <x-retry-observability-panel
+        title="Advanced Retry Observability"
+        :summary-url="route('admin.notification-delivery-logs.summary')"
+        :warning-threshold="5"
+    />
+
+    <x-export-queue-panel
+        title="Status Export Dashboard"
+        :recent-url="route('admin.export.recent')"
+    />
 
     {{-- Specialized Anomaly Detail Modals (Dark Theme) --}}
     @include('admin.partials.anomaly-detail-modals')

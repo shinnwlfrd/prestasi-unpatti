@@ -10,10 +10,8 @@ trait AnomalyAlertsTrait
 {
     /**
      * Get all anomalies based on context (active/archive/global)
-     * 
-     * @param string $context 'active', 'archive', or 'global'
-     * @param int|null $periodId
-     * @return array
+     *
+     * @param  string  $context  'active', 'archive', or 'global'
      */
     protected function getAnomalies(string $context = 'active', ?int $periodId = null): array
     {
@@ -45,26 +43,13 @@ trait AnomalyAlertsTrait
             $query->where('academic_period_id', $periodId);
         }
 
-        // SLA Breach: Only count PENDING submissions that are overdue (> 7 days)
-        // Exclude rejected submissions as they are no longer in the validation pipeline
-        $query->whereIn('validation_status', [
-            'Menunggu',
-            'submitted',
-            'faculty_review',
-            'faculty_revision',
-            'university_review',
-            'university_revision',
-            'appeal_submitted'
-        ])
-            ->whereNotIn('validation_status', [
-                'faculty_rejected',
-                'university_rejected',
-                'appeal_rejected'
-            ])
+        // SLA breach only tracks submissions still inside the validation pipeline.
+        $statusGroups = StudentAchievement::getWorkflowStatusGroups();
+        $query->whereIn('validation_status', array_merge($statusGroups['pending'], $statusGroups['revision']))
             ->where(function ($q) {
                 $q->whereRaw('submitted_at IS NOT NULL')
                     ->whereRaw('submitted_at < ?', [
-                        Carbon::now()->subDays(7)->toDateTimeString()
+                        Carbon::now()->subDays(7)->toDateTimeString(),
                     ]);
             });
 
@@ -131,7 +116,7 @@ trait AnomalyAlertsTrait
     protected function getDuplicates(string $context, ?int $periodId): array
     {
         $dbDriver = DB::getDriverName();
-        $concatSql = "GROUP_CONCAT(sa_id)";
+        $concatSql = 'GROUP_CONCAT(sa_id)';
         if ($dbDriver === 'pgsql') {
             $concatSql = "string_agg(CAST(sa_id AS TEXT), ',')";
         }
@@ -142,7 +127,7 @@ trait AnomalyAlertsTrait
                 'event_name',
                 'level',
                 DB::raw('COUNT(*) as duplicate_count'),
-                DB::raw($concatSql . ' as ids')
+                DB::raw($concatSql.' as ids')
             )
             ->whereNotNull('event_name')
             ->whereNotNull('level')
@@ -183,7 +168,7 @@ trait AnomalyAlertsTrait
                             'created_at' => $rec->created_at->format('d/m/Y H:i'),
                             'validation_status' => $rec->validation_status,
                             'is_oldest' => $index === 0,
-                            'has_certificate' => !empty($rec->certificate),
+                            'has_certificate' => ! empty($rec->certificate),
                             'period' => $rec->academicPeriod->name ?? 'N/A',
                         ];
                     })->toArray(),

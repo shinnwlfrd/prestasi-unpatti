@@ -1393,6 +1393,11 @@
         <!-- End Export Report Card -->
         </div>
 
+        <x-export-queue-panel
+            title="Status Export Dashboard"
+            :recent-url="route('api.export.recent')"
+        />
+
         <script>
             function validatorDashboard() {
                 return {

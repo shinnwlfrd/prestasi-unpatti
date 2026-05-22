@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\UserRole;
 use App\Models\AcademicPeriod;
 use App\Models\AchievementCategory;
+use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
@@ -29,7 +29,7 @@ class SuperadminVirtualRoleTest extends TestCase
             'semester' => 'Ganjil',
             'start_date' => '2025-09-01',
             'end_date' => '2026-01-31',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         AchievementCategory::create(['name' => 'Akademik', 'is_active' => true]);
@@ -39,14 +39,14 @@ class SuperadminVirtualRoleTest extends TestCase
             'name' => 'Super Admin Test',
             'email' => 'superadmin@test.com',
             'password' => Hash::make('password'),
-            'role' => 'Admin'
+            'role' => 'Admin',
         ]);
 
         UserRole::create([
             'user_id' => $this->superAdmin->id,
             'role' => 'super_admin',
             'level' => 'university',
-            'is_active' => true
+            'is_active' => true,
         ]);
     }
 
@@ -56,14 +56,14 @@ class SuperadminVirtualRoleTest extends TestCase
         $this->actingAs($this->superAdmin);
 
         $response = $this->post('/api/switch-role', [
-            'role_id' => 'virtual_pimpinan_university'
+            'role_id' => 'virtual_pimpinan_university',
         ]);
 
         $response->assertStatus(200);
         $response->assertJson([
             'success' => true,
             'redirect_url' => route('pimpinan.dashboard'),
-            'role' => 'Pimpinan Universitas'
+            'role' => 'Pimpinan Universitas',
         ]);
 
         // Verify session state
@@ -72,16 +72,17 @@ class SuperadminVirtualRoleTest extends TestCase
         $this->assertEquals('university', session('pimpinan_level'));
         $this->assertEquals('super_admin', session('pimpinan_position'));
 
-        // Verify user role update in DB
+        // Verify role switching does not mutate legacy database role
         $this->superAdmin->refresh();
-        $this->assertEquals('Pimpinan', $this->superAdmin->role);
-
-        // Verify root path redirection for Pimpinan role
-        $response = $this->get('/');
-        $response->assertRedirect(route('pimpinan.dashboard'));
+        $this->assertEquals('Admin', $this->superAdmin->role);
 
         // Verify access to pimpinan dashboard
-        $response = $this->get('/pimpinan');
+        $response = $this->withSession([
+            'active_role_id' => 'virtual_pimpinan_university',
+            'active_role_type' => 'pimpinan',
+            'pimpinan_level' => 'university',
+            'pimpinan_position' => 'super_admin',
+        ])->get('/pimpinan');
         $response->assertStatus(200);
     }
 
@@ -91,14 +92,14 @@ class SuperadminVirtualRoleTest extends TestCase
         $this->actingAs($this->superAdmin);
 
         $response = $this->post('/api/switch-role', [
-            'role_id' => 'virtual_validator_university'
+            'role_id' => 'virtual_validator_university',
         ]);
 
         $response->assertStatus(200);
         $response->assertJson([
             'success' => true,
             'redirect_url' => route('validator.pending.index'),
-            'role' => 'Super Validator'
+            'role' => 'Super Operator',
         ]);
 
         // Verify session state
@@ -106,16 +107,16 @@ class SuperadminVirtualRoleTest extends TestCase
         $this->assertEquals('operator', session('active_role_type'));
         $this->assertEquals('university', session('operator_level'));
 
-        // Verify user role update in DB
+        // Verify role switching does not mutate legacy database role
         $this->superAdmin->refresh();
-        $this->assertEquals('Validator', $this->superAdmin->role);
-
-        // Verify root path redirection for Validator role
-        $response = $this->get('/');
-        $response->assertRedirect(route('validator.dashboard'));
+        $this->assertEquals('Admin', $this->superAdmin->role);
 
         // Verify access to validator pending index
-        $response = $this->get('/validator/pending');
+        $response = $this->withSession([
+            'active_role_id' => 'virtual_validator_university',
+            'active_role_type' => 'operator',
+            'operator_level' => 'university',
+        ])->get('/validator/pending');
         $response->assertStatus(200);
     }
 

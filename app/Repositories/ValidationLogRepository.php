@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Models\StudentAchievement;
 use App\Models\ValidationLog;
 use App\Repositories\Contracts\ValidationLogRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -55,14 +56,10 @@ class ValidationLogRepository implements ValidationLogRepositoryInterface
         // Filter by new_status (decision)
         if (! empty($filters['decision'])) {
             $status = $filters['decision'];
-            $groups = [
-                'approved' => ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'],
-                'rejected' => ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'],
-                'revision' => ['faculty_revision', 'Revisi', 'revision_requested'],
-                'Disetujui' => ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'],
-                'Ditolak' => ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'],
-                'Revisi' => ['faculty_revision', 'Revisi', 'revision_requested'],
-            ];
+            $groups = StudentAchievement::getValidationDecisionStatusGroups();
+            $groups['Disetujui'] = $groups['approved'];
+            $groups['Ditolak'] = $groups['rejected'];
+            $groups['Revisi'] = $groups['revision'];
 
             if (isset($groups[$status])) {
                 $query->whereIn('new_status', $groups[$status]);
@@ -123,7 +120,7 @@ class ValidationLogRepository implements ValidationLogRepositoryInterface
         // Pimpinan scope filtering
         if ($user->isPimpinan()) {
             $level = session('pimpinan_level');
-            
+
             if ($level === 'faculty') {
                 $filters['faculty_id'] = session('pimpinan_faculty_id');
             } elseif ($level === 'department') {
@@ -139,7 +136,7 @@ class ValidationLogRepository implements ValidationLogRepositoryInterface
         // Operator scope filtering
         if ($user->isOperator()) {
             $level = session('operator_level');
-            
+
             if ($level === 'faculty') {
                 $filters['faculty_id'] = session('operator_faculty_id');
             } elseif ($level === 'department') {
@@ -175,11 +172,13 @@ class ValidationLogRepository implements ValidationLogRepositoryInterface
 
     public function getStatistics(): array
     {
+        $groups = StudentAchievement::getValidationDecisionStatusGroups();
+
         return [
             'total' => $this->model->count(),
-            'approved' => $this->model->whereIn('new_status', ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'])->count(),
-            'rejected' => $this->model->whereIn('new_status', ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'])->count(),
-            'revision' => $this->model->whereIn('new_status', ['faculty_revision', 'Revisi', 'revision_requested'])->count(),
+            'approved' => $this->model->whereIn('new_status', $groups['approved'])->count(),
+            'rejected' => $this->model->whereIn('new_status', $groups['rejected'])->count(),
+            'revision' => $this->model->whereIn('new_status', $groups['revision'])->count(),
             'today' => $this->countToday(),
         ];
     }

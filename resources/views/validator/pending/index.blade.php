@@ -320,10 +320,8 @@
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="flex items-center gap-2">
-                                                        <span class="px-2.5 py-1 inline-flex text-[10px] font-black uppercase tracking-wider rounded-md
-                                                                                                    {{ in_array($achievement->validation_status, ['submitted', 'Menunggu']) ? 'bg-blue-50 text-blue-700 border border-blue-100 dark:bg-blue-900/20 dark:text-blue-400' :
-                             'bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-900/20 dark:text-amber-400' }}">
-                                                            {{ $achievement->status_label ?? $achievement->validation_status }}
+                                                        <span class="px-2.5 py-1 inline-flex text-[10px] font-black uppercase tracking-wider rounded-md {{ \App\Helpers\ValidationStatusHelper::getBadgeClass($achievement->validation_status) }}">
+                                                            {{ \App\Helpers\ValidationStatusHelper::getLabel($achievement->validation_status) }}
                                                         </span>
                                                         @if($achievement->is_resubmission)
                                                             <span

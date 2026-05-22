@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreAchievementRequest;
 use App\Models\AchievementCategory;
 use App\Models\AchievementLevel;
-use App\Models\Student;
 use App\Models\SKDocument;
 use App\Services\Admin\AdminAchievementService;
-use App\Http\Requests\Admin\StoreAchievementRequest;
-use Illuminate\Http\Request;
 
 class AdminAchievementController extends Controller
 {
@@ -25,7 +23,6 @@ class AdminAchievementController extends Controller
      */
     public function create()
     {
-        $students = Student::orderBy('name')->get();
         $categories = AchievementCategory::active()->get();
         $levels = AchievementLevel::active()->get();
         $skDocuments = SKDocument::orderBy('issued_date', 'desc')->get();
@@ -33,7 +30,7 @@ class AdminAchievementController extends Controller
         // Handle old student_ids to preserve UI state after validation errors
         $selectedStudentsJson = $this->achievementService->resolveStudentDataForOldInput(old('student_ids', []));
 
-        return view('admin.submit', compact('students', 'categories', 'levels', 'skDocuments', 'selectedStudentsJson'));
+        return view('admin.submit', compact('categories', 'levels', 'skDocuments', 'selectedStudentsJson'));
     }
 
     /**
@@ -42,11 +39,11 @@ class AdminAchievementController extends Controller
     public function store(StoreAchievementRequest $request)
     {
         $validated = $request->validated();
-        
+
         $requestData = $request->only([
-            'submit_action', 'skip_sk', 'sk_waiver_reason', 'sk_waiver_notes', 'sk_id', 'rejection_reason'
+            'submit_action', 'skip_sk', 'sk_waiver_reason', 'sk_waiver_notes', 'sk_id', 'rejection_reason',
         ]);
-        
+
         if ($request->hasFile('alternative_document')) {
             $requestData['alternative_document_file'] = $request->file('alternative_document');
         }
@@ -74,7 +71,7 @@ class AdminAchievementController extends Controller
         $message = "Berhasil membuat prestasi untuk {$result['success_count']} dari {$result['total_count']} mahasiswa.";
 
         if (count($result['errors']) > 0) {
-            $message .= ' Beberapa gagal: ' . implode(', ', $result['errors']);
+            $message .= ' Beberapa gagal: '.implode(', ', $result['errors']);
         }
 
         // Redirect based on action
@@ -85,7 +82,8 @@ class AdminAchievementController extends Controller
 
         // Default: Pending - redirect to first achievement's document upload
         $firstAchievement = $result['created_achievements'][0];
+
         return redirect()->route('achievements.documents.index', $firstAchievement)
-            ->with('success', $message . ' Anda dapat menambahkan dokumen tambahan.');
+            ->with('success', $message.' Anda dapat menambahkan dokumen tambahan.');
     }
 }

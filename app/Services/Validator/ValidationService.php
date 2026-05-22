@@ -3,6 +3,7 @@
 namespace App\Services\Validator;
 
 use App\Models\StudentAchievement;
+use App\Models\ValidationLog;
 use App\Repositories\Contracts\AchievementRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -10,13 +11,12 @@ class ValidationService
 {
     public function __construct(
         protected AchievementRepositoryInterface $achievementRepo
-    ) {
-    }
+    ) {}
 
     public function getPendingAchievements(array $filters, ?string $faculty = null, int $perPage = 15): LengthAwarePaginator
     {
         $query = StudentAchievement::with(['student', 'achievement.category', 'documents'])
-            ->whereIn('validation_status', ['pending', 'Menunggu'])
+            ->whereIn('validation_status', StudentAchievement::getFacultyPendingStatuses())
             ->orderByDesc('created_at');
 
         // Filter by faculty if validator has faculty assigned
@@ -27,7 +27,7 @@ class ValidationService
         }
 
         // Search filter
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('event_name', 'like', "%{$search}%")
@@ -40,27 +40,27 @@ class ValidationService
         }
 
         // Level filter
-        if (!empty($filters['level'])) {
+        if (! empty($filters['level'])) {
             $query->where('level', $filters['level']);
         }
 
         // Category filter
-        if (!empty($filters['category'])) {
+        if (! empty($filters['category'])) {
             $query->whereHas('achievement', function ($q) use ($filters) {
                 $q->where('category_id', $filters['category']);
             });
         }
 
         // Date range filter
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('event_date', '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('event_date', '<=', $filters['date_to']);
         }
 
         // Submitted by filter
-        if (!empty($filters['submitted_by'])) {
+        if (! empty($filters['submitted_by'])) {
             $query->where('submitted_by', $filters['submitted_by']);
         }
 
@@ -69,7 +69,7 @@ class ValidationService
 
     public function getValidationHistory(array $filters, ?string $faculty = null, int $perPage = 15, ?string $level = null, mixed $facultyId = null)
     {
-        $query = \App\Models\ValidationLog::with([
+        $query = ValidationLog::with([
             'studentAchievement.student',
             'studentAchievement.achievement.category',
             'studentAchievement.documents',
@@ -79,7 +79,7 @@ class ValidationService
         // Apply scope filtering based on operator level
         if ($level === 'university') {
             // University level operator can see all faculties - no filtering unless faculty filter is applied
-            if (!empty($filters['faculty'])) {
+            if (! empty($filters['faculty'])) {
                 $query->whereHas('studentAchievement.student', function ($q) use ($filters) {
                     $q->where('faculty_id', $filters['faculty']);
                 });
@@ -96,7 +96,7 @@ class ValidationService
         }
 
         // Search filter
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->whereHas('studentAchievement', function ($q) use ($search) {
@@ -110,13 +110,9 @@ class ValidationService
         }
 
         // Status filter
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $status = $filters['status'];
-            $groups = [
-                'approved' => ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'],
-                'rejected' => ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'],
-                'revision' => ['faculty_revision', 'Revisi', 'revision_requested'],
-            ];
+            $groups = StudentAchievement::getValidationDecisionStatusGroups();
 
             if (isset($groups[$status])) {
                 $query->whereIn('new_status', $groups[$status]);
@@ -126,24 +122,24 @@ class ValidationService
         }
 
         // Category filter
-        if (!empty($filters['category'])) {
+        if (! empty($filters['category'])) {
             $query->whereHas('studentAchievement.achievement', function ($q) use ($filters) {
                 $q->where('category_id', $filters['category']);
             });
         }
 
         // Level filter
-        if (!empty($filters['level'])) {
+        if (! empty($filters['level'])) {
             $query->whereHas('studentAchievement', function ($q) use ($filters) {
                 $q->where('level', $filters['level']);
             });
         }
 
         // Date range filter
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('validated_at', '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('validated_at', '<=', $filters['date_to']);
         }
 
@@ -152,7 +148,7 @@ class ValidationService
 
     public function getHistoryStatistics(?string $faculty = null, ?string $level = null, mixed $facultyId = null): array
     {
-        $query = \App\Models\ValidationLog::query();
+        $query = ValidationLog::query();
 
         // Apply scope filtering based on operator level
         if ($level === 'university') {
@@ -170,9 +166,9 @@ class ValidationService
 
         return [
             'total' => $query->count(),
-            'approved' => (clone $query)->whereIn('new_status', ['faculty_approved', 'university_approved', 'Disetujui', 'appeal_approved'])->count(),
-            'rejected' => (clone $query)->whereIn('new_status', ['faculty_rejected', 'university_rejected', 'Ditolak', 'appeal_rejected'])->count(),
-            'revision' => (clone $query)->whereIn('new_status', ['faculty_revision', 'Revisi', 'revision_requested'])->count(),
+            'approved' => (clone $query)->whereIn('new_status', StudentAchievement::getValidationDecisionStatusGroups()['approved'])->count(),
+            'rejected' => (clone $query)->whereIn('new_status', StudentAchievement::getValidationDecisionStatusGroups()['rejected'])->count(),
+            'revision' => (clone $query)->whereIn('new_status', StudentAchievement::getValidationDecisionStatusGroups()['revision'])->count(),
         ];
     }
 }

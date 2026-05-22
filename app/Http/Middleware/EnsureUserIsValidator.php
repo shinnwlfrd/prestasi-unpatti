@@ -17,8 +17,15 @@ class EnsureUserIsValidator
             return redirect()->route('login')->withErrors(['login' => 'Anda harus login terlebih dahulu.']);
         }
 
-        if (auth()->user()->role !== 'Operator') {
-            return redirect()->route('login')->withErrors(['login' => 'Akses ditolak. Anda bukan Operator.']);
+        $user = auth()->user();
+        $activeRoleType = session('active_role_type');
+
+        if ($activeRoleType && $activeRoleType !== 'operator') {
+            abort(403, 'Role aktif Anda bukan Operator.');
+        }
+
+        if (! $activeRoleType && ! $user->isSuperAdmin() && ! $user->hasRole('operator')) {
+            abort(403, 'Akses ditolak. Anda bukan Operator.');
         }
 
         return $next($request);

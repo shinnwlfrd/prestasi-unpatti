@@ -60,7 +60,7 @@ class StudentRepository implements StudentRepositoryInterface
         $query = $this->model->withCount('achievements');
 
         // Search by NIM or name
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('student_id', 'ilike', "%{$search}%")
@@ -70,27 +70,27 @@ class StudentRepository implements StudentRepositoryInterface
         }
 
         // Filter by SIGAP faculty_id
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->where('faculty_id', $filters['faculty_id']);
         }
 
         // Filter by SIGAP department_id
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('department_id', $filters['department_id']);
         }
 
         // Filter by SIGAP program_study_id
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->where('program_study_id', $filters['program_study_id']);
         }
 
         // Filter by old faculty field (for backward compatibility)
-        if (!empty($filters['faculty'])) {
+        if (! empty($filters['faculty'])) {
             $query->where('faculty', $filters['faculty']);
         }
 
         // Filter by angkatan
-        if (!empty($filters['angkatan'])) {
+        if (! empty($filters['angkatan'])) {
             $query->where('angkatan', $filters['angkatan']);
         }
 
@@ -113,15 +113,15 @@ class StudentRepository implements StudentRepositoryInterface
     {
         $query = $this->model->query();
 
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->where('faculty_id', $filters['faculty_id']);
         }
 
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('department_id', $filters['department_id']);
         }
 
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->where('program_study_id', $filters['program_study_id']);
         }
 
@@ -137,15 +137,15 @@ class StudentRepository implements StudentRepositoryInterface
     {
         $query = $this->model->query();
 
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->where('faculty_id', $filters['faculty_id']);
         }
 
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('department_id', $filters['department_id']);
         }
 
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->where('program_study_id', $filters['program_study_id']);
         }
 
@@ -161,21 +161,21 @@ class StudentRepository implements StudentRepositoryInterface
             ->pluck('faculty');
     }
 
-    public function getFacultiesWithFilters(array $filters)
+    public function getFacultiesWithFilters(array $filters): Collection
     {
         $query = $this->model->select('faculty_id', 'faculty')
             ->distinct()
             ->whereNotNull('faculty_id');
 
-        if (!empty($filters['faculty_id'])) {
+        if (! empty($filters['faculty_id'])) {
             $query->where('faculty_id', $filters['faculty_id']);
         }
 
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('department_id', $filters['department_id']);
         }
 
-        if (!empty($filters['program_study_id'])) {
+        if (! empty($filters['program_study_id'])) {
             $query->where('program_study_id', $filters['program_study_id']);
         }
 

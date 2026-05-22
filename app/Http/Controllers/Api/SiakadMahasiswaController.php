@@ -35,7 +35,7 @@ class SiakadMahasiswaController extends Controller
         $data = collect($result['data'] ?? [])->map(function ($mhs) {
             // Extract NIM from registrasi or direct field
             $nim = $mhs['registrasi']['nim'] ?? $mhs['nim'] ?? null;
-            
+
             return [
                 'id' => $mhs['id_mahasiswa'], // Use id_mahasiswa as ID for detail fetch
                 'nim' => $nim, // Include NIM for display
@@ -46,12 +46,19 @@ class SiakadMahasiswaController extends Controller
             ];
         });
 
-        return response()->json([
+        $status = $this->siakadService->getLastOperationStatus();
+        $payload = [
+            'success' => $status['success'] ?? true,
+            'source' => $status['source'] ?? 'unknown',
+            'message' => $status['message'] ?? null,
+            'meta' => $status['meta'] ?? [],
             'results' => $data,
             'pagination' => [
-                'more' => ($result['meta']['page'] ?? 1) < ($result['meta']['total_pages'] ?? 1)
-            ]
-        ]);
+                'more' => ($result['meta']['page'] ?? 1) < ($result['meta']['total_pages'] ?? 1),
+            ],
+        ];
+
+        return response()->json($payload, ($status['success'] ?? true) ? 200 : 502);
     }
 
     /**
@@ -61,16 +68,25 @@ class SiakadMahasiswaController extends Controller
     {
         $mahasiswa = $this->siakadService->getMahasiswaById($idMahasiswa);
 
-        if (!$mahasiswa) {
+        if (! $mahasiswa) {
+            $status = $this->siakadService->getLastOperationStatus();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Mahasiswa tidak ditemukan'
-            ], 404);
+                'source' => $status['source'] ?? 'unknown',
+                'message' => $status['message'] ?? 'Mahasiswa tidak ditemukan',
+                'meta' => $status['meta'] ?? [],
+            ], ($status['success'] ?? false) ? 404 : 502);
         }
+
+        $status = $this->siakadService->getLastOperationStatus();
 
         return response()->json([
             'success' => true,
-            'data' => $mahasiswa
+            'source' => $status['source'] ?? 'unknown',
+            'message' => $status['message'] ?? 'Detail mahasiswa berhasil dimuat.',
+            'meta' => $status['meta'] ?? [],
+            'data' => $mahasiswa,
         ]);
     }
 }

@@ -4,10 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AchievementLevel;
+use App\Services\Admin\ConfigAuditService;
 use Illuminate\Http\Request;
 
 class AchievementLevelController extends Controller
 {
+    protected $auditService;
+
+    public function __construct(ConfigAuditService $auditService)
+    {
+        $this->auditService = $auditService;
+    }
+
     public function index()
     {
         $levels = AchievementLevel::latest()->paginate(15);
@@ -33,8 +41,12 @@ class AchievementLevelController extends Controller
 
         if ($existing) {
             if ($existing->trashed()) {
+                $oldValues = $existing->getOriginal();
                 $existing->restore();
                 $existing->update($request->all());
+
+                $this->auditService->logChange($existing, 'restored', $oldValues, $existing->getAttributes());
+
                 return redirect()->route('admin.levels.index')
                     ->with('success', 'Level yang sebelumnya dihapus telah dipulihkan dan diperbarui.');
             }
@@ -42,7 +54,8 @@ class AchievementLevelController extends Controller
             return back()->withErrors(['name' => 'Nama level sudah digunakan.'])->withInput();
         }
 
-        AchievementLevel::create($request->all());
+        $level = AchievementLevel::create($request->all());
+        $this->auditService->logChange($level, 'created', null, $level->getAttributes());
 
         return redirect()->route('admin.levels.index')
             ->with('success', 'Level berhasil ditambahkan.');
@@ -62,7 +75,10 @@ class AchievementLevelController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $oldValues = $level->getOriginal();
         $level->update($request->all());
+
+        $this->auditService->logChange($level, 'updated', $oldValues, $level->getAttributes());
 
         return redirect()->route('admin.levels.index')
             ->with('success', 'Level berhasil diperbarui.');
@@ -70,7 +86,10 @@ class AchievementLevelController extends Controller
 
     public function destroy(AchievementLevel $level)
     {
+        $oldValues = $level->getOriginal();
         $level->delete();
+
+        $this->auditService->logChange($level, 'deleted', $oldValues, null);
 
         return redirect()->route('admin.levels.index')
             ->with('success', 'Level berhasil dihapus.');

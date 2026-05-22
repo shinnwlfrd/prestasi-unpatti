@@ -2,28 +2,46 @@
 
 namespace App\Services\Admin;
 
-use App\Models\StudentAchievement;
-use App\Models\User;
-use App\Models\ValidationLog;
+use App\Models\AchievementLevel;
 use App\Models\SKAssignment;
 use App\Models\SKDocument;
+use App\Models\StudentAchievement;
+use App\Models\User;
+use App\Models\ValidationChecklist;
+use App\Models\ValidationLog;
 use App\Notifications\AchievementStatusChanged;
+use App\Services\DocumentVerificationService;
+use App\Support\AchievementNotificationDispatcher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class UniversityValidationService
 {
+    public function __construct(
+        protected DocumentVerificationService $documentVerificationService
+    ) {}
+
     /**
      * Start review process at university level
      */
     public function startReview(StudentAchievement $achievement, User $admin): bool
     {
-        // Validate: must be faculty_approved
-        if ($achievement->validation_status !== StudentAchievement::STATUS_FACULTY_APPROVED) {
-            throw new \Exception('Prestasi harus disetujui fakultas terlebih dahulu.');
-        }
-
         return DB::transaction(function () use ($achievement, $admin) {
+            $achievement = StudentAchievement::where('sa_id', $achievement->sa_id)->lockForUpdate()->first();
+            if (! $achievement) {
+                throw new \Exception('Prestasi tidak ditemukan.');
+            }
+
+            $period = $achievement->academicPeriod;
+            if ($period && ! $period->isValidationOpen()) {
+                throw new \Exception('Batas waktu validasi untuk periode ini telah berakhir.');
+            }
+
+            // Validate: must be faculty_approved
+            if ($achievement->validation_status !== StudentAchievement::STATUS_FACULTY_APPROVED) {
+                throw new \Exception('Prestasi harus disetujui fakultas terlebih dahulu.');
+            }
+
             $oldStatus = $achievement->validation_status;
 
             // Update achievement to university_review
@@ -43,6 +61,7 @@ class UniversityValidationService
                 'stage_action' => 'start_review',
                 'is_stage_transition' => false,
                 'validated_at' => now(),
+                'metadata' => $this->getAuditMetadata($achievement, $admin),
             ]);
 
             return true;
@@ -58,27 +77,52 @@ class UniversityValidationService
         ?int $skId = null,
         ?string $notes = null
     ): bool {
-        // Validate: must be faculty_approved or university_review
-        if (
-            !in_array($achievement->validation_status, [
-                StudentAchievement::STATUS_FACULTY_APPROVED,
-                StudentAchievement::STATUS_UNIVERSITY_REVIEW
-            ])
-        ) {
-            throw new \Exception('Prestasi harus disetujui fakultas terlebih dahulu.');
-        }
-
         $skDocument = null;
         if ($skId) {
             // Validate: SK exists if provided
             $skDocument = SKDocument::find($skId);
-            if (!$skDocument) {
+            if (! $skDocument) {
                 throw new \Exception('SK tidak ditemukan.');
             }
         }
 
         return DB::transaction(function () use ($achievement, $admin, $skId, $skDocument, $notes) {
+            $achievement = StudentAchievement::where('sa_id', $achievement->sa_id)->lockForUpdate()->first();
+            if (! $achievement) {
+                throw new \Exception('Prestasi tidak ditemukan.');
+            }
+
+            $period = $achievement->academicPeriod;
+            if ($period && ! $period->isValidationOpen()) {
+                throw new \Exception('Batas waktu validasi untuk periode ini telah berakhir.');
+            }
+
+            // Validate: must be faculty_approved or university_review
+            if (
+                ! in_array($achievement->validation_status, [
+                    StudentAchievement::STATUS_FACULTY_APPROVED,
+                    StudentAchievement::STATUS_UNIVERSITY_REVIEW,
+                ])
+            ) {
+                throw new \Exception('Prestasi harus disetujui fakultas terlebih dahulu.');
+            }
+
+            // Document Verification Gate
+            $docCheck = $this->documentVerificationService->canAchievementBeApproved($achievement);
+            if (! $docCheck['can_approve']) {
+                throw new \Exception(implode(' ', $docCheck['errors']));
+            }
+
+            // Checklist check
+            $checklist = ValidationChecklist::where('sa_id', $achievement->sa_id)->first();
+            if (! $checklist || ! $checklist->isCompleteFor($achievement)) {
+                throw new \Exception('Checklist validasi dari fakultas belum lengkap.');
+            }
+
             $oldStatus = $achievement->validation_status;
+
+            // Build points snapshot from current level configuration
+            $pointsSnapshot = $this->buildPointsSnapshot($achievement);
 
             // Update achievement (FINAL status)
             $achievement->update([
@@ -87,6 +131,7 @@ class UniversityValidationService
                 'university_validator_id' => $admin->id,
                 'university_validated_at' => now(),
                 'university_notes' => $notes,
+                'points_snapshot' => $pointsSnapshot,
             ]);
 
             // Assign SK if provided
@@ -107,11 +152,12 @@ class UniversityValidationService
                 'validator_id' => $admin->id,
                 'old_status' => $oldStatus,
                 'new_status' => StudentAchievement::STATUS_UNIVERSITY_APPROVED,
-                'notes' => $notes ?? 'Prestasi disetujui universitas' . ($skId ? ' dan SK telah diterbitkan' : ''),
+                'notes' => $notes ?? 'Prestasi disetujui universitas'.($skId ? ' dan SK telah diterbitkan' : ''),
                 'validation_stage' => StudentAchievement::STAGE_UNIVERSITY,
                 'stage_action' => 'final_approve',
                 'is_stage_transition' => true,
                 'validated_at' => now(),
+                'metadata' => $this->getAuditMetadata($achievement, $admin),
             ];
 
             if ($skId) {
@@ -137,22 +183,32 @@ class UniversityValidationService
      */
     public function reject(StudentAchievement $achievement, User $admin, string $reason): bool
     {
-        // Validate: must be faculty_approved or university_review
-        if (
-            !in_array($achievement->validation_status, [
-                StudentAchievement::STATUS_FACULTY_APPROVED,
-                StudentAchievement::STATUS_UNIVERSITY_REVIEW
-            ])
-        ) {
-            throw new \Exception('Prestasi harus disetujui fakultas terlebih dahulu.');
-        }
-
         // Validate: reason is required
         if (empty($reason)) {
             throw new \Exception('Alasan penolakan wajib diisi.');
         }
 
         return DB::transaction(function () use ($achievement, $admin, $reason) {
+            $achievement = StudentAchievement::where('sa_id', $achievement->sa_id)->lockForUpdate()->first();
+            if (! $achievement) {
+                throw new \Exception('Prestasi tidak ditemukan.');
+            }
+
+            $period = $achievement->academicPeriod;
+            if ($period && ! $period->isValidationOpen()) {
+                throw new \Exception('Batas waktu validasi untuk periode ini telah berakhir.');
+            }
+
+            // Validate: must be faculty_approved or university_review
+            if (
+                ! in_array($achievement->validation_status, [
+                    StudentAchievement::STATUS_FACULTY_APPROVED,
+                    StudentAchievement::STATUS_UNIVERSITY_REVIEW,
+                ])
+            ) {
+                throw new \Exception('Prestasi harus disetujui fakultas terlebih dahulu.');
+            }
+
             $oldStatus = $achievement->validation_status;
 
             // Update achievement (FINAL status)
@@ -175,6 +231,7 @@ class UniversityValidationService
                 'stage_action' => 'reject',
                 'is_stage_transition' => true,
                 'validated_at' => now(),
+                'metadata' => $this->getAuditMetadata($achievement, $admin),
             ]);
 
             // Notify student
@@ -195,7 +252,7 @@ class UniversityValidationService
     public function bulkAssignSK(array $achievementIds, int $skId, User $admin, ?string $notes = null): array
     {
         $skDocument = SKDocument::find($skId);
-        if (!$skDocument) {
+        if (! $skDocument) {
             throw new \Exception('SK tidak ditemukan.');
         }
 
@@ -209,9 +266,10 @@ class UniversityValidationService
             try {
                 $achievement = StudentAchievement::find($achievementId);
 
-                if (!$achievement) {
+                if (! $achievement) {
                     $results['failed']++;
                     $results['errors'][] = "Achievement ID {$achievementId} tidak ditemukan";
+
                     continue;
                 }
 
@@ -219,6 +277,7 @@ class UniversityValidationService
                 if ($achievement->validation_status === StudentAchievement::STATUS_UNIVERSITY_APPROVED) {
                     $results['failed']++;
                     $results['errors'][] = "Achievement ID {$achievementId} sudah disetujui sebelumnya";
+
                     continue;
                 }
 
@@ -228,7 +287,7 @@ class UniversityValidationService
 
             } catch (\Exception $e) {
                 $results['failed']++;
-                $results['errors'][] = "Achievement ID {$achievementId}: " . $e->getMessage();
+                $results['errors'][] = "Achievement ID {$achievementId}: ".$e->getMessage();
             }
         }
 
@@ -283,14 +342,7 @@ class UniversityValidationService
      */
     protected function notifyStudent(StudentAchievement $achievement, string $action): void
     {
-        $student = $achievement->student;
-        if ($student && $student->user) {
-            try {
-                $student->user->notify(new AchievementStatusChanged($achievement, $action));
-            } catch (\Exception $e) {
-                Log::warning('Failed to send notification to student: ' . $e->getMessage());
-            }
-        }
+        AchievementNotificationDispatcher::notifyStudent($achievement, $action);
     }
 
     /**
@@ -302,8 +354,52 @@ class UniversityValidationService
             try {
                 $achievement->facultyValidator->notify(new AchievementStatusChanged($achievement, $action));
             } catch (\Exception $e) {
-                Log::warning('Failed to send notification to faculty validator: ' . $e->getMessage());
+                Log::warning('Failed to send notification to faculty validator: '.$e->getMessage());
             }
         }
+    }
+
+    /**
+     * Build a snapshot of the points configuration at approval time.
+     * This preserves historical point values even if levels are changed later.
+     */
+    protected function buildPointsSnapshot(StudentAchievement $achievement): array
+    {
+        $levelName = $achievement->level;
+        $levelRecord = AchievementLevel::where('name', $levelName)->first();
+        $categoryName = $achievement->achievement?->category?->name;
+
+        return [
+            'level' => $levelName,
+            'points' => $levelRecord?->points ?? 0,
+            'category' => $categoryName,
+            'level_id' => $levelRecord?->id,
+            'captured_at' => now()->toIso8601String(),
+        ];
+    }
+
+    protected function getAuditMetadata(StudentAchievement $achievement, User $user): array
+    {
+        $currentRole = $user->getCurrentRole();
+        $level = $currentRole ? $currentRole->level : 'university';
+
+        $documentStatuses = $achievement->documents->mapWithKeys(function ($doc) {
+            return [$doc->id => [
+                'type' => $doc->document_type,
+                'status' => $doc->status,
+            ]];
+        })->toArray();
+
+        return [
+            'actor_id' => $user->id,
+            'actor_role' => $currentRole ? $currentRole->role_type : $user->role,
+            'scope' => [
+                'level' => $level,
+                'faculty_id' => null,
+                'department_id' => null,
+                'program_study_id' => null,
+            ],
+            'document_statuses' => $documentStatuses,
+        ];
     }
 }

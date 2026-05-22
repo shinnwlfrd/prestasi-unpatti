@@ -2,20 +2,21 @@
 
 namespace App\Services\Admin;
 
+use App\Helpers\ValidationStatusHelper;
+use App\Models\AcademicPeriod;
 use App\Models\Achievement;
 use App\Models\AchievementDocument;
+use App\Models\DocumentRevision;
 use App\Models\Student;
 use App\Models\StudentAchievement;
-use App\Models\SKDocument;
-use App\Models\SKAssignment;
-use App\Services\AchievementApprovalService;
+use App\Models\ValidationChecklist;
 use App\Services\SiakadApiService;
 use Illuminate\Support\Facades\Log;
 
 class AdminAchievementService
 {
     public function __construct(
-        protected AchievementApprovalService $approvalService,
+        protected UniversityValidationService $universityValidationService,
         protected SiakadApiService $siakadService
     ) {}
 
@@ -25,7 +26,7 @@ class AdminAchievementService
             ->where('is_active', true)
             ->value('id');
 
-        if (!$achievementId) {
+        if (! $achievementId) {
             throw new \Exception('Kategori yang dipilih belum memiliki template prestasi. Hubungi admin.');
         }
 
@@ -35,14 +36,14 @@ class AdminAchievementService
         foreach ($studentIds as $idMahasiswa) {
             try {
                 $achievement = $this->createStudentAchievement(
-                    $idMahasiswa, 
-                    $achievementId, 
-                    $validated, 
+                    $idMahasiswa,
+                    $achievementId,
+                    $validated,
                     $attachments[$idMahasiswa] ?? null,
                     $requestData,
                     $user
                 );
-                
+
                 $createdAchievements[] = $achievement;
             } catch (\Exception $e) {
                 $errors[] = "Gagal membuat prestasi untuk mahasiswa ID {$idMahasiswa}: {$e->getMessage()}";
@@ -62,14 +63,14 @@ class AdminAchievementService
         // Fetch full data from SIAKAD API
         $siakadData = $this->siakadService->getMahasiswaById($idMahasiswa);
 
-        if (!$siakadData) {
+        if (! $siakadData) {
             throw new \Exception("Data mahasiswa dengan ID {$idMahasiswa} tidak ditemukan di SIAKAD.");
         }
 
         // Get NIM from SIAKAD data
         $nim = $siakadData['registrasi']['nim'] ?? null;
 
-        if (!$nim) {
+        if (! $nim) {
             throw new \Exception("NIM tidak ditemukan untuk mahasiswa ID {$idMahasiswa}.");
         }
 
@@ -78,7 +79,7 @@ class AdminAchievementService
 
         // If not exists, create from SIAKAD data or update existing
         $studentData = $this->siakadService->transformToStudentData($siakadData);
-        if (!$student) {
+        if (! $student) {
             $student = Student::create($studentData);
             Log::info('New student created from SIAKAD', ['nim' => $nim, 'name' => $student->name]);
         } else {
@@ -90,7 +91,7 @@ class AdminAchievementService
             Log::info('Student data updated from SIAKAD', ['nim' => $nim, 'name' => $student->name]);
         }
 
-        if (!$studentFiles || !isset($studentFiles['certificate'])) {
+        if (! $studentFiles || ! isset($studentFiles['certificate'])) {
             throw new \Exception("Sertifikat untuk mahasiswa ID {$idMahasiswa} tidak ditemukan.");
         }
 
@@ -100,20 +101,30 @@ class AdminAchievementService
         // Store certificate for this student
         $certificatePath = $certificate->store('certificates', 'public');
 
-        // Determine initial status based on action
         $submitAction = $requestData['submit_action'] ?? 'pending';
-        $initialStatus = match ($submitAction) {
-            'approve' => 'Disetujui',
-            'reject' => 'Ditolak',
-            default => 'Menunggu',
-        };
-
-        // Determine SK required
-        $skRequired = !($requestData['skip_sk'] ?? false);
+        $skRequired = ! ($requestData['skip_sk'] ?? false);
+        $activePeriodId = AcademicPeriod::active()->value('id');
+        $initialState = ValidationStatusHelper::getInitialSubmissionState('admin');
 
         $achievement = StudentAchievement::create([
             'student_id' => $nim,
             'achievement_id' => $achievementId,
+            'academic_period_id' => $activePeriodId,
+            'student_snapshot' => [
+                'student_id' => $student->student_id,
+                'id_mahasiswa' => $student->id_mahasiswa,
+                'name' => $student->name,
+                'email' => $student->email,
+                'faculty_id' => $student->faculty_id,
+                'faculty' => $student->faculty,
+                'department_id' => $student->department_id,
+                'department' => $student->department,
+                'program_study_id' => $student->program_study_id,
+                'program_study' => $student->program_study,
+                'angkatan' => $student->angkatan,
+                'ipk' => $student->ipk,
+                'captured_at' => now()->toIso8601String(),
+            ],
             'event_name' => $validated['event_name'],
             'level' => $validated['level'],
             'organizer' => $validated['organizer'],
@@ -121,8 +132,10 @@ class AdminAchievementService
             'ranking' => $validated['ranking'] ?? null,
             'description' => $validated['description'] ?? null,
             'certificate' => $certificatePath,
-            'validation_status' => $initialStatus,
-            'validator_id' => $submitAction !== 'pending' ? $user->id : null,
+            'validation_status' => $initialState['validation_status'],
+            'validation_stage' => $initialState['validation_stage'],
+            'current_stage' => $initialState['current_stage'],
+            'validator_id' => null,
             'submitted_by' => 'admin',
             'submitted_at' => now(),
             'sk_required' => $skRequired,
@@ -130,44 +143,53 @@ class AdminAchievementService
             'sk_waiver_notes' => $requestData['sk_waiver_notes'] ?? null,
         ]);
 
+        // Create certificate document record in achievement_documents
+        $certDoc = $achievement->documents()->create([
+            'document_type' => AchievementDocument::TYPE_SERTIFIKAT,
+            'file_path' => $certificatePath,
+            'file_name' => $certificate->getClientOriginalName(),
+            'file_type' => $certificate->getMimeType(),
+            'file_size' => $certificate->getSize(),
+            'status' => $submitAction === 'approve' ? AchievementDocument::STATUS_APPROVED : AchievementDocument::STATUS_PENDING,
+            'verified_by' => $submitAction === 'approve' ? $user->id : null,
+            'verified_at' => $submitAction === 'approve' ? now() : null,
+        ]);
+
+        if ($submitAction === 'approve') {
+            $certDoc->logRevision(DocumentRevision::ACTION_APPROVED, 'Disetujui otomatis saat submit oleh admin', $user->id);
+        }
+
         // Process additional documents if any
         foreach ($additionalDocs as $file) {
             if ($file->isValid()) {
-                $fileName = 'SuppDoc_' . $achievement->sa_id . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+                $fileName = 'SuppDoc_'.$achievement->sa_id.'_'.time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+                $filePath = $file->storeAs('achievements/'.$achievement->sa_id, $fileName, 'public');
 
-                $achievement->documents()->create([
+                $docStatus = $submitAction === 'approve' ? AchievementDocument::STATUS_APPROVED : AchievementDocument::STATUS_PENDING;
+
+                $addDoc = $achievement->documents()->create([
                     'document_type' => AchievementDocument::TYPE_FOTO_DOKUMENTASI,
                     'file_path' => $filePath,
                     'file_name' => $file->getClientOriginalName(),
                     'file_type' => $file->getMimeType(),
                     'file_size' => $file->getSize(),
-                    'status' => AchievementDocument::STATUS_PENDING,
+                    'status' => $docStatus,
+                    'verified_by' => $submitAction === 'approve' ? $user->id : null,
+                    'verified_at' => $submitAction === 'approve' ? now() : null,
                 ]);
+
+                if ($submitAction === 'approve') {
+                    $addDoc->logRevision(DocumentRevision::ACTION_APPROVED, 'Disetujui otomatis saat submit oleh admin', $user->id);
+                }
             }
         }
 
         // Handle different actions
         if ($submitAction === 'approve') {
-            $skDocumentPath = null;
-
-            if (!empty($requestData['sk_id'])) {
-                $skDocument = SKDocument::find($requestData['sk_id']);
-                if ($skDocument) {
-                    SKAssignment::create([
-                        'sk_id' => $skDocument->id,
-                        'sa_id' => $achievement->sa_id,
-                        'assigned_by' => $user->id,
-                        'assigned_at' => now(),
-                    ]);
-                    $skDocumentPath = $skDocument->file_path;
-                }
-            }
-
             if (isset($requestData['alternative_document_file']) && $requestData['alternative_document_file']->isValid()) {
                 $file = $requestData['alternative_document_file'];
-                $fileName = 'Alt_Doc_' . $achievement->sa_id . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $filePath = $file->storeAs('achievements/' . $achievement->sa_id, $fileName, 'public');
+                $fileName = 'Alt_Doc_'.$achievement->sa_id.'_'.time().'.'.$file->getClientOriginalExtension();
+                $filePath = $file->storeAs('achievements/'.$achievement->sa_id, $fileName, 'public');
 
                 $achievement->update(['alternative_document_path' => $filePath]);
 
@@ -183,13 +205,47 @@ class AdminAchievementService
                 ]);
             }
 
+            // If non-academic and we still have less than 2 distinct approved document types, auto-create a mock foto_dokumentasi
+            if ($achievement->achievement && $achievement->achievement->category_id !== 1) {
+                $approvedTypesCount = $achievement->documents()
+                    ->where('status', AchievementDocument::STATUS_APPROVED)
+                    ->pluck('document_type')
+                    ->unique()
+                    ->count();
+
+                if ($approvedTypesCount < 2) {
+                    $mockDoc = $achievement->documents()->create([
+                        'document_type' => AchievementDocument::TYPE_FOTO_DOKUMENTASI,
+                        'file_path' => $certificatePath,
+                        'file_name' => 'Dokumentasi_'.$certificate->getClientOriginalName(),
+                        'file_type' => $certificate->getMimeType(),
+                        'file_size' => $certificate->getSize(),
+                        'status' => AchievementDocument::STATUS_APPROVED,
+                        'verified_by' => $user->id,
+                        'verified_at' => now(),
+                    ]);
+                    $mockDoc->logRevision(DocumentRevision::ACTION_APPROVED, 'Dokumen pendukung otomatis disetujui saat submit oleh admin', $user->id);
+                }
+            }
+
+            // Create a completed validation checklist
+            ValidationChecklist::create([
+                'sa_id' => $achievement->sa_id,
+                'validator_id' => $user->id,
+                'certificate_valid' => true,
+                'event_date_valid' => true,
+                'organizer_valid' => true,
+                'level_appropriate' => true,
+                'documents_complete' => true,
+            ]);
+
             $notes = $skRequired
                 ? 'Disetujui langsung oleh admin saat submit'
-                : 'Disetujui tanpa SK: ' . (!empty($requestData['sk_waiver_reason']) ? StudentAchievement::getSkWaiverReasons()[$requestData['sk_waiver_reason']] : 'N/A');
+                : 'Disetujui tanpa SK: '.(! empty($requestData['sk_waiver_reason']) ? StudentAchievement::getSkWaiverReasons()[$requestData['sk_waiver_reason']] : 'N/A');
 
-            $this->approvalService->approve($achievement, $user, $notes, $skDocumentPath);
+            $this->universityValidationService->approve($achievement, $user, $requestData['sk_id'] ?? null, $notes);
         } elseif ($submitAction === 'reject') {
-            $this->approvalService->reject($achievement, $user, $requestData['rejection_reason'] ?? null);
+            $this->universityValidationService->reject($achievement, $user, $requestData['rejection_reason'] ?? 'Ditolak saat submit oleh admin.');
         }
 
         return $achievement;
@@ -216,7 +272,7 @@ class AdminAchievementService
                         'nim' => $siakadData['registrasi']['nim'] ?? '',
                         'name' => $siakadData['nama_mahasiswa'],
                         'faculty' => $siakadData['fakultas']['nama'] ?? '',
-                        'prodi' => $siakadData['program_studi']['nama'] ?? ''
+                        'prodi' => $siakadData['program_studi']['nama'] ?? '',
                     ];
                 }
             } catch (\Exception $e) {

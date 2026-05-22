@@ -154,6 +154,63 @@
                                         {{ $achievement->faculty_notes }}</p>
                                 </div>
                             @endif
+
+                            @if($achievement->validationChecklist)
+                                <div class="mt-4 border-t border-green-200 dark:border-green-800/60 pt-3">
+                                    <p class="text-xs font-semibold text-green-800 dark:text-green-400 mb-2 uppercase tracking-wider">Hasil Checklist Validasi Fakultas:</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        @php
+                                            $checklist = $achievement->validationChecklist;
+                                            $requiredItems = \App\Models\ValidationChecklist::getRequiredItemsFor($achievement);
+                                        @endphp
+                                        
+                                        @if(in_array('certificate', $requiredItems))
+                                            <div class="flex items-center text-xs text-green-700 dark:text-green-400">
+                                                <svg class="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span>Sertifikat Valid: <strong>Ya</strong></span>
+                                            </div>
+                                        @endif
+
+                                        @if(in_array('event_date', $requiredItems))
+                                            <div class="flex items-center text-xs text-green-700 dark:text-green-400">
+                                                <svg class="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span>Tanggal Kegiatan Valid: <strong>Ya</strong></span>
+                                            </div>
+                                        @endif
+
+                                        @if(in_array('organizer', $requiredItems))
+                                            <div class="flex items-center text-xs text-green-700 dark:text-green-400">
+                                                <svg class="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span>Penyelenggara Valid: <strong>Ya</strong></span>
+                                            </div>
+                                        @endif
+
+                                        @if(in_array('level', $requiredItems))
+                                            <div class="flex items-center text-xs text-green-700 dark:text-green-400">
+                                                <svg class="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span>Tingkat Sesuai: <strong>Ya</strong></span>
+                                            </div>
+                                        @endif
+
+                                        @if(in_array('documents', $requiredItems))
+                                            <div class="flex items-center text-xs text-green-700 dark:text-green-400">
+                                                <svg class="w-4 h-4 text-green-500 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span>Dokumen Lengkap: <strong>Ya</strong></span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

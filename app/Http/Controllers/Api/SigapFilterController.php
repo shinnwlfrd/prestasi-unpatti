@@ -21,11 +21,8 @@ class SigapFilterController extends Controller
     public function getFaculties()
     {
         $faculties = $this->sigapService->getFaculties();
-        
-        return response()->json([
-            'success' => true,
-            'data' => $faculties
-        ]);
+
+        return $this->buildSigapResponse($faculties);
     }
 
     /**
@@ -34,12 +31,10 @@ class SigapFilterController extends Controller
     public function getDepartments(Request $request)
     {
         $facultyId = $request->input('faculty_id');
-        
         $departments = $this->sigapService->getDepartments($facultyId);
-        
-        return response()->json([
-            'success' => true,
-            'data' => $departments
+
+        return $this->buildSigapResponse($departments, [
+            'faculty_id' => $facultyId,
         ]);
     }
 
@@ -49,12 +44,10 @@ class SigapFilterController extends Controller
     public function getStudyPrograms(Request $request)
     {
         $departmentId = $request->input('department_id');
-        
         $studyPrograms = $this->sigapService->getStudyPrograms($departmentId);
-        
-        return response()->json([
-            'success' => true,
-            'data' => $studyPrograms
+
+        return $this->buildSigapResponse($studyPrograms, [
+            'department_id' => $departmentId,
         ]);
     }
 
@@ -64,10 +57,23 @@ class SigapFilterController extends Controller
     public function getHierarchy()
     {
         $hierarchy = $this->sigapService->getHierarchicalStructure();
-        
-        return response()->json([
-            'success' => true,
-            'data' => $hierarchy
-        ]);
+
+        return $this->buildSigapResponse($hierarchy);
+    }
+
+    private function buildSigapResponse(array $data, array $extra = [])
+    {
+        $status = $this->sigapService->getLastOperationStatus();
+        $payload = array_merge([
+            'success' => $status['success'] ?? true,
+            'data' => $data,
+            'source' => $status['source'] ?? 'unknown',
+            'message' => $status['message'] ?? null,
+            'meta' => $status['meta'] ?? [],
+        ], $extra);
+
+        $httpCode = ($status['success'] ?? true) ? 200 : 502;
+
+        return response()->json($payload, $httpCode);
     }
 }

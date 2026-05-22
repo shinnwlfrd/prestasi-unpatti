@@ -111,11 +111,38 @@
         .hover-lift {
             transition: box-shadow 0.15s ease;
         }
+
+        /* Faded custom scrollbar for sidebar navigation */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.15);
+            border-radius: 2px;
+        }
+
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.35);
+        }
+
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.1);
+        }
+
+        .dark .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.25);
+        }
     </style>
 </head>
 
 
 <body class="bg-gray-50 dark:bg-[#0a0a0a] min-h-screen overflow-x-hidden antialiased">
+    @include('partials.offline-banner')
     <div class="min-h-screen">
         @php
             $user = auth()->user();
@@ -154,7 +181,7 @@
 
 
             <!-- Navigation -->
-            <nav class="p-4 space-y-2 overflow-y-auto h-[calc(100vh-70px)]">
+            <nav class="p-4 space-y-2 overflow-y-auto h-[calc(100vh-70px)] custom-scrollbar">
                 <a href="{{ route('admin.dashboard') }}"
                     class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.dashboard') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,6 +229,14 @@
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <span>Log Verifikasi</span>
+                </a>
+                <a href="{{ route('admin.notification-delivery-logs.index') }}"
+                    class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.notification-delivery-logs.*') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span>Log Notifikasi</span>
                 </a>
                 <a href="{{ route('admin.users') }}"
                     class="group flex items-center gap-3.5 px-4 py-3.5 rounded-lg transition-all duration-150 {{ request()->routeIs('admin.users') ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-semibold menu-active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50' }}">
@@ -462,6 +497,7 @@
     </script>
     @stack('scripts')
     @include('partials.pwa-sw-register')
+    <script src="/js/offline-status.js" defer></script>
 </body>
 
 </html>

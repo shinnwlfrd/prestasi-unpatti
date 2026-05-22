@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Student;
+use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RoleSwitchController extends Controller
 {
@@ -14,7 +17,7 @@ class RoleSwitchController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -22,13 +25,13 @@ class RoleSwitchController extends Controller
         $roles = $user->getSwitchableRoles();
 
         // Check if user email exists in students table (mahasiswa role)
-        $student = \App\Models\Student::where('email', $user->email)->first();
+        $student = Student::where('email', $user->email)->first();
 
         // If user is also a student, add mahasiswa role
         if ($student) {
             // Create a pseudo UserRole object for mahasiswa
-            $mahasiswaRole = new \App\Models\UserRole([
-                'id' => 'student_' . $student->student_id, // Unique ID for student role
+            $mahasiswaRole = new UserRole([
+                'id' => 'student_'.$student->student_id, // Unique ID for student role
                 'user_id' => $user->id,
                 'role' => 'mahasiswa',
                 'level' => 'student',
@@ -42,7 +45,7 @@ class RoleSwitchController extends Controller
             $roles->push($mahasiswaRole);
         }
 
-        if ($roles->count() <= 1 && !$student) {
+        if ($roles->count() <= 1 && ! $student) {
             // User only has one role and not a student, redirect to appropriate dashboard
             return $this->redirectToDashboard($roles->first());
         }
@@ -57,7 +60,7 @@ class RoleSwitchController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -93,22 +96,17 @@ class RoleSwitchController extends Controller
         if (str_starts_with($role_id, 'student_')) {
             try {
                 $studentId = str_replace('student_', '', $role_id);
-                $student = \App\Models\Student::where('student_id', $studentId)
+                $student = Student::where('student_id', $studentId)
                     ->where('email', $user->email)
                     ->first();
 
-                if (!$student) {
+                if (! $student) {
                     return response()->json(['error' => 'Data mahasiswa tidak ditemukan'], 404);
                 }
 
-                // Update user's primary role in database
-                $user->update([
-                    'role' => 'Mahasiswa',
-                    'faculty' => $student->faculty,
-                ]);
+                $previousRoleId = session('active_role_id');
+                $this->clearRoleSession();
 
-                // Don't logout, just switch session to student mode
-                // Keep user auth for SSO users
                 session([
                     'auth_role' => 'student',
                     'student_id' => $student->student_id,
@@ -116,11 +114,9 @@ class RoleSwitchController extends Controller
                     'student_email' => $student->email,
                     'student_nim' => $student->nim ?? $student->student_id,
                     'student_prodi' => $student->program_study_name ?? null,
-                    // Keep active_role_id for switching back
-                    'previous_role_id' => session('active_role_id'),
+                    'previous_role_id' => $previousRoleId,
                 ]);
 
-                // Clear active role to indicate student mode
                 session()->forget('active_role_id');
                 session()->forget('active_role_type');
 
@@ -130,8 +126,9 @@ class RoleSwitchController extends Controller
                     'role' => 'Mahasiswa',
                 ]);
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Role Switch Student Error: ' . $e->getMessage());
-                return response()->json(['error' => 'Gagal beralih ke role mahasiswa: ' . $e->getMessage()], 500);
+                Log::error('Role Switch Student Error: '.$e->getMessage());
+
+                return response()->json(['error' => 'Gagal beralih ke role mahasiswa: '.$e->getMessage()], 500);
             }
         }
 
@@ -145,8 +142,6 @@ class RoleSwitchController extends Controller
                 'active_role_type' => 'operator',
                 'operator_level' => 'university',
             ]);
-
-            $user->update(['role' => 'Operator']);
 
             return response()->json([
                 'success' => true,
@@ -163,8 +158,6 @@ class RoleSwitchController extends Controller
                 'pimpinan_level' => 'university',
                 'pimpinan_position' => 'super_admin',
             ]);
-
-            $user->update(['role' => 'Pimpinan']);
 
             return response()->json([
                 'success' => true,
@@ -183,7 +176,7 @@ class RoleSwitchController extends Controller
             // Regular user role switch
             $selectedRole = $user->activeRoles()->find($role_id);
 
-            if (!$selectedRole) {
+            if (! $selectedRole) {
                 return response()->json(['error' => 'Role not found atau tidak aktif'], 404);
             }
 
@@ -217,21 +210,6 @@ class RoleSwitchController extends Controller
                 ]);
             }
 
-            // Update user's primary role/context in database
-            $userRoleToUserTable = match ($selectedRole->role) {
-                'super_admin', 'admin' => 'Admin',
-                'operator' => 'Operator',
-                'pimpinan' => 'Pimpinan',
-                'mahasiswa' => 'Mahasiswa',
-                default => ucfirst($selectedRole->role),
-            };
-
-            $user->update([
-                'role' => $userRoleToUserTable,
-                'faculty' => $selectedRole->faculty_name,
-                'faculty_id' => $selectedRole->faculty_id,
-            ]);
-
             // Get redirect URL based on role
             $redirectUrl = $this->getRedirectUrl($selectedRole);
 
@@ -241,8 +219,9 @@ class RoleSwitchController extends Controller
                 'role' => $selectedRole->getRoleDisplayName(),
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Role Switch Error: ' . $e->getMessage());
-            return response()->json(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()], 500);
+            Log::error('Role Switch Error: '.$e->getMessage());
+
+            return response()->json(['error' => 'Terjadi kesalahan sistem: '.$e->getMessage()], 500);
         }
     }
 
@@ -265,12 +244,13 @@ class RoleSwitchController extends Controller
      */
     private function redirectToDashboard($role)
     {
-        if (!$role) {
+        if (! $role) {
             return redirect()->route('login');
         }
 
         return redirect($this->getRedirectUrl($role));
     }
+
     /**
      * Clear role-specific session variables
      */

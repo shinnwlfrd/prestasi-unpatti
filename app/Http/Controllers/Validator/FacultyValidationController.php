@@ -3,19 +3,21 @@
 namespace App\Http\Controllers\Validator;
 
 use App\Http\Controllers\Controller;
-use App\Models\StudentAchievement;
 use App\Models\AchievementCategory;
 use App\Models\AchievementLevel;
-use App\Models\ValidationLog;
+use App\Models\Student;
+use App\Models\StudentAchievement;
+use App\Services\SigapApiService;
 use App\Services\Validator\FacultyValidationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class FacultyValidationController extends Controller
 {
     public function __construct(
         protected FacultyValidationService $facultyValidationService
-    ) {
-    }
+    ) {}
 
     /**
      * Display pending achievements for faculty validation
@@ -26,7 +28,7 @@ class FacultyValidationController extends Controller
         header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
         header('Pragma: no-cache');
         header('Expires: 0');
-        
+
         $validator = auth()->user();
         $currentRole = $validator->getCurrentRole();
 
@@ -39,16 +41,14 @@ class FacultyValidationController extends Controller
         // Build query based on access level
         $query = StudentAchievement::with(['student', 'achievement.category', 'documents'])
             ->whereNull('deleted_at')
-            ->where(function ($q) {
-                $q->facultyPending()->orWhere('validation_status', 'Menunggu');
-            });
+            ->whereIn('validation_status', StudentAchievement::getFacultyPendingStatuses());
 
         $this->applyScopeFiltering($query, $level, $facultyId, $departmentId, $programStudyId, $validator);
 
         // Apply filters
         $filters = $request->only(['search', 'level', 'category', 'faculty', 'date_from', 'date_to', 'sort_date']);
         $filters['sort_date'] = $filters['sort_date'] ?? 'oldest';
-        
+
         $achievements = $this->getFilteredAchievements($query, $filters);
 
         return view('validator.pending.index', [
@@ -58,22 +58,24 @@ class FacultyValidationController extends Controller
             'faculties' => $level === 'university' ? $this->getFacultiesForFilter() : collect(),
             'filters' => $filters,
             'statistics' => $this->getStatistics($level, $facultyId, $departmentId, $programStudyId),
-            'debugCount' => $this->getDebugCount($validator)
+            'debugCount' => $this->getDebugCount($validator),
         ]);
     }
 
     private function applyScopeFiltering($query, $level, $facultyId, $departmentId, $programStudyId, $validator)
     {
-        if ($level === 'university') return;
+        if ($level === 'university') {
+            return;
+        }
 
         if ($level === 'faculty' && $facultyId) {
-            $query->whereHas('student', fn($q) => $q->where('faculty_id', $facultyId));
+            $query->whereHas('student', fn ($q) => $q->where('faculty_id', $facultyId));
         } elseif ($level === 'department' && $departmentId) {
-            $query->whereHas('student', fn($q) => $q->where('department_id', $departmentId));
+            $query->whereHas('student', fn ($q) => $q->where('department_id', $departmentId));
         } elseif ($level === 'program_study' && $programStudyId) {
-            $query->whereHas('student', fn($q) => $q->where('program_study_id', $programStudyId));
+            $query->whereHas('student', fn ($q) => $q->where('program_study_id', $programStudyId));
         } elseif ($validator->faculty) {
-            $query->whereHas('student', fn($q) => $q->where('faculty', $validator->faculty));
+            $query->whereHas('student', fn ($q) => $q->where('faculty', $validator->faculty));
         }
     }
 
@@ -84,14 +86,14 @@ class FacultyValidationController extends Controller
                 $q->where(function ($query) use ($search) {
                     $query->where('event_name', 'like', "%{$search}%")
                         ->orWhere('student_id', 'like', "%{$search}%")
-                        ->orWhereHas('student', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+                        ->orWhereHas('student', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
                 });
             })
-            ->when($filters['level'] ?? null, fn($q, $level) => $q->where('level', $level))
-            ->when($filters['category'] ?? null, fn($q, $cat) => $q->whereHas('achievement', fn($sq) => $sq->where('category_id', $cat)))
-            ->when($filters['faculty'] ?? null, fn($q, $fac) => $q->whereHas('student', fn($sq) => $sq->where('faculty_id', $fac)))
-            ->when($filters['date_from'] ?? null, fn($q, $from) => $q->whereDate('submitted_at', '>=', $from))
-            ->when($filters['date_to'] ?? null, fn($q, $to) => $q->whereDate('submitted_at', '<=', $to))
+            ->when($filters['level'] ?? null, fn ($q, $level) => $q->where('level', $level))
+            ->when($filters['category'] ?? null, fn ($q, $cat) => $q->whereHas('achievement', fn ($sq) => $sq->where('category_id', $cat)))
+            ->when($filters['faculty'] ?? null, fn ($q, $fac) => $q->whereHas('student', fn ($sq) => $sq->where('faculty_id', $fac)))
+            ->when($filters['date_from'] ?? null, fn ($q, $from) => $q->whereDate('submitted_at', '>=', $from))
+            ->when($filters['date_to'] ?? null, fn ($q, $to) => $q->whereDate('submitted_at', '<=', $to))
             ->orderBy('submitted_at', ($filters['sort_date'] ?? 'oldest') === 'newest' ? 'desc' : 'asc')
             ->paginate(20)
             ->withQueryString()
@@ -100,21 +102,23 @@ class FacultyValidationController extends Controller
 
     private function getFacultiesForFilter()
     {
-        $nameMap = app(\App\Services\SigapApiService::class)->getUnitNameMap();
-        return \App\Models\Student::select('faculty_id', \Illuminate\Support\Facades\DB::raw('MAX(faculty) as faculty'))
+        $nameMap = app(SigapApiService::class)->getUnitNameMap();
+
+        return Student::select('faculty_id', DB::raw('MAX(faculty) as faculty'))
             ->whereNotNull('faculty_id')
             ->groupBy('faculty_id')
             ->orderBy('faculty')
             ->get()
-            ->map(fn($item) => (object)[
+            ->map(fn ($item) => (object) [
                 'id' => $item->faculty_id,
-                'name' => $nameMap[$item->faculty_id] ?? $item->faculty
+                'name' => $nameMap[$item->faculty_id] ?? $item->faculty,
             ]);
     }
+
     private function getDebugCount($validator)
     {
-        return StudentAchievement::whereHas('student', fn($q) => $q->where('faculty', $validator->faculty))
-            ->where('validation_status', 'Menunggu')
+        return StudentAchievement::whereHas('student', fn ($q) => $q->where('faculty', $validator->faculty))
+            ->whereIn('validation_status', StudentAchievement::getFacultyPendingStatuses())
             ->count();
     }
 
@@ -140,7 +144,7 @@ class FacultyValidationController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari jurusan lain.');
         } elseif ($level === 'program_study' && $programStudyId && $achievement->student->program_study_id !== $programStudyId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari prodi lain.');
-        } elseif (!$level) {
+        } elseif (! $level) {
             // Fallback to old method - check faculty string
             if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
@@ -182,7 +186,7 @@ class FacultyValidationController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari jurusan lain.');
         } elseif ($level === 'program_study' && $programStudyId && $achievement->student->program_study_id !== $programStudyId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari prodi lain.');
-        } elseif (!$level) {
+        } elseif (! $level) {
             // Fallback to old method - check faculty string
             if ($validator->faculty && $achievement->student->faculty !== $validator->faculty) {
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
@@ -195,6 +199,7 @@ class FacultyValidationController extends Controller
             'notes' => 'nullable|string|max:1000',
             'rejection_reason' => 'required_if:action,reject|nullable|string|max:1000',
             'revision_reason' => 'required_if:action,request_revision|nullable|string|max:1000',
+            'checklist' => 'nullable|array',
         ]);
 
         try {
@@ -202,7 +207,8 @@ class FacultyValidationController extends Controller
                 'approve' => $this->facultyValidationService->approve(
                     $achievement,
                     $validator,
-                    $request->notes
+                    $request->notes,
+                    $request->input('checklist', [])
                 ),
                 'reject' => $this->facultyValidationService->reject(
                     $achievement,
@@ -242,42 +248,37 @@ class FacultyValidationController extends Controller
         $validator = auth()->user();
 
         $query = StudentAchievement::query();
-        
+
         // Apply scope filtering based on operator level
         if ($level === 'university') {
             // University level operator can see all faculties - no filtering
         } elseif ($level === 'faculty' && $facultyId) {
-            $query->whereHas('student', fn($q) => $q->where('faculty_id', $facultyId));
+            $query->whereHas('student', fn ($q) => $q->where('faculty_id', $facultyId));
         } elseif ($level === 'department' && $departmentId) {
-            $query->whereHas('student', fn($q) => $q->where('department_id', $departmentId));
+            $query->whereHas('student', fn ($q) => $q->where('department_id', $departmentId));
         } elseif ($level === 'program_study' && $programStudyId) {
-            $query->whereHas('student', fn($q) => $q->where('program_study_id', $programStudyId));
+            $query->whereHas('student', fn ($q) => $q->where('program_study_id', $programStudyId));
         } else {
             // Fallback to old method - check faculty string
             $faculty = $validator->faculty;
             if ($faculty) {
-                $query->whereHas('student', fn($q) => $q->where('faculty', $faculty));
+                $query->whereHas('student', fn ($q) => $q->where('faculty', $faculty));
             }
         }
 
-        // Support both old and new status systems
-        $pending = (clone $query)->where(function ($q) {
-            $q->facultyPending() // New system: submitted, faculty_review
-                ->orWhere('validation_status', 'Menunggu'); // Old system: Menunggu
-        })->count();
+        $pending = (clone $query)->whereIn('validation_status', StudentAchievement::getFacultyPendingStatuses())->count();
 
         $approvedToday = (clone $query)->where(function ($q) {
             $q->where('validation_status', StudentAchievement::STATUS_FACULTY_APPROVED)
                 ->whereDate('faculty_validated_at', today())
                 ->orWhere(function ($sq) {
-                    $sq->where('validation_status', 'Disetujui')
+                    $sq->where('validation_status', StudentAchievement::STATUS_APPROVED)
                         ->whereDate('updated_at', today());
                 });
         })->count();
 
         $revisionRequested = (clone $query)->where(function ($q) {
-            $q->where('validation_status', StudentAchievement::STATUS_FACULTY_REVISION)
-                ->orWhere('validation_status', 'Revisi');
+            $q->whereIn('validation_status', StudentAchievement::getValidationDecisionStatusGroups()['revision']);
         })->count();
 
         return [
@@ -310,7 +311,7 @@ class FacultyValidationController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari jurusan lain.');
         } elseif ($level === 'program_study' && $achievement->student->program_study_id !== $programStudyId) {
             abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari prodi lain.');
-        } elseif (!$level) {
+        } elseif (! $level) {
             // Fallback to old method
             if ($achievement->student->faculty !== $validator->faculty) {
                 abort(403, 'Anda tidak memiliki akses untuk validasi prestasi dari fakultas lain.');
@@ -350,7 +351,7 @@ class FacultyValidationController extends Controller
             return response()->json(['error' => 'Unauthorized access'], 403);
         } elseif ($level === 'program_study' && $programStudyId && $achievement->student->program_study_id !== $programStudyId) {
             return response()->json(['error' => 'Unauthorized access'], 403);
-        } elseif (!$level && $user->faculty && $achievement->student->faculty !== $user->faculty) {
+        } elseif (! $level && $user->faculty && $achievement->student->faculty !== $user->faculty) {
             return response()->json(['error' => 'Unauthorized access'], 403);
         }
 
@@ -366,15 +367,15 @@ class FacultyValidationController extends Controller
             'event_name' => $achievement->event_name,
             'level' => $achievement->level,
             'organizer' => $achievement->organizer,
-            'event_date' => $achievement->event_date instanceof \Illuminate\Support\Carbon 
-                ? $achievement->event_date->format('d M Y') 
-                : ($achievement->event_date ? \Illuminate\Support\Carbon::parse($achievement->event_date)->format('d M Y') : null),
+            'event_date' => $achievement->event_date instanceof Carbon
+                ? $achievement->event_date->format('d M Y')
+                : ($achievement->event_date ? Carbon::parse($achievement->event_date)->format('d M Y') : null),
             'description' => $achievement->description,
             'ranking' => $achievement->ranking,
             'validation_status' => $achievement->validation_status,
-            'submitted_at' => $achievement->submitted_at instanceof \Illuminate\Support\Carbon 
-                ? $achievement->submitted_at->format('d M Y H:i') 
-                : ($achievement->submitted_at ? \Illuminate\Support\Carbon::parse($achievement->submitted_at)->format('d M Y H:i') : null),
+            'submitted_at' => $achievement->submitted_at instanceof Carbon
+                ? $achievement->submitted_at->format('d M Y H:i')
+                : ($achievement->submitted_at ? Carbon::parse($achievement->submitted_at)->format('d M Y H:i') : null),
             'student' => [
                 'name' => $achievement->student?->name ?? 'N/A',
                 'student_id' => $achievement->student_id,
