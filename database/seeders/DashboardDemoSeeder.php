@@ -16,9 +16,7 @@ use App\Models\UserRole;
 use App\Models\ValidationLog;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DashboardDemoSeeder extends Seeder
 {
@@ -50,9 +48,10 @@ class DashboardDemoSeeder extends Seeder
     private function seedAcademicPeriods()
     {
         $this->command->info('Seeding Academic Periods...');
-        
+
         AcademicPeriod::create([
             'name' => '2023/2024 Ganjil',
+            'code' => '20231',
             'year' => 2023,
             'semester' => 'Ganjil',
             'start_date' => Carbon::create(2023, 9, 1),
@@ -62,6 +61,7 @@ class DashboardDemoSeeder extends Seeder
 
         AcademicPeriod::create([
             'name' => '2023/2024 Genap',
+            'code' => '20232',
             'year' => 2023,
             'semester' => 'Genap',
             'start_date' => Carbon::create(2024, 3, 1),
@@ -71,6 +71,7 @@ class DashboardDemoSeeder extends Seeder
 
         AcademicPeriod::create([
             'name' => '2024/2025 Ganjil',
+            'code' => '20241',
             'year' => 2024,
             'semester' => 'Ganjil',
             'start_date' => Carbon::create(2024, 9, 1),
@@ -93,7 +94,13 @@ class DashboardDemoSeeder extends Seeder
         ];
 
         foreach ($categories as $cat) {
-            AchievementCategory::create($cat + ['is_active' => true]);
+            $category = AchievementCategory::create($cat + ['is_active' => true]);
+            Achievement::create([
+                'category_id' => $category->id,
+                'name' => 'Template '.$category->name,
+                'description' => 'Template prestasi untuk kategori '.$category->name,
+                'is_active' => true,
+            ]);
         }
 
         $levels = [
@@ -126,10 +133,10 @@ class DashboardDemoSeeder extends Seeder
         // Create Faculty Operators
         foreach ($faculties as $facultyName => $prodis) {
             $shortName = $this->getShortName($facultyName);
-            $email = strtolower($shortName) . '@operator.test';
-            
+            $email = strtolower($shortName).'@operator.test';
+
             $user = User::create([
-                'name' => 'Operator ' . $facultyName,
+                'name' => 'Operator '.$facultyName,
                 'email' => $email,
                 'password' => Hash::make('password'),
                 'role' => 'Operator',
@@ -151,9 +158,9 @@ class DashboardDemoSeeder extends Seeder
         for ($i = 1; $i <= 50; $i++) {
             $facultyName = array_rand($faculties);
             $prodi = $faculties[$facultyName][array_rand($faculties[$facultyName])];
-            $studentId = $pId . str_pad($i, 5, '0', STR_PAD_LEFT);
-            $name = 'Mahasiswa Demo ' . $i;
-            $email = $studentId . '@student.unpatti.ac.id';
+            $studentId = $pId.str_pad($i, 5, '0', STR_PAD_LEFT);
+            $name = 'Mahasiswa Demo '.$i;
+            $email = $studentId.'@student.unpatti.ac.id';
 
             $student = Student::create([
                 'student_id' => $studentId,
@@ -163,7 +170,6 @@ class DashboardDemoSeeder extends Seeder
                 'angkatan' => 2021 + ($i % 4),
                 'gpa' => 3.0 + (rand(0, 100) / 100),
                 'email' => $email,
-                'is_active' => true,
             ]);
 
             // Create User for Student (some students only)
@@ -185,7 +191,9 @@ class DashboardDemoSeeder extends Seeder
                 ]);
             }
 
-            if ($i % 10 == 0) $pId++;
+            if ($i % 10 == 0) {
+                $pId++;
+            }
         }
     }
 
@@ -205,7 +213,7 @@ class DashboardDemoSeeder extends Seeder
             // Appeal
             'appeal_submitted', 'appeal_approved', 'appeal_rejected',
             // Legacy
-            'Menunggu', 'Disetujui', 'Ditolak'
+            'Menunggu', 'Disetujui', 'Ditolak',
         ];
 
         $validators = User::where('role', 'Operator')->get();
@@ -221,15 +229,17 @@ class DashboardDemoSeeder extends Seeder
                 $status = $statuses[array_rand($statuses)];
 
                 // Adjust status based on period (if inactive, most should be approved or rejected)
-                if (!$period->is_active && rand(0, 10) > 2) {
+                if (! $period->is_active && rand(0, 10) > 2) {
                     $status = rand(0, 1) ? 'university_approved' : 'university_rejected';
                 }
 
                 $createdAt = Carbon::parse($period->start_date)->addDays(rand(1, 150));
-                if ($createdAt->isFuture()) $createdAt = now()->subDays(rand(1, 30));
-                
+                if ($createdAt->isFuture()) {
+                    $createdAt = now()->subDays(rand(1, 30));
+                }
+
                 $submittedAt = (clone $createdAt)->addHours(rand(1, 48));
-                
+
                 // Achievement Title Example
                 $achTitles = [
                     'Juara 1 Lomba Karya Tulis Ilmiah',
@@ -241,14 +251,17 @@ class DashboardDemoSeeder extends Seeder
                     'Delegasi Pertukaran Mahasiswa',
                     'Penulis Artikel Jurnal Terakreditasi',
                 ];
-                $title = $achTitles[array_rand($achTitles)] . ' ' . $level;
+                $title = $achTitles[array_rand($achTitles)].' '.$level;
+
+                $achievementTemplate = Achievement::where('category_id', $category->id)->first();
 
                 $sa = StudentAchievement::create([
                     'student_id' => $student->student_id,
+                    'achievement_id' => $achievementTemplate->id,
                     'academic_period_id' => $period->id,
                     'event_name' => $title,
                     'level' => $level,
-                    'organizer' => 'Penyelenggara Demo ' . rand(1, 10),
+                    'organizer' => 'Penyelenggara Demo '.rand(1, 10),
                     'event_date' => (clone $createdAt)->subDays(rand(7, 30)),
                     'ranking' => rand(1, 10),
                     'validation_status' => $status,
@@ -258,15 +271,15 @@ class DashboardDemoSeeder extends Seeder
                 ]);
 
                 // Create Validation Logs for some
-                if (!in_array($status, ['submitted', 'Menunggu'])) {
+                if (! in_array($status, ['submitted', 'Menunggu'])) {
                     $valAction = 'validate';
                     $valStage = 'faculty';
-                    
+
                     // Match operator by faculty name if possible
-                    $validator = $validators->filter(function($v) use ($student) {
+                    $validator = $validators->filter(function ($v) use ($student) {
                         return $v->roles()->where('role', 'operator')->where('faculty_name', $student->faculty)->exists();
                     })->first() ?? $validators->random();
-                    
+
                     if (str_contains($status, 'university')) {
                         $valStage = 'university';
                         $validator = $admins->random();
@@ -312,13 +325,16 @@ class DashboardDemoSeeder extends Seeder
         $this->command->info('Seeding SK Documents...');
 
         $period = AcademicPeriod::where('is_active', true)->first();
-        if (!$period) return;
+        if (! $period) {
+            return;
+        }
 
         for ($i = 1; $i <= 5; $i++) {
             $sk = SKDocument::create([
-                'sk_number' => 'SK/UNPATTI/' . date('Y') . '/' . str_pad($i, 3, '0', STR_PAD_LEFT),
+                'sk_number' => 'SK/UNPATTI/'.date('Y').'/'.str_pad($i, 3, '0', STR_PAD_LEFT),
                 'issued_date' => now()->subMonths($i),
-                'title' => 'SK Penetapan Prestasi Mahasiswa Periode ' . $i,
+                'title' => 'SK Penetapan Prestasi Mahasiswa Periode '.$i,
+                'issued_by' => 'Rektor Universitas Pattimura',
                 'created_by' => User::where('role', 'Admin')->first()->id,
             ]);
 

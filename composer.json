@@ -51,6 +51,10 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "test:critical": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --compact tests/Feature/ApplicationFlowTest.php tests/Feature/DocumentWorkflowTest.php tests/Feature/SystemWorkflowTest.php --coverage --min=80"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

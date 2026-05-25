@@ -8,7 +8,9 @@ use App\Models\AchievementCategory;
 use App\Models\AchievementLevel;
 use App\Models\StudentAchievement;
 use App\Services\Student\AchievementService;
+use App\Support\OperationalLogContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AchievementController extends Controller
 {
@@ -50,6 +52,10 @@ class AchievementController extends Controller
         }
 
         if (! $request->file('certificate')->isValid()) {
+            Log::warning('Student certificate upload invalid', OperationalLogContext::uploadFailure('student_certificate_invalid', [
+                'student_id' => $studentId,
+            ]));
+
             return back()->with('error', 'File sertifikat tidak valid atau gagal diupload.')->withInput();
         }
 

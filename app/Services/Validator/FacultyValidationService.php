@@ -9,6 +9,7 @@ use App\Models\ValidationLog;
 use App\Notifications\AchievementStatusChanged;
 use App\Services\DocumentVerificationService;
 use App\Support\AchievementNotificationDispatcher;
+use App\Support\OperationalLogContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -82,6 +83,12 @@ class FacultyValidationService
             $validStatuses = StudentAchievement::getFacultyPendingStatuses();
 
             if (! in_array($achievement->validation_status, $validStatuses)) {
+                Log::warning('Invalid faculty approval status transition attempted', OperationalLogContext::validationFailure('faculty_approval_invalid_status', [
+                    'sa_id' => $achievement->sa_id,
+                    'validator_id' => $validator->id,
+                    'current_status' => $achievement->validation_status,
+                ]));
+
                 throw new \Exception('Status prestasi tidak valid untuk approval fakultas. Status saat ini: '.$achievement->validation_status);
             }
 

@@ -17,6 +17,6 @@
       Psy\Exception\ParseErrorException::fromParseError(Object(PhpParser\Error))
 
   2   vendor\psy\psysh\src\CodeCleaner.php:273
-      Psy\CodeCleaner::parse("<?php print_r(App\Models\Student::find('202351031')?-;
+      Psy\CodeCleaner::parse("<?php print_r(app(App\Services\SigapApiService::class)-;
 ")
 

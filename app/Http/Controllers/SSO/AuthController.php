@@ -2,22 +2,20 @@
 
 namespace App\Http\Controllers\SSO;
 
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use InvalidArgumentException;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use App\Models\Student;
-use App\Models\UserRole;
+use App\Services\SsoAuthService;
+use App\Support\OperationalLogContext;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    protected \App\Services\SsoAuthService $ssoService;
+    protected SsoAuthService $ssoService;
 
-    public function __construct(\App\Services\SsoAuthService $ssoService)
+    public function __construct(SsoAuthService $ssoService)
     {
         $this->ssoService = $ssoService;
     }
@@ -34,11 +32,11 @@ class AuthController extends Controller
         $requestState = $request->input('state');
         $sessionState = $request->session()->get('state');
 
-        if (!$requestState || !$sessionState || !hash_equals($sessionState, $requestState)) {
+        if (! $requestState || ! $sessionState || ! hash_equals($sessionState, $requestState)) {
             Log::warning('Invalid OAuth state received', [
                 'has_request_state' => (bool) $requestState,
                 'has_session_state' => (bool) $sessionState,
-            ]);
+            ] + OperationalLogContext::authFailure('oauth_state_mismatch'));
 
             abort(403, 'Invalid OAuth state');
         }
@@ -48,18 +46,18 @@ class AuthController extends Controller
         try {
             Log::info('SSO Callback Started', [
                 'code' => $request->code ? 'present' : 'missing',
-                'state' => $request->state ? 'present' : 'missing'
+                'state' => $request->state ? 'present' : 'missing',
             ]);
 
             $accessToken = $this->ssoService->exchangeCodeForToken($request->code);
 
-            if (!$accessToken) {
+            if (! $accessToken) {
                 return redirect()->route('login')->with('error', 'Gagal mendapatkan access token');
             }
 
             $userInfo = $this->ssoService->getUserInfo($accessToken);
 
-            if (!$userInfo) {
+            if (! $userInfo) {
                 return redirect()->route('login')->with('error', 'Gagal mendapatkan data user');
             }
 
@@ -71,7 +69,7 @@ class AuthController extends Controller
             if ($existingUser) {
                 if ($existingUser->trashed()) {
                     return redirect()->route('login')
-                        ->with('error', 'Akun Anda (' . $email . ') telah dinonaktifkan. Silakan hubungi Administrator.');
+                        ->with('error', 'Akun Anda ('.$email.') telah dinonaktifkan. Silakan hubungi Administrator.');
                 }
 
                 if (strtolower($existingUser->role) === 'student' || $isStudentEmail) {
@@ -90,9 +88,10 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             Log::error('SSO Callback Error', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            return redirect()->route('login')->with('error', 'Terjadi kesalahan saat autentikasi: ' . $e->getMessage());
+
+            return redirect()->route('login')->with('error', 'Terjadi kesalahan saat autentikasi: '.$e->getMessage());
         }
     }
 
@@ -100,7 +99,7 @@ class AuthController extends Controller
     {
         $result = $this->ssoService->handleStudentLogin($userInfo, $accessToken);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return redirect()->route('login')->with('error', $result['error']);
         }
 
@@ -118,12 +117,12 @@ class AuthController extends Controller
     {
         $result = $this->ssoService->handleStaffLogin($userInfo, $accessToken);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return redirect()->route('login')->with('error', $result['error']);
         }
 
         return redirect()->route($result['redirect'])
-            ->with('success', 'Selamat datang, ' . ($userInfo['name'] ?? 'User') . '!');
+            ->with('success', 'Selamat datang, '.($userInfo['name'] ?? 'User').'!');
     }
 
     public function logout(Request $request)
