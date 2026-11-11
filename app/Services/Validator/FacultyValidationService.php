@@ -375,6 +375,7 @@ class FacultyValidationService
         try {
             $admins = User::where('role', 'Admin')->where('is_active', true)->get();
 
+            /** @var User $admin */
             foreach ($admins as $admin) {
                 $admin->notify(new AchievementStatusChanged($achievement, $action));
             }

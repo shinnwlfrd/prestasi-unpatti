@@ -224,7 +224,7 @@ class DashboardAndSlaTest extends TestCase
     public function validator_dashboard_service_caches_by_role_scope(): void
     {
         // Authenticate the user for direct service call
-        auth()->login($this->operatorUser);
+        $this->actingAs($this->operatorUser);
 
         // Mock current validator session context
         session([

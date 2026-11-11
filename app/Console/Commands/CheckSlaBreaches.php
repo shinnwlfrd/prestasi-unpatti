@@ -38,6 +38,7 @@ class CheckSlaBreaches extends Command
 
         $this->info('Found '.$facultyAchievements->count().' achievements breaching SLA at Faculty stage.');
 
+        /** @var StudentAchievement $achievement */
         foreach ($facultyAchievements as $achievement) {
             $facultyId = $achievement->student?->faculty_id;
 
@@ -59,6 +60,7 @@ class CheckSlaBreaches extends Command
                     // Fallback to notify university admins/operators
                     $this->notifyUniversityAdmins($achievement, $daysOverdue, 'faculty');
                 } else {
+                    /** @var User $operator */
                     foreach ($operators as $operator) {
                         $operator->notify(new SlaBreachDetected($achievement, $daysOverdue, 'faculty'));
                     }
@@ -80,6 +82,7 @@ class CheckSlaBreaches extends Command
 
         $this->info('Found '.$universityAchievements->count().' achievements breaching SLA at University stage.');
 
+        /** @var StudentAchievement $achievement */
         foreach ($universityAchievements as $achievement) {
             $validatedAtDate = $achievement->faculty_validated_at ?? $achievement->updated_at;
             $validatedAt = Carbon::parse($validatedAtDate);
@@ -103,6 +106,7 @@ class CheckSlaBreaches extends Command
                 });
         })->get();
 
+        /** @var User $admin */
         foreach ($admins as $admin) {
             $admin->notify(new SlaBreachDetected($achievement, $daysOverdue, $stage));
         }

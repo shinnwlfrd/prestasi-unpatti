@@ -67,13 +67,15 @@ class AcademicPeriod extends Model
         }
 
         $now = now();
-        $deadline = $this->submission_deadline ?? $this->end_date?->endOfDay();
+        $deadline = $this->submission_deadline ?? ($this->end_date ? Carbon::parse($this->end_date)->endOfDay() : null);
 
         if (! $deadline) {
             return false;
         }
 
-        return $now->greaterThanOrEqualTo($this->start_date->startOfDay())
+        $startDate = Carbon::parse($this->start_date);
+
+        return $now->greaterThanOrEqualTo($startDate->startOfDay())
             && $now->lessThanOrEqualTo($deadline);
     }
 
